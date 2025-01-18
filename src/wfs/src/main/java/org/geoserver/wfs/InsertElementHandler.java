@@ -22,12 +22,18 @@ import org.geoserver.wfs.request.Insert;
 import org.geoserver.wfs.request.TransactionElement;
 import org.geoserver.wfs.request.TransactionRequest;
 import org.geoserver.wfs.request.TransactionResponse;
+import org.geotools.api.data.FeatureStore;
+import org.geotools.api.data.SimpleFeatureStore;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.type.GeometryDescriptor;
+import org.geotools.api.filter.FilterFactory;
+import org.geotools.api.filter.identity.FeatureId;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.data.DataUtilities;
-import org.geotools.data.FeatureStore;
 import org.geotools.data.collection.ListFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
-import org.geotools.data.simple.SimpleFeatureStore;
 import org.geotools.feature.NameImpl;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.geometry.jts.JTS;
@@ -36,12 +42,6 @@ import org.geotools.referencing.operation.projection.PointOutsideEnvelopeExcepti
 import org.geotools.util.Version;
 import org.geotools.util.factory.Hints;
 import org.locationtech.jts.geom.Geometry;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.GeometryDescriptor;
-import org.opengis.filter.FilterFactory;
-import org.opengis.filter.identity.FeatureId;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
  * Handler for the insert element
@@ -60,8 +60,7 @@ public class InsertElementHandler extends AbstractTransactionElementHandler {
     }
 
     @Override
-    public void checkValidity(
-            TransactionElement element, Map<QName, FeatureTypeInfo> featureTypeInfos)
+    public void checkValidity(TransactionElement element, Map<QName, FeatureTypeInfo> featureTypeInfos)
             throws WFSTransactionException {
         if (!getInfo().getServiceLevel().getOps().contains(WFSInfo.Operation.TRANSACTION_INSERT)) {
             throw new WFSException(element, "Transaction INSERT support is not enabled");
@@ -85,14 +84,13 @@ public class InsertElementHandler extends AbstractTransactionElementHandler {
 
         try {
             // group features by their schema
-            HashMap /* <SimpleFeatureType,FeatureCollection> */ schema2features = new HashMap();
+            HashMap /* <SimpleFeatureType,FeatureCollection> */ schema2features = new HashMap<>();
 
             List featureList = insert.getFeatures();
             for (Object item : featureList) {
                 SimpleFeature feature = (SimpleFeature) item;
                 SimpleFeatureType schema = feature.getFeatureType();
-                ListFeatureCollection collection =
-                        (ListFeatureCollection) schema2features.get(schema);
+                ListFeatureCollection collection = (ListFeatureCollection) schema2features.get(schema);
 
                 if (collection == null) {
                     collection = new ListFeatureCollection(schema);
@@ -104,12 +102,9 @@ public class InsertElementHandler extends AbstractTransactionElementHandler {
                 if (insert.isIdGenUseExisting()) {
                     feature.getUserData().put(Hints.USE_PROVIDED_FID, true);
                 } else {
-                    Object identifier =
-                            feature.getAttribute(new NameImpl(GML.NAMESPACE, "identifier"));
-                    if (WFSInfo.Version.V_20.compareTo(insert.getVersion()) >= 0
-                            && identifier instanceof String) {
-                        SimpleFeatureBuilder fb =
-                                new SimpleFeatureBuilder(feature.getFeatureType());
+                    Object identifier = feature.getAttribute(new NameImpl(GML.NAMESPACE, "identifier"));
+                    if (WFSInfo.Version.V_20.compareTo(insert.getVersion()) >= 0 && identifier instanceof String) {
+                        SimpleFeatureBuilder fb = new SimpleFeatureBuilder(feature.getFeatureType());
                         fb.init(feature);
                         feature = fb.buildFeature((String) identifier);
                         feature.getUserData().put(Hints.USE_PROVIDED_FID, true);
@@ -131,14 +126,11 @@ public class InsertElementHandler extends AbstractTransactionElementHandler {
                 SimpleFeatureCollection collection = (SimpleFeatureCollection) value;
                 SimpleFeatureType schema = collection.getSchema();
 
-                final QName elementName =
-                        new QName(schema.getName().getNamespaceURI(), schema.getTypeName());
-                SimpleFeatureStore store =
-                        DataUtilities.simple((FeatureStore) featureStores.get(elementName));
+                final QName elementName = new QName(schema.getName().getNamespaceURI(), schema.getTypeName());
+                SimpleFeatureStore store = DataUtilities.simple((FeatureStore) featureStores.get(elementName));
 
                 if (store == null) {
-                    throw new WFSException(
-                            request, "Could not locate FeatureStore for '" + elementName + "'");
+                    throw new WFSException(request, "Could not locate FeatureStore for '" + elementName + "'");
                 }
 
                 if (collection != null) {
@@ -149,13 +141,10 @@ public class InsertElementHandler extends AbstractTransactionElementHandler {
                     }
 
                     // reprojection
-                    final GeometryDescriptor defaultGeometry =
-                            store.getSchema().getGeometryDescriptor();
+                    final GeometryDescriptor defaultGeometry = store.getSchema().getGeometryDescriptor();
                     if (defaultGeometry != null) {
-                        CoordinateReferenceSystem target =
-                                defaultGeometry.getCoordinateReferenceSystem();
-                        if (target
-                                != null /* && !CRS.equalsIgnoreMetadata(collection.getSchema()
+                        CoordinateReferenceSystem target = defaultGeometry.getCoordinateReferenceSystem();
+                        if (target != null /* && !CRS.equalsIgnoreMetadata(collection.getSchema()
                                         .getCoordinateReferenceSystem(), target) */) {
                             collection = new ReprojectingFeatureCollection(collection, target);
                         }
@@ -194,26 +183,20 @@ public class InsertElementHandler extends AbstractTransactionElementHandler {
 
                     // fire pre insert event
                     TransactionEvent event =
-                            new TransactionEvent(
-                                    TransactionEventType.PRE_INSERT,
-                                    request,
-                                    elementName,
-                                    collection);
+                            new TransactionEvent(TransactionEventType.PRE_INSERT, request, elementName, collection);
                     event.setSource(Insert.WFS11.unadapt(insert));
 
                     listener.dataStoreChange(event);
                     fids.addAll(store.addFeatures(collection));
 
                     // fire post insert event
-                    SimpleFeatureCollection features =
-                            store.getFeatures(filterFactory.id(new HashSet<>(fids)));
-                    event =
-                            new TransactionEvent(
-                                    TransactionEventType.POST_INSERT,
-                                    request,
-                                    elementName,
-                                    features,
-                                    Insert.WFS11.unadapt(insert));
+                    SimpleFeatureCollection features = store.getFeatures(filterFactory.id(new HashSet<>(fids)));
+                    event = new TransactionEvent(
+                            TransactionEventType.POST_INSERT,
+                            request,
+                            elementName,
+                            features,
+                            Insert.WFS11.unadapt(insert));
                     listener.dataStoreChange(event);
                 }
             }
@@ -225,8 +208,7 @@ public class InsertElementHandler extends AbstractTransactionElementHandler {
                 SimpleFeatureType schema = feature.getFeatureType();
 
                 // get the next fid
-                LinkedList<FeatureId> fids =
-                        (LinkedList<FeatureId>) schema2fids.get(schema.getTypeName());
+                LinkedList<FeatureId> fids = (LinkedList<FeatureId>) schema2fids.get(schema.getTypeName());
                 FeatureId fid = fids.removeFirst();
 
                 response.addInsertedFeature(insert.getHandle(), fid);
@@ -235,8 +217,7 @@ public class InsertElementHandler extends AbstractTransactionElementHandler {
             // update the insert counter
             inserted += featureList.size();
         } catch (Exception e) {
-            String msg = "Error performing insert: " + e.getMessage();
-            throw new WFSTransactionException(msg, e, insert.getHandle());
+            throw exceptionFactory.newWFSTransactionException("Insert error: " + e.getMessage(), e, insert.getHandle());
         }
 
         // update transaction summary
@@ -244,8 +225,7 @@ public class InsertElementHandler extends AbstractTransactionElementHandler {
     }
 
     /** Checks that all features coordinates are within the expected coordinate range */
-    void checkFeatureCoordinatesRange(SimpleFeatureCollection collection)
-            throws PointOutsideEnvelopeException {
+    void checkFeatureCoordinatesRange(SimpleFeatureCollection collection) throws PointOutsideEnvelopeException {
         List types = collection.getSchema().getAttributeDescriptors();
         try (SimpleFeatureIterator fi = collection.features()) {
             while (fi.hasNext()) {
@@ -255,8 +235,7 @@ public class InsertElementHandler extends AbstractTransactionElementHandler {
                         GeometryDescriptor gat = (GeometryDescriptor) types.get(i);
                         if (gat.getCoordinateReferenceSystem() != null) {
                             Geometry geom = (Geometry) f.getAttribute(i);
-                            if (geom != null)
-                                JTS.checkCoordinatesRange(geom, gat.getCoordinateReferenceSystem());
+                            if (geom != null) JTS.checkCoordinatesRange(geom, gat.getCoordinateReferenceSystem());
                         }
                     }
                 }
@@ -270,8 +249,7 @@ public class InsertElementHandler extends AbstractTransactionElementHandler {
     }
 
     @Override
-    public QName[] getTypeNames(TransactionRequest request, TransactionElement element)
-            throws WFSTransactionException {
+    public QName[] getTypeNames(TransactionRequest request, TransactionElement element) throws WFSTransactionException {
         Insert insert = (Insert) element;
 
         List<QName> typeNames = new ArrayList<>();
@@ -283,9 +261,7 @@ public class InsertElementHandler extends AbstractTransactionElementHandler {
                 if (!(next instanceof SimpleFeature)) {
                     String version = request.getVersion();
                     String code;
-                    if (version == null
-                            || new Version(version).compareTo(WFSInfo.Version.V_20.getVersion())
-                                    >= 0) {
+                    if (version == null || new Version(version).compareTo(WFSInfo.Version.V_20.getVersion()) >= 0) {
                         code = WFSException.INVALID_VALUE;
                     } else {
                         code = ServiceException.INVALID_PARAMETER_VALUE;

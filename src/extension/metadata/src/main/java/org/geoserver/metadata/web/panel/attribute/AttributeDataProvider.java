@@ -6,6 +6,7 @@ package org.geoserver.metadata.web.panel.attribute;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,26 +29,26 @@ public class AttributeDataProvider extends GeoServerDataProvider<AttributeConfig
 
     public static Property<AttributeConfiguration> NAME = new BeanProperty<>("name", "label");
 
-    public static Property<AttributeConfiguration> VALUE =
-            new AbstractProperty<AttributeConfiguration>("value") {
-                private static final long serialVersionUID = -1889227419206718295L;
+    public static Property<AttributeConfiguration> VALUE = new AbstractProperty<>("value") {
+        private static final long serialVersionUID = -1889227419206718295L;
 
-                @Override
-                public Object getPropertyValue(AttributeConfiguration item) {
-                    return null;
-                }
-            };
+        @Override
+        public Object getPropertyValue(AttributeConfiguration item) {
+            return null;
+        }
+    };
 
     private List<AttributeConfiguration> items = new ArrayList<>();
 
     private ResourceInfo rInfo;
 
-    public AttributeDataProvider(ResourceInfo rInfo) {
+    private String tab;
+
+    public AttributeDataProvider(ResourceInfo rInfo, String tab) {
         this.rInfo = rInfo;
+        this.tab = tab;
         ConfigurationService metadataConfigurationService =
-                GeoServerApplication.get()
-                        .getApplicationContext()
-                        .getBean(ConfigurationService.class);
+                GeoServerApplication.get().getApplicationContext().getBean(ConfigurationService.class);
         load(metadataConfigurationService.getMetadataConfiguration());
     }
 
@@ -55,9 +56,7 @@ public class AttributeDataProvider extends GeoServerDataProvider<AttributeConfig
     public AttributeDataProvider(String typename, ResourceInfo rInfo) {
         this.rInfo = rInfo;
         ConfigurationService metadataConfigurationService =
-                GeoServerApplication.get()
-                        .getApplicationContext()
-                        .getBean(ConfigurationService.class);
+                GeoServerApplication.get().getApplicationContext().getBean(ConfigurationService.class);
         AttributeCollection typeConfiguration =
                 metadataConfigurationService.getMetadataConfiguration().findType(typename);
         if (typeConfiguration != null) {
@@ -87,7 +86,12 @@ public class AttributeDataProvider extends GeoServerDataProvider<AttributeConfig
                 LOGGER.log(Level.WARNING, "Failed to parse condition for " + config.getKey(), e);
             }
         }
-        return true;
+        if (tab == null) {
+            return true;
+        } else {
+            List<String> attConfigTab = config.getTab() == null ? Collections.singletonList("") : config.getTab();
+            return attConfigTab.contains(tab);
+        }
     }
 
     @Override

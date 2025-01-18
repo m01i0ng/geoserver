@@ -14,7 +14,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,7 +25,6 @@ import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.lang.Bytes;
 import org.apache.wicket.util.resource.IResourceStream;
 import org.apache.wicket.util.resource.ResourceStreamNotFoundException;
-import org.apache.wicket.util.time.Time;
 import org.geoserver.template.TemplateUtils;
 import org.geoserver.web.GeoServerApplication;
 import org.geotools.util.logging.Logging;
@@ -40,20 +39,19 @@ public class WebUtils {
     static final Logger LOGGER = Logging.getLogger(WebUtils.class);
 
     /**
-     * Utility method for localizing strings using Wicket i18n subsystem. Useful if your model needs
-     * to be localized and you don't have access to a Component instance. Use with care, in most
-     * cases you should be able to localize your messages directly in pages or components.
+     * Utility method for localizing strings using Wicket i18n subsystem. Useful if your model needs to be localized and
+     * you don't have access to a Component instance. Use with care, in most cases you should be able to localize your
+     * messages directly in pages or components.
      */
     public static String localize(String key, IModel<?> model, Object... params) {
-        StringResourceModel rm =
-                new StringResourceModel(key, (Component) null) {
-                    private static final long serialVersionUID = 7276431319922312811L;
+        StringResourceModel rm = new StringResourceModel(key, (Component) null) {
+            private static final long serialVersionUID = 7276431319922312811L;
 
-                    @Override
-                    public Localizer getLocalizer() {
-                        return GeoServerApplication.get().getResourceSettings().getLocalizer();
-                    }
-                }.setModel(model).setParameters(params);
+            @Override
+            public Localizer getLocalizer() {
+                return GeoServerApplication.get().getResourceSettings().getLocalizer();
+            }
+        }.setModel(model).setParameters(params);
 
         return rm.getString();
     }
@@ -108,12 +106,10 @@ public class WebUtils {
                 return new ByteArrayInputStream(output.toByteArray());
             } catch (IOException e) {
                 throw (ResourceStreamNotFoundException)
-                        new ResourceStreamNotFoundException("Could not find template for: " + clazz)
-                                .initCause(e);
+                        new ResourceStreamNotFoundException("Could not find template for: " + clazz).initCause(e);
             } catch (TemplateException e) {
                 throw (ResourceStreamNotFoundException)
-                        new ResourceStreamNotFoundException("Error in tempalte for: " + clazz)
-                                .initCause(e);
+                        new ResourceStreamNotFoundException("Error in tempalte for: " + clazz).initCause(e);
             }
         }
 
@@ -133,21 +129,18 @@ public class WebUtils {
         }
 
         @Override
-        public Time lastModifiedTime() {
+        public Instant lastModifiedTime() {
             Object source;
             try {
                 source = cfg.getTemplateLoader().findTemplateSource(templateName);
             } catch (IOException e) {
-                LOGGER.log(
-                        Level.WARNING,
-                        "Error getting last modified time from template \"" + templateName + "\"",
-                        e);
+                LOGGER.log(Level.WARNING, "Error getting last modified time from template \"" + templateName + "\"", e);
                 return null;
             }
 
             if (source != null) {
                 long modified = cfg.getTemplateLoader().getLastModified(source);
-                return Time.valueOf(new Date(modified));
+                return Instant.ofEpochMilli(modified);
             }
 
             return null;

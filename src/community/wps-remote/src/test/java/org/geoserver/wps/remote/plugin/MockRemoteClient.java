@@ -9,8 +9,8 @@ import org.geoserver.wps.remote.RemoteProcessClient;
 import org.geoserver.wps.remote.RemoteProcessFactoryConfigurationWatcher;
 import org.geoserver.wps.remote.RemoteProcessFactoryListener;
 import org.geoserver.wps.remote.RemoteServiceDescriptor;
-import org.opengis.feature.type.Name;
-import org.opengis.util.ProgressListener;
+import org.geotools.api.feature.type.Name;
+import org.geotools.api.util.ProgressListener;
 
 /** @author Alessio Fabiani, GeoSolutions */
 public class MockRemoteClient extends RemoteProcessClient {
@@ -30,17 +30,13 @@ public class MockRemoteClient extends RemoteProcessClient {
 
     @Override
     public String execute(
-            Name serviceName,
-            Map<String, Object> input,
-            Map<String, Object> metadata,
-            ProgressListener monitor)
+            Name serviceName, Map<String, Object> input, Map<String, Object> metadata, ProgressListener monitor)
             throws Exception {
 
         if (serviceName != null) {
             for (RemoteProcessFactoryListener listener : getRemoteFactoryListeners()) {
                 listener.registerProcess(
-                        new RemoteServiceDescriptor(
-                                serviceName, "Service", "A test service", null, null, metadata));
+                        new RemoteServiceDescriptor(serviceName, "Service", "A test service", null, null, metadata));
             }
         }
 

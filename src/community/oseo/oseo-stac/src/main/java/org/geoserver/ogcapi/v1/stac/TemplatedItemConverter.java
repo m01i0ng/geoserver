@@ -13,7 +13,7 @@ import org.geoserver.featurestemplating.configuration.TemplateIdentifier;
 import org.geoserver.featurestemplating.writers.GeoJSONWriter;
 import org.geoserver.ogcapi.OGCAPIMediaTypes;
 import org.geoserver.platform.ServiceException;
-import org.opengis.feature.Feature;
+import org.geotools.api.feature.Feature;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
@@ -21,10 +21,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.stereotype.Component;
 
-/**
- * Converter for the {@link ItemsResponse} that will encode a single STAC item using a feature
- * template
- */
+/** Converter for the {@link ItemsResponse} that will encode a single STAC item using a feature template */
 @Component
 public class TemplatedItemConverter extends AbstractHttpMessageConverter<ItemResponse> {
 
@@ -41,8 +38,7 @@ public class TemplatedItemConverter extends AbstractHttpMessageConverter<ItemRes
     }
 
     @Override
-    protected ItemResponse readInternal(
-            Class<? extends ItemResponse> aClass, HttpInputMessage httpInputMessage)
+    protected ItemResponse readInternal(Class<? extends ItemResponse> aClass, HttpInputMessage httpInputMessage)
             throws IOException, HttpMessageNotReadableException {
         throw new UnsupportedOperationException("This converter is write only");
     }
@@ -52,11 +48,9 @@ public class TemplatedItemConverter extends AbstractHttpMessageConverter<ItemRes
             throws IOException, HttpMessageNotWritableException {
         Feature item = response.getItem();
         RootBuilder builder = getRootBuilder(item, response);
-        try (GeoJSONWriter writer =
-                new GeoJSONWriter(
-                        new JsonFactory()
-                                .createGenerator(httpOutputMessage.getBody(), JsonEncoding.UTF8),
-                        TemplateIdentifier.GEOJSON)) {
+        try (GeoJSONWriter writer = new GeoJSONWriter(
+                new JsonFactory().createGenerator(httpOutputMessage.getBody(), JsonEncoding.UTF8),
+                TemplateIdentifier.GEOJSON)) {
             // no collection wrapper
             builder.evaluate(writer, new TemplateBuilderContext(item));
         } catch (Exception e) {
@@ -67,9 +61,8 @@ public class TemplatedItemConverter extends AbstractHttpMessageConverter<ItemRes
     private RootBuilder getRootBuilder(Feature item, ItemResponse response) throws IOException {
         RootBuilder builder = response.getTemplate();
         if (builder == null)
-            builder =
-                    templates.getItemTemplate(
-                            (String) item.getProperty("parentIdentifier").getValue());
+            builder = templates.getItemTemplate(
+                    (String) item.getProperty("parentIdentifier").getValue());
         return builder;
     }
 }

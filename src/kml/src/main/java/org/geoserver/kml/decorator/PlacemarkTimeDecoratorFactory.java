@@ -21,11 +21,11 @@ import org.geoserver.kml.KmlEncodingContext;
 import org.geoserver.platform.ServiceException;
 import org.geoserver.wms.WMSInfo;
 import org.geoserver.wms.featureinfo.FeatureTemplate;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
 import org.geotools.feature.type.DateUtil;
 import org.geotools.util.logging.Logging;
 import org.geotools.xs.bindings.XSDateTimeBinding;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
 
 /**
  * Template driven decorator setting the name in Placemark objects
@@ -40,8 +40,8 @@ public class PlacemarkTimeDecoratorFactory implements KmlDecoratorFactory {
     static final Logger LOGGER = Logging.getLogger(PlacemarkTimeDecorator.class);
 
     /**
-     * list of formats which correspond to the default formats in which freemarker outputs dates
-     * when a user calls the ?datetime(),?date(),?time() fuctions.
+     * list of formats which correspond to the default formats in which freemarker outputs dates when a user calls the
+     * ?datetime(),?date(),?time() fuctions.
      */
     List<DateFormat> dtformats = new ArrayList<>();
 
@@ -96,8 +96,7 @@ public class PlacemarkTimeDecoratorFactory implements KmlDecoratorFactory {
     }
 
     @Override
-    public KmlDecorator getDecorator(
-            Class<? extends Feature> featureClass, KmlEncodingContext context) {
+    public KmlDecorator getDecorator(Class<? extends Feature> featureClass, KmlEncodingContext context) {
         // this decorator is used only for WMS
         if (!(context.getService() instanceof WMSInfo)) {
             return null;
@@ -113,8 +112,7 @@ public class PlacemarkTimeDecoratorFactory implements KmlDecoratorFactory {
     private boolean hasTimeTemplate(KmlEncodingContext context) {
         try {
             SimpleFeatureType schema = context.getCurrentFeatureCollection().getSchema();
-            return !context.getTemplate()
-                    .isTemplateEmpty(schema, "time.ftl", FeatureTemplate.class, null);
+            return !context.getTemplate().isTemplateEmpty(schema, "time.ftl", FeatureTemplate.class, null);
         } catch (IOException e) {
             throw new ServiceException("Failed to apply time template during kml generation", e);
         }
@@ -141,8 +139,7 @@ public class PlacemarkTimeDecoratorFactory implements KmlDecoratorFactory {
                     }
                 }
             } catch (IOException e) {
-                throw new ServiceException(
-                        "Failed to apply KML time template to the current feature", e);
+                throw new ServiceException("Failed to apply KML time template to the current feature", e);
             }
 
             return pm;
@@ -163,8 +160,7 @@ public class PlacemarkTimeDecoratorFactory implements KmlDecoratorFactory {
          *
          * @param feature The feature to execute against.
          */
-        public String[] execute(FeatureTemplate delegate, SimpleFeature feature)
-                throws IOException {
+        public String[] execute(FeatureTemplate delegate, SimpleFeature feature) throws IOException {
             String output = delegate.template(feature, "time.ftl", FeatureTemplate.class);
 
             if (output != null) {

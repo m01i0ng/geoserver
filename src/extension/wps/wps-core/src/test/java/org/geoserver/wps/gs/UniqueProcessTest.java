@@ -19,9 +19,9 @@ import org.geoserver.data.test.MockData;
 import org.geoserver.data.test.SystemTestData;
 import org.geoserver.logging.TestAppender;
 import org.geoserver.wps.WPSTestSupport;
-import org.geotools.data.DataStore;
-import org.geotools.data.simple.SimpleFeatureSource;
-import org.geotools.data.simple.SimpleFeatureStore;
+import org.geotools.api.data.DataStore;
+import org.geotools.api.data.SimpleFeatureSource;
+import org.geotools.api.data.SimpleFeatureStore;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.jdbc.JDBCDataStore;
 import org.geotools.util.logging.Logging;
@@ -58,8 +58,7 @@ public class UniqueProcessTest extends WPSTestSupport {
         tb.remove("uriProperty");
         store.createSchema(tb.buildFeatureType());
         SimpleFeatureStore targetFeatureStore =
-                (SimpleFeatureStore)
-                        store.getFeatureSource(SystemTestData.PRIMITIVEGEOFEATURE.getLocalPart());
+                (SimpleFeatureStore) store.getFeatureSource(SystemTestData.PRIMITIVEGEOFEATURE.getLocalPart());
         targetFeatureStore.addFeatures(fs3.getFeatures());
 
         CatalogBuilder cb = new CatalogBuilder(cat);

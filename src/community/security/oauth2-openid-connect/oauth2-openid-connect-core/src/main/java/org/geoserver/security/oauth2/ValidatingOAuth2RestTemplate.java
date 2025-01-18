@@ -13,10 +13,12 @@ import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResour
 import org.springframework.security.oauth2.client.resource.UserRedirectRequiredException;
 import org.springframework.security.oauth2.client.token.AccessTokenRequest;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
+import org.springframework.security.oauth2.common.exceptions.InvalidTokenException;
 import org.springframework.security.oauth2.provider.token.store.jwk.JwkTokenStore;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+/** Rest template that is able to make OpenID Connect REST requests with resource {@link OpenIdConnectFilterConfig}. */
 class ValidatingOAuth2RestTemplate extends OAuth2RestTemplate {
 
     private static final Logger LOGGER = Logging.getLogger(ValidatingOAuth2RestTemplate.class);
@@ -31,7 +33,9 @@ class ValidatingOAuth2RestTemplate extends OAuth2RestTemplate {
             String jwkUri,
             OpenIdConnectFilterConfig config) {
         super(resource, context);
-        if (jwkUri != null) this.store = new JwkTokenStore(jwkUri);
+        if (jwkUri != null) {
+            this.store = new JwkTokenStore(jwkUri);
+        }
         this.config = config;
     }
 
@@ -45,29 +49,22 @@ class ValidatingOAuth2RestTemplate extends OAuth2RestTemplate {
             return result;
         } finally {
             // CODE shouldn't typically be displayed since it can be "handed in" for an access/id
-            // token
-            // So, we don't log the CODE until AFTER it has been handed in.
+            // token So, we don't log the CODE until AFTER it has been handed in.
             // CODE is one-time-use.
             if (config.isAllowUnSecureLogging()) {
                 if ((oauth2Context != null) && (oauth2Context.getAccessTokenRequest() != null)) {
                     AccessTokenRequest accessTokenRequest = oauth2Context.getAccessTokenRequest();
                     if ((accessTokenRequest.getAuthorizationCode() != null)
                             && (!accessTokenRequest.getAuthorizationCode().isEmpty())) {
-                        LOGGER.fine(
-                                "OIDC: received a CODE from Identity Provider - handing it in for ID/Access Token");
+                        LOGGER.fine("OIDC: received a CODE from Identity Provider - handing it in for ID/Access Token");
                         LOGGER.fine("OIDC: CODE=" + accessTokenRequest.getAuthorizationCode());
                         if (result != null) {
-                            LOGGER.fine(
-                                    "OIDC: Identity Provider returned Token, type="
-                                            + result.getTokenType());
+                            LOGGER.fine("OIDC: Identity Provider returned Token, type=" + result.getTokenType());
                             LOGGER.fine("OIDC: SCOPES=" + String.join(" ", result.getScope()));
                             LOGGER.fine("OIDC: ACCESS TOKEN:" + saferJWT(result.getValue()));
                             if (result.getAdditionalInformation().containsKey("id_token")) {
-                                String idToken =
-                                        saferJWT(
-                                                (String)
-                                                        result.getAdditionalInformation()
-                                                                .get("id_token"));
+                                String idToken = saferJWT((String)
+                                        result.getAdditionalInformation().get("id_token"));
                                 LOGGER.fine("OIDC: ID TOKEN:" + idToken);
                             }
                         }
@@ -78,9 +75,9 @@ class ValidatingOAuth2RestTemplate extends OAuth2RestTemplate {
     }
 
     /**
-     * logs the string value of a token if its a JWT token - it should be in 3 parts, separated by a
-     * "." These 3 sections are: header, claims, signature We only log the 2nd (claims) part. This
-     * is safer because without the signature the token will not validate.
+     * logs the string value of a token if its a JWT token - it should be in 3 parts, separated by a "." These 3
+     * sections are: header, claims, signature We only log the 2nd (claims) part. This is safer because without the
+     * signature the token will not validate.
      *
      * <p>We don't log the token directly because it can be used to access protected resources.
      *
@@ -106,7 +103,20 @@ class ValidatingOAuth2RestTemplate extends OAuth2RestTemplate {
             String idToken = (String) maybeIdToken;
             setAsRequestAttribute(OpenIdConnectAuthenticationFilter.ID_TOKEN_VALUE, idToken);
             // among other things, this verifies the token
-            if (store != null) store.readAuthentication(idToken);
+            if (store != null) {
+                try {
+                    store.readAuthentication(idToken);
+                } catch (InvalidTokenException e) {
+                    LOGGER.warning("Failed to validate ID token: " + e.getMessage());
+                    if (config.isEnforceTokenValidation()) {
+                        /**
+                         * If the token is invalid, we should throw an exception to prevent the request from being
+                         * processed. This is the default behavior.
+                         */
+                        throw e;
+                    }
+                }
+            }
             // TODO: the authentication just read could contain roles, could be treated as
             // another role source... but needs to be made available to role computation
         }

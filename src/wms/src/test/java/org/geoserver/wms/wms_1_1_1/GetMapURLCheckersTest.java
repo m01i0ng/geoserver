@@ -7,6 +7,7 @@ package org.geoserver.wms.wms_1_1_1;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -18,6 +19,7 @@ import com.github.tomakehurst.wiremock.common.ConsoleNotifier;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -70,62 +72,47 @@ public class GetMapURLCheckersTest extends WMSTestSupport {
         // remote style
         String bridgesStyleBody = getResourceAsString("bridges.sld");
         bridgesStyleURL = "http://localhost:" + service.port() + "/styles/bridges.sld";
-        service.stubFor(
-                WireMock.get(urlEqualTo("/styles/bridges.sld"))
-                        .willReturn(
-                                aResponse()
-                                        .withStatus(200)
-                                        .withHeader("Content-Type", MediaType.TEXT_XML_VALUE)
-                                        .withBody(bridgesStyleBody)));
+        service.stubFor(WireMock.get(urlEqualTo("/styles/bridges.sld"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", MediaType.TEXT_XML_VALUE)
+                        .withBody(bridgesStyleBody)));
 
         // remote icon test
-        burgStyle =
-                getResourceAsString("burg_remote.sld")
-                        .replace("${styleBase}", "http://localhost:" + service.port() + "/styles");
+        burgStyle = getResourceAsString("burg_remote.sld")
+                .replace("${styleBase}", "http://localhost:" + service.port() + "/styles");
         String burgSvg = getResourceAsString("burg02.svg");
-        service.stubFor(
-                WireMock.get(urlEqualTo("/styles/burg02.svg"))
-                        .willReturn(
-                                aResponse()
-                                        .withStatus(200)
-                                        .withHeader("Content-Type", MediaType.TEXT_XML_VALUE)
-                                        .withBody(burgSvg)));
+        service.stubFor(WireMock.get(urlEqualTo("/styles/burg02.svg"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", MediaType.TEXT_XML_VALUE)
+                        .withBody(burgSvg)));
 
         // remote WFS
         String capabilities = getWFSResource("capabilities.xml");
-        service.stubFor(
-                WireMock.get(urlEqualTo("/wfs?REQUEST=GetCapabilities&SERVICE=WFS"))
-                        .willReturn(
-                                aResponse()
-                                        .withStatus(200)
-                                        .withHeader("Content-Type", MediaType.TEXT_XML_VALUE)
-                                        .withBody(capabilities)));
+        service.stubFor(WireMock.get(urlEqualTo("/wfs?REQUEST=GetCapabilities&SERVICE=WFS"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", MediaType.TEXT_XML_VALUE)
+                        .withBody(capabilities)));
         String describe = getWFSResource("describePoi.xml");
         Map<String, String> namespaces = Map.of("wfs", "http://www.opengis.net/wfs");
-        service.stubFor(
-                WireMock.post("/wfs")
-                        .withRequestBody(
-                                WireMock.matchingXPath(
-                                        "/wfs:DescribeFeatureType[wfs:TypeName='tiger:poi']",
-                                        namespaces))
-                        .willReturn(
-                                aResponse()
-                                        .withStatus(200)
-                                        .withHeader("Content-Type", MediaType.TEXT_XML_VALUE)
-                                        .withBody(describe)));
+        service.stubFor(WireMock.post("/wfs")
+                .withRequestBody(
+                        WireMock.matchingXPath("/wfs:DescribeFeatureType[wfs:TypeName='tiger:poi']", namespaces))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", MediaType.TEXT_XML_VALUE)
+                        .withBody(describe)));
 
         String getFeature = getWFSResource("getFeature.xml");
-        service.stubFor(
-                WireMock.post("/wfs")
-                        .withRequestBody(
-                                WireMock.matchingXPath(
-                                        "/wfs:GetFeature[wfs:Query[@typeName='tiger:poi']]",
-                                        namespaces))
-                        .willReturn(
-                                aResponse()
-                                        .withStatus(200)
-                                        .withHeader("Content-Type", MediaType.TEXT_XML_VALUE)
-                                        .withBody(getFeature)));
+        service.stubFor(WireMock.post("/wfs")
+                .withRequestBody(
+                        WireMock.matchingXPath("/wfs:GetFeature[wfs:Query[@typeName='tiger:poi']]", namespaces))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", MediaType.TEXT_XML_VALUE)
+                        .withBody(getFeature)));
     }
 
     private static String getWFSResource(String resourceName) throws IOException {
@@ -145,7 +132,7 @@ public class GetMapURLCheckersTest extends WMSTestSupport {
 
     @AfterClass
     public static void afterClass() throws Exception {
-        service.shutdown();
+        service.stop();
     }
 
     @Before
@@ -165,14 +152,37 @@ public class GetMapURLCheckersTest extends WMSTestSupport {
         try (InputStream is = GeoServer.class.getResourceAsStream("burg02.svg")) {
             testData.copyTo(is, "styles/burg02.svg");
         }
+
+        // this file is intentionally NOT in the styles directory
+        try (InputStream is = getClass().getResourceAsStream("burg03.svg")) {
+            testData.copyTo(is, "burg03.svg");
+        }
+
+        // create the absolute file URL for the data directory root
+        String base = testData.getDataDirectoryRoot().getAbsolutePath().replace('\\', '/');
+        base = "file://" + (base.startsWith("/") ? "" : "/") + base + "/";
+
+        // create the style with an absolute file URL to icon outside styles directory
+        testData.addStyle("burg_query", "burg_query.sld", getClass(), getCatalog());
+        String sld1 = IOUtils.toString(getClass().getResource("burg_query.sld"), UTF_8);
+        int index1 = sld1.indexOf("burg03");
+        sld1 = sld1.substring(0, index1) + base + sld1.substring(index1);
+        ByteArrayInputStream bytes1 = new ByteArrayInputStream(sld1.getBytes(UTF_8));
+        testData.copyTo(bytes1, "styles/burg_query.sld");
+
+        // create the style with an absolute file URL to icon outside styles directory
+        testData.addStyle("burg_fragment", "burg_fragment.sld", getClass(), getCatalog());
+        String sld2 = IOUtils.toString(getClass().getResource("burg_fragment.sld"), UTF_8);
+        int index2 = sld2.indexOf("burg03");
+        sld2 = sld2.substring(0, index2) + base + sld2.substring(index2);
+        ByteArrayInputStream bytes2 = new ByteArrayInputStream(sld2.getBytes(UTF_8));
+        testData.copyTo(bytes2, "styles/burg_fragment.sld");
     }
 
     @Test
     public void testRemoteStyleAllowed() throws Exception {
         URLCheckDAO dao = applicationContext.getBean(URLCheckDAO.class);
-        dao.save(
-                new RegexURLCheck(
-                        "pointStyle", "Just the point style", "^" + bridgesStyleURL + "$"));
+        dao.save(new RegexURLCheck("pointStyle", "Just the point style", "^" + bridgesStyleURL + "$"));
 
         // base request, no layers, no library mode
         String base =
@@ -230,17 +240,13 @@ public class GetMapURLCheckersTest extends WMSTestSupport {
     @Test
     public void testRemoteIconAllowed() throws Exception {
         URLCheckDAO dao = applicationContext.getBean(URLCheckDAO.class);
-        dao.save(
-                new RegexURLCheck(
-                        "icons",
-                        "Any SVG icon",
-                        "^http://localhost:" + service.port() + "/styles/.*\\.svg$"));
+        dao.save(new RegexURLCheck(
+                "icons", "Any SVG icon", "^http://localhost:" + service.port() + "/styles/.*\\.svg$"));
 
         // base request, no layers, no library mode
         String base =
                 "wms?service=WMS&version=1.1.1&request=GetMap&bbox=-180,-90,180,90&width=256&height=256&srs=EPSG:4326&format=image/png";
-        BufferedImage image =
-                getAsImage(base + "&sld_body=" + ResponseUtils.urlEncode(burgStyle), "image/png");
+        BufferedImage image = getAsImage(base + "&sld_body=" + ResponseUtils.urlEncode(burgStyle), "image/png");
         // has painted the red flag
         assertPixel(image, 130, 121, Color.RED);
     }
@@ -253,8 +259,7 @@ public class GetMapURLCheckersTest extends WMSTestSupport {
         // base request, no layers, no library mode
         String base =
                 "wms?service=WMS&version=1.1.1&request=GetMap&bbox=-180,-90,180,90&width=256&height=256&srs=EPSG:4326&format=image/png";
-        BufferedImage image =
-                getAsImage(base + "&sld_body=" + ResponseUtils.urlEncode(burgStyle), "image/png");
+        BufferedImage image = getAsImage(base + "&sld_body=" + ResponseUtils.urlEncode(burgStyle), "image/png");
         // has fallen back to the square gray default icon
         assertPixel(image, 130, 121, Color.GRAY);
     }
@@ -271,5 +276,25 @@ public class GetMapURLCheckersTest extends WMSTestSupport {
         BufferedImage image = getAsImage(base, "image/png");
         // should have used the red flag icon, the relative reference is allowed
         assertPixel(image, 130, 121, Color.RED);
+    }
+
+    @Test
+    public void testLocalReferenceWithBadQuery() throws Exception {
+        // simple GetMap with local style, path traversal in a bad URI query should not work
+        String base =
+                "wms?service=WMS&version=1.1.1&request=GetMap&bbox=-180,-90,180,90&width=256&height=256&srs=EPSG:4326&format=image/png&layers=cite:Bridges&styles=burg_query";
+        BufferedImage image = getAsImage(base, "image/png");
+        // has fallen back to the square gray default icon
+        assertPixel(image, 130, 121, Color.GRAY);
+    }
+
+    @Test
+    public void testLocalReferenceWithBadFragment() throws Exception {
+        // simple GetMap with local style, path traversal in a bad URI fragment should not work
+        String base =
+                "wms?service=WMS&version=1.1.1&request=GetMap&bbox=-180,-90,180,90&width=256&height=256&srs=EPSG:4326&format=image/png&layers=cite:Bridges&styles=burg_fragment";
+        BufferedImage image = getAsImage(base, "image/png");
+        // has fallen back to the square gray default icon
+        assertPixel(image, 130, 121, Color.GRAY);
     }
 }

@@ -13,12 +13,12 @@ import org.geoserver.catalog.LayerInfo;
 import org.geoserver.catalog.StyleInfo;
 import org.geoserver.platform.ServiceException;
 import org.geoserver.wms.WMS;
+import org.geotools.api.style.NamedLayer;
+import org.geotools.api.style.Style;
+import org.geotools.api.style.StyleFactory;
+import org.geotools.api.style.StyledLayer;
+import org.geotools.api.style.StyledLayerDescriptor;
 import org.geotools.factory.CommonFactoryFinder;
-import org.geotools.styling.NamedLayer;
-import org.geotools.styling.Style;
-import org.geotools.styling.StyleFactory;
-import org.geotools.styling.StyledLayer;
-import org.geotools.styling.StyledLayerDescriptor;
 import org.geotools.styling.visitor.DuplicatingStyleVisitor;
 
 /**
@@ -37,9 +37,7 @@ public class GetStyles {
 
     public StyledLayerDescriptor run(final GetStylesRequest request) throws ServiceException {
 
-        if (request.getSldVer() != null
-                && "".equals(request.getSldVer())
-                && !"1.0.0".equals(request.getSldVer()))
+        if (request.getSldVer() != null && "".equals(request.getSldVer()) && !"1.0.0".equals(request.getSldVer()))
             throw new ServiceException("SLD version " + request.getSldVer() + " not supported");
 
         try {

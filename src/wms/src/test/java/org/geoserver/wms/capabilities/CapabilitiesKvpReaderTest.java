@@ -28,8 +28,8 @@ public class CapabilitiesKvpReaderTest {
     @Before
     public void setUp() {
         this.reader = new CapabilitiesKvpReader(new WMS(null));
-        this.kvp = new HashMap();
-        this.rawKvp = new HashMap();
+        this.kvp = new HashMap<>();
+        this.rawKvp = new HashMap<>();
     }
 
     @SuppressWarnings("unchecked")
@@ -44,10 +44,7 @@ public class CapabilitiesKvpReaderTest {
         assertNull(read.getNamespace());
     }
 
-    /**
-     * 1.0 "WMTVER" parameter supplied instead of "VERSION"? Version negotiation should agree on
-     * 1.1.1
-     */
+    /** 1.0 "WMTVER" parameter supplied instead of "VERSION"? Version negotiation should agree on 1.1.1 */
     @SuppressWarnings("unchecked")
     @Test
     public void testWMTVER() throws Exception {

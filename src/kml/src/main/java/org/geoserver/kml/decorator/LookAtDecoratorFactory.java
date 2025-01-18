@@ -14,6 +14,8 @@ import de.micromata.opengis.kml.v_2_2_0.Placemark;
 import org.geoserver.kml.KmlEncodingContext;
 import org.geoserver.kml.utils.LookAtOptions;
 import org.geoserver.wms.WMSInfo;
+import org.geotools.map.FeatureLayer;
+import org.geotools.map.Layer;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 
@@ -25,8 +27,7 @@ import org.locationtech.jts.geom.Geometry;
 public class LookAtDecoratorFactory implements KmlDecoratorFactory {
 
     @Override
-    public KmlDecorator getDecorator(
-            Class<? extends Feature> featureClass, KmlEncodingContext context) {
+    public KmlDecorator getDecorator(Class<? extends Feature> featureClass, KmlEncodingContext context) {
         // this decorator makes sense only for WMS
         if (!(context.getService() instanceof WMSInfo)) {
             return null;
@@ -34,8 +35,7 @@ public class LookAtDecoratorFactory implements KmlDecoratorFactory {
 
         if (Placemark.class.isAssignableFrom(featureClass)) {
             return new PlacemarkLookAtDecorator();
-        } else if (Folder.class.isAssignableFrom(featureClass)
-                || NetworkLink.class.isAssignableFrom(featureClass)) {
+        } else if (Folder.class.isAssignableFrom(featureClass) || NetworkLink.class.isAssignableFrom(featureClass)) {
             return new LayerLookAtDecorator();
         } else if (Document.class.isAssignableFrom(featureClass)) {
             return new DocumentLookAtDecorator();
@@ -61,7 +61,13 @@ public class LookAtDecoratorFactory implements KmlDecoratorFactory {
 
         @Override
         public Feature decorate(Feature feature, KmlEncodingContext context) {
-            Envelope bounds = context.getCurrentLayer().getBounds();
+            Layer currentLayer = context.getCurrentLayer();
+            Envelope bounds;
+            if (currentLayer instanceof FeatureLayer) {
+                bounds = context.getCurrentFeatureCollection().getBounds();
+            } else {
+                bounds = currentLayer.getBounds();
+            }
             LookAt lookAt = buildLookAt(bounds, context.getLookAtOptions(), false);
             feature.setAbstractView(lookAt);
 
@@ -120,10 +126,8 @@ public class LookAtDecoratorFactory implements KmlDecoratorFactory {
         double height = distance / (2 * Math.tan(VIEWER_WIDTH));
 
         final Double tilt = options.getTilt() == null ? Double.valueOf(0) : options.getTilt();
-        final Double heading =
-                options.getHeading() == null ? Double.valueOf(0) : options.getHeading();
-        final Double altitude =
-                options.getAltitude() == null ? Double.valueOf(height) : options.getAltitude();
+        final Double heading = options.getHeading() == null ? Double.valueOf(0) : options.getHeading();
+        final Double altitude = options.getAltitude() == null ? Double.valueOf(height) : options.getAltitude();
 
         // build the lookat
         LookAt lookAt = new LookAt();

@@ -17,10 +17,10 @@ import org.geoserver.catalog.LayerInfo;
 import org.geoserver.data.test.MockData;
 import org.geoserver.data.test.SystemTestData;
 import org.geoserver.wms.WMSTestSupport;
+import org.geotools.api.style.NamedLayer;
+import org.geotools.api.style.Style;
+import org.geotools.api.style.StyledLayerDescriptor;
 import org.geotools.factory.CommonFactoryFinder;
-import org.geotools.styling.NamedLayer;
-import org.geotools.styling.Style;
-import org.geotools.styling.StyledLayerDescriptor;
 import org.geotools.xml.styling.SLDParser;
 import org.junit.Test;
 
@@ -54,11 +54,9 @@ public class GetStylesIntegrationTest extends WMSTestSupport {
 
     @Test
     public void testSimple() throws Exception {
-        try (InputStream stream =
-                get(
-                        "wms?service=WMS&version=1.1.1&&request=GetStyles&layers="
-                                + getLayerId(MockData.BASIC_POLYGONS)
-                                + "&sldver=1.0.0")) {
+        try (InputStream stream = get("wms?service=WMS&version=1.1.1&&request=GetStyles&layers="
+                + getLayerId(MockData.BASIC_POLYGONS)
+                + "&sldver=1.0.0")) {
 
             SLDParser parser = new SLDParser(CommonFactoryFinder.getStyleFactory(null));
             parser.setInput(stream);
@@ -79,8 +77,7 @@ public class GetStylesIntegrationTest extends WMSTestSupport {
     @Test
     public void testGroup() throws Exception {
         try (InputStream stream =
-                get(
-                        "wms?service=WMS&version=1.1.1&request=GetStyles&layers=lakesGroup&sldver=1.0.0")) {
+                get("wms?service=WMS&version=1.1.1&request=GetStyles&layers=lakesGroup&sldver=1.0.0")) {
 
             SLDParser parser = new SLDParser(CommonFactoryFinder.getStyleFactory(null));
             parser.setInput(stream);
@@ -98,11 +95,9 @@ public class GetStylesIntegrationTest extends WMSTestSupport {
 
     @Test
     public void testMultiStyle() throws Exception {
-        try (InputStream stream =
-                get(
-                        "wms?service=WMS&version=1.1.1&request=GetStyles&layers="
-                                + getLayerId(MockData.LAKES)
-                                + "&sldver=1.0.0")) {
+        try (InputStream stream = get("wms?service=WMS&version=1.1.1&request=GetStyles&layers="
+                + getLayerId(MockData.LAKES)
+                + "&sldver=1.0.0")) {
 
             SLDParser parser = new SLDParser(CommonFactoryFinder.getStyleFactory(null));
             parser.setInput(stream);

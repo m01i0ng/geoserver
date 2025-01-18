@@ -16,8 +16,8 @@ import org.apache.commons.io.IOUtils;
 import org.geoserver.config.GeoServerDataDirectory;
 import org.geoserver.platform.resource.Resource;
 import org.geoserver.platform.resource.Resource.Type;
-import org.geotools.data.DataStore;
-import org.geotools.data.DataStoreFinder;
+import org.geotools.api.data.DataStore;
+import org.geotools.api.data.DataStoreFinder;
 import org.geotools.data.DataUtilities;
 import org.geotools.util.logging.Logging;
 import org.springframework.beans.factory.DisposableBean;
@@ -55,8 +55,7 @@ public class JDBCStatusStoreLoader implements DisposableBean {
         Resource resource = dataDir.get(JDBCSTATUS_NAME);
         if (resource.getType() == Type.UNDEFINED) {
             try (OutputStream os = resource.out();
-                    InputStream is =
-                            JDBCStatusStoreLoader.class.getResourceAsStream(JDBCSTATUS_NAME)) {
+                    InputStream is = JDBCStatusStoreLoader.class.getResourceAsStream(JDBCSTATUS_NAME)) {
                 IOUtils.copy(is, os);
             }
         }

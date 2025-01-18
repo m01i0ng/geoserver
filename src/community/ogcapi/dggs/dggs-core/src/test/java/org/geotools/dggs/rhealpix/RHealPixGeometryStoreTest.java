@@ -42,12 +42,11 @@ public class RHealPixGeometryStoreTest {
 
     @Test
     public void testStoreCreation() throws IOException {
-        try (DGGSInstance instance =
-                new RHealPixDGGSFactory().createInstance(Collections.emptyMap())) {
+        try (DGGSInstance instance = new RHealPixDGGSFactory().createInstance(Collections.emptyMap())) {
             DGGSGeometryStore store = new DGGSGeometryStore(instance);
             String[] typeNames = store.getTypeNames();
             assertEquals(1, typeNames.length);
-            assertEquals("TB16-Pix", typeNames[0]);
+            assertEquals("rHEALPix", typeNames[0]);
         }
     }
 }

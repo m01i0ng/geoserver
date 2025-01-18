@@ -14,9 +14,9 @@ import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.catalog.ResourceInfo;
 import org.geoserver.ogcapi.AbstractDocument;
 import org.geoserver.ogcapi.LinksBuilder;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.type.GeometryDescriptor;
 import org.geotools.dggs.gstore.DGGSStore;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.GeometryDescriptor;
 
 /** List of DAPA variables for a collection */
 public class DAPAVariables extends AbstractDocument {
@@ -28,14 +28,10 @@ public class DAPAVariables extends AbstractDocument {
         Set<String> excludedAttributes = getExcludedAttributes(info);
         SimpleFeatureType schema = (SimpleFeatureType) info.getFeatureType();
         this.collectionId = collectionId;
-        this.variables =
-                schema.getAttributeDescriptors().stream()
-                        .filter(
-                                ad ->
-                                        !(ad instanceof GeometryDescriptor)
-                                                && !excludedAttributes.contains(ad.getLocalName()))
-                        .map(ad -> new DAPAVariable(ad))
-                        .collect(Collectors.toList());
+        this.variables = schema.getAttributeDescriptors().stream()
+                .filter(ad -> !(ad instanceof GeometryDescriptor) && !excludedAttributes.contains(ad.getLocalName()))
+                .map(ad -> new DAPAVariable(ad))
+                .collect(Collectors.toList());
         addSelfLinks("ogc/dggs/v1/collections/" + collectionId + "/dapa/variables");
         new LinksBuilder(CollectionDocument.class, "ogc/dggs/collections/")
                 .segment(collectionId, true)

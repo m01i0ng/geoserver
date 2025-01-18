@@ -12,22 +12,22 @@ import org.geoserver.config.GeoServer;
 import org.geoserver.platform.ServiceException;
 import org.geoserver.wms.MapLayerInfo;
 import org.geoserver.wms.WMSMapContent;
-import org.geotools.data.FeatureSource;
-import org.geotools.data.Query;
+import org.geotools.api.data.FeatureSource;
+import org.geotools.api.data.Query;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.type.AttributeType;
+import org.geotools.api.feature.type.GeometryDescriptor;
+import org.geotools.api.filter.FilterFactory;
+import org.geotools.api.filter.sort.SortOrder;
+import org.geotools.api.filter.spatial.BBOX;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.map.Layer;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.AttributeType;
-import org.opengis.feature.type.GeometryDescriptor;
-import org.opengis.filter.FilterFactory;
-import org.opengis.filter.sort.SortOrder;
-import org.opengis.filter.spatial.BBOX;
 
 /**
- * An attribute based regionating strategy assuming it's possible (and fast) to sort on the user
- * specified attribute. Features with higher values of the attribute will be found in higher tiles.
+ * An attribute based regionating strategy assuming it's possible (and fast) to sort on the user specified attribute.
+ * Features with higher values of the attribute will be found in higher tiles.
  *
  * @author Andrea Aime
  */
@@ -52,26 +52,19 @@ public class NativeSortRegionatingStrategy extends CachedHierarchyRegionatingStr
         Map options = con.getRequest().getFormatOptions();
         attribute = (String) options.get("regionateAttr");
         if (attribute == null) attribute = MapLayerInfo.getRegionateAttribute(featureType);
-        if (attribute == null)
-            throw new ServiceException("Regionating attribute has not been specified");
+        if (attribute == null) throw new ServiceException("Regionating attribute has not been specified");
 
         // Make sure the attribute is actually there
         AttributeType attributeType = type.getType(attribute);
         if (attributeType == null) {
             throw new ServiceException(
-                    "Could not find regionating attribute "
-                            + attribute
-                            + " in layer "
-                            + featureType.getName());
+                    "Could not find regionating attribute " + attribute + " in layer " + featureType.getName());
         }
 
         // check we can actually sort on that attribute
         if (!fs.getQueryCapabilities().supportsSorting(ff.sort(attribute, SortOrder.DESCENDING)))
             throw new ServiceException(
-                    "Native sorting on the "
-                            + attribute
-                            + " is not possible for layer "
-                            + featureType.getName());
+                    "Native sorting on the " + attribute + " is not possible for layer " + featureType.getName());
 
         // make sure a special db for this layer and attribute will be created
         return super.getDatabaseName(con, layer) + "_" + attribute;
@@ -84,21 +77,17 @@ public class NativeSortRegionatingStrategy extends CachedHierarchyRegionatingStr
 
     @Override
     public FeatureIterator getSortedFeatures(
-            GeometryDescriptor geom,
-            ReferencedEnvelope latLongEnv,
-            ReferencedEnvelope nativeEnv,
-            Connection cacheConn)
+            GeometryDescriptor geom, ReferencedEnvelope latLongEnv, ReferencedEnvelope nativeEnv, Connection cacheConn)
             throws Exception {
         // build the bbox filter
         FilterFactory ff = CommonFactoryFinder.getFilterFactory(null);
-        BBOX filter =
-                ff.bbox(
-                        geom.getLocalName(),
-                        nativeEnv.getMinX(),
-                        nativeEnv.getMinY(),
-                        nativeEnv.getMaxX(),
-                        nativeEnv.getMaxY(),
-                        null);
+        BBOX filter = ff.bbox(
+                geom.getLocalName(),
+                nativeEnv.getMinX(),
+                nativeEnv.getMinY(),
+                nativeEnv.getMaxX(),
+                nativeEnv.getMaxY(),
+                null);
 
         // build an optimized query (only the necessary attributes
         Query q = new Query();

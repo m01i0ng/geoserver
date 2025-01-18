@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.geoserver.config.GeoServer;
 import org.geoserver.ogcapi.APIRequestInfo;
-import org.geoserver.ogcapi.AbstractHTMLMessageConverter;
+import org.geoserver.ogcapi.AbstractServiceHTMLMessageConverter;
 import org.geoserver.ogcapi.FreemarkerTemplateSupport;
 import org.geoserver.opensearch.eo.OSEOInfo;
 import org.springframework.http.HttpOutputMessage;
@@ -21,10 +21,9 @@ import org.springframework.stereotype.Component;
 
 /** Renders a single item in HTML. */
 @Component
-public class ItemHTMLMessageConverter extends AbstractHTMLMessageConverter<ItemResponse> {
+public class ItemHTMLMessageConverter extends AbstractServiceHTMLMessageConverter<ItemResponse> {
 
-    public ItemHTMLMessageConverter(
-            FreemarkerTemplateSupport templateSupport, GeoServer geoServer) {
+    public ItemHTMLMessageConverter(FreemarkerTemplateSupport templateSupport, GeoServer geoServer) {
         super(ItemResponse.class, OSEOInfo.class, templateSupport, geoServer);
     }
 
@@ -38,8 +37,7 @@ public class ItemHTMLMessageConverter extends AbstractHTMLMessageConverter<ItemR
         model.put("collection", value.getCollectionId());
         addLinkFunctions(APIRequestInfo.get().getBaseURL(), model);
 
-        try (OutputStreamWriter osw =
-                new OutputStreamWriter(outputMessage.getBody(), getDefaultCharset())) {
+        try (OutputStreamWriter osw = new OutputStreamWriter(outputMessage.getBody(), getDefaultCharset())) {
             model.put("item", value.getItem());
             templateSupport.processTemplate(template, model, osw, getDefaultCharset());
             osw.flush();

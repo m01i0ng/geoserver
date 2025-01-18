@@ -6,6 +6,7 @@ package org.geoserver.ogcapi.v1.coverages;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -14,14 +15,16 @@ import java.util.logging.Logger;
 import org.geoserver.catalog.CoverageInfo;
 import org.geoserver.catalog.util.CloseableIterator;
 import org.geoserver.config.GeoServer;
+import org.geoserver.config.ResourceErrorHandling;
 import org.geoserver.ogcapi.AbstractDocument;
 import org.geoserver.ogcapi.Link;
+import org.geoserver.platform.ServiceException;
+import org.geotools.api.filter.Filter;
 import org.geotools.util.logging.Logging;
-import org.opengis.filter.Filter;
 
 /**
- * A class representing the Coverages server "collections" in a way that Jackson can easily
- * translate to JSON/YAML (and can be used as a Freemarker template model)
+ * A class representing the Coverages server "collections" in a way that Jackson can easily translate to JSON/YAML (and
+ * can be used as a Freemarker template model)
  */
 @JsonPropertyOrder({"links", "collections"})
 public class CollectionsDocument extends AbstractDocument {
@@ -30,6 +33,7 @@ public class CollectionsDocument extends AbstractDocument {
 
     private final GeoServer geoServer;
     private final List<String> crs;
+    private final boolean skipInvalid;
 
     public CollectionsDocument(GeoServer geoServer, List<String> crsList) {
         this.geoServer = geoServer;
@@ -38,6 +42,8 @@ public class CollectionsDocument extends AbstractDocument {
         // build the self links
         String path = "ogc/coverages/v1/collections/";
         addSelfLinks(path);
+        skipInvalid =
+                geoServer.getGlobal().getResourceErrorHandling() == ResourceErrorHandling.SKIP_MISCONFIGURED_LAYERS;
     }
 
     @Override
@@ -49,9 +55,8 @@ public class CollectionsDocument extends AbstractDocument {
     @JacksonXmlProperty(localName = "Collection")
     @SuppressWarnings("PMD.CloseResource")
     public Iterator<CollectionDocument> getCollections() {
-        CloseableIterator<CoverageInfo> coverages =
-                geoServer.getCatalog().list(CoverageInfo.class, Filter.INCLUDE);
-        return new Iterator<CollectionDocument>() {
+        CloseableIterator<CoverageInfo> coverages = geoServer.getCatalog().list(CoverageInfo.class, Filter.INCLUDE);
+        return new Iterator<>() {
 
             CollectionDocument next;
 
@@ -61,31 +66,25 @@ public class CollectionsDocument extends AbstractDocument {
                     return true;
                 }
 
-                try {
-                    while (coverages.hasNext()) {
-                        CoverageInfo coverage = coverages.next();
-                        try {
-                            List<String> crs =
-                                    CoveragesService.getCoverageCRS(
-                                            coverage, Collections.singletonList("#/crs"));
-                            CollectionDocument collection =
-                                    new CollectionDocument(geoServer, coverage, crs);
-
-                            next = collection;
-                            return true;
-                        } catch (Exception e) {
-                            // e.g., maybe the plugin to read the format is missing
-                            LOGGER.log(
-                                    Level.WARNING,
-                                    "Failed to build collection for "
-                                            + coverage.prefixedName()
-                                            + ", skipping",
-                                    e);
+                while (coverages.hasNext()) {
+                    CoverageInfo coverage = coverages.next();
+                    try {
+                        List<String> crs =
+                                CoveragesService.getCoverageCRS(coverage, Collections.singletonList("#/crs"));
+                        CollectionDocument collection = getCollectionDocument(coverage, coverages);
+                        next = collection;
+                        return next != null;
+                    } catch (Exception e) {
+                        if (skipInvalid) {
+                            LOGGER.log(Level.WARNING, "Skipping coverage type " + coverage.prefixedName());
+                        } else {
+                            LOGGER.log(Level.WARNING, "Failed to build collection for " + coverage.prefixedName(), e);
+                            coverages.close();
+                            throw new ServiceException("Failed to iterate over the coverage types in the catalog", e);
                         }
                     }
-                } catch (Exception e) {
-                    LOGGER.log(Level.WARNING, "Failed while iterating over collections", e);
                 }
+
                 coverages.close();
                 return false;
             }
@@ -97,6 +96,13 @@ public class CollectionsDocument extends AbstractDocument {
                 return result;
             }
         };
+    }
+
+    private CollectionDocument getCollectionDocument(CoverageInfo coverage, CloseableIterator<CoverageInfo> coverages)
+            throws IOException {
+        List<String> crs = CoveragesService.getCoverageCRS(coverage, Collections.singletonList("#/crs"));
+        CollectionDocument collection = new CollectionDocument(geoServer, coverage, crs);
+        return collection;
     }
 
     public List<String> getCrs() {

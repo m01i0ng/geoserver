@@ -12,24 +12,23 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import org.geotools.api.filter.capability.FunctionName;
+import org.geotools.api.filter.expression.Expression;
+import org.geotools.api.filter.expression.VolatileFunction;
 import org.geotools.filter.FunctionExpressionImpl;
 import org.geotools.filter.capability.FunctionNameImpl;
-import org.opengis.filter.capability.FunctionName;
-import org.opengis.filter.expression.Expression;
-import org.opengis.filter.expression.VolatileFunction;
 
 /**
- * Function able to sort the values in a list. The two parameters accepted are the sort order (ASC
- * or DESC) and and an optional property name to sort the current attribute on a nested value.
+ * Function able to sort the values in a list. The two parameters accepted are the sort order (ASC or DESC) and and an
+ * optional property name to sort the current attribute on a nested value.
  */
 public class SortFunction extends FunctionExpressionImpl implements VolatileFunction {
 
-    private static FunctionName NAME =
-            new FunctionNameImpl(
-                    "sort",
-                    parameter("result", Object.class),
-                    parameter("order", String.class, 1, 1),
-                    parameter("property", String.class, 0, 1));
+    private static FunctionName NAME = new FunctionNameImpl(
+            "sort",
+            parameter("result", Object.class),
+            parameter("order", String.class, 1, 1),
+            parameter("property", String.class, 0, 1));
 
     private enum Order {
         ASC,
@@ -76,8 +75,8 @@ public class SortFunction extends FunctionExpressionImpl implements VolatileFunc
     }
 
     /**
-     * Compare two comparable or convert them to String if they are not of Comparable type. It can
-     * accept an expression to evaluate on the passed object to compare.
+     * Compare two comparable or convert them to String if they are not of Comparable type. It can accept an expression
+     * to evaluate on the passed object to compare.
      */
     private static class ComparableOrToStringComparator implements Comparator {
 

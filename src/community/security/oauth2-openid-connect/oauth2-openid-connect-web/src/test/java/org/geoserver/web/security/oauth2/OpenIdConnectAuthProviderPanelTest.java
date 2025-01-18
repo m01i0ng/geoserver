@@ -20,8 +20,7 @@ public class OpenIdConnectAuthProviderPanelTest extends AbstractSecurityNamedSer
     @Test
     public void smokeTest() {
         Model<OpenIdConnectFilterConfig> model = new Model<>(new OpenIdConnectFilterConfig());
-        FormTestPage testPage =
-                new FormTestPage(id -> new OpenIdConnectAuthProviderPanel(id, model));
+        FormTestPage testPage = new FormTestPage(id -> new OpenIdConnectAuthProviderPanel(id, model));
         tester.startPage(testPage);
     }
 
@@ -84,15 +83,34 @@ public class OpenIdConnectAuthProviderPanelTest extends AbstractSecurityNamedSer
         formTester.setValue("panel:content:clientSecret", "fnruurnu4unu4");
         formTester.setValue("panel:content:jwkURI", baseUrl + "/jwk");
 
-        formTester.setValue(
-                "panel:content:postLogoutRedirectUri", "http://localhost:8080/post/redirect");
+        formTester.setValue("panel:content:postLogoutRedirectUri", "http://localhost:8080/post/redirect");
 
         clickSave();
         tester.assertNoErrorMessage();
         clickNamedServiceConfig("OpenIdFilter3");
-        tester.assertModelValue(
-                "panel:panel:form:panel:postLogoutRedirectUri",
-                "http://localhost:8080/post/redirect");
+        tester.assertModelValue("panel:panel:form:panel:postLogoutRedirectUri", "http://localhost:8080/post/redirect");
+    }
+
+    @Test
+    public void testenforceTokenValidation() throws Exception {
+        String baseUrl = "https://localhost:8080";
+        navigateToOpenIdPanel("OpenIdFilter4");
+        formTester.setValue("panel:content:name", "OpenIdFilter4");
+        formTester.setValue("panel:content:userAuthorizationUri", baseUrl + "/authorize");
+        formTester.setValue("panel:content:accessTokenUri", baseUrl + "/token");
+        formTester.setValue("panel:content:checkTokenEndpointUrl", baseUrl + "/checkToken");
+        formTester.setValue("panel:content:logoutUri", baseUrl + "/logout");
+        formTester.setValue("panel:content:scopes", "open_id");
+        formTester.setValue("panel:content:cliendId", "fnruurnu4unu4");
+        formTester.setValue("panel:content:clientSecret", "fnruurnu4unu4");
+        formTester.setValue("panel:content:jwkURI", baseUrl + "/jwk");
+
+        formTester.setValue("panel:content:enforceTokenValidation", true);
+
+        clickSave();
+        tester.assertNoErrorMessage();
+        clickNamedServiceConfig("OpenIdFilter4");
+        tester.assertModelValue("panel:panel:form:panel:enforceTokenValidation", true);
     }
 
     @Override

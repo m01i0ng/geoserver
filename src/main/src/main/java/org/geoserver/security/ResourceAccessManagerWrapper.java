@@ -8,21 +8,23 @@ package org.geoserver.security;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import org.geoserver.catalog.Catalog;
+import org.geoserver.catalog.CatalogInfo;
 import org.geoserver.catalog.LayerGroupInfo;
 import org.geoserver.catalog.LayerInfo;
 import org.geoserver.catalog.ResourceInfo;
 import org.geoserver.catalog.StyleInfo;
 import org.geoserver.catalog.WorkspaceInfo;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.filter.FilterFactory;
+import org.geotools.api.filter.expression.PropertyName;
+import org.geotools.api.parameter.GeneralParameterValue;
 import org.geotools.factory.CommonFactoryFinder;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryComponentFilter;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Polygon;
-import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory2;
-import org.opengis.filter.expression.PropertyName;
-import org.opengis.parameter.GeneralParameterValue;
 import org.springframework.security.core.Authentication;
 
 /**
@@ -32,7 +34,7 @@ import org.springframework.security.core.Authentication;
  */
 public abstract class ResourceAccessManagerWrapper implements ResourceAccessManager {
     protected ResourceAccessManager delegate;
-    private static FilterFactory2 factory = CommonFactoryFinder.getFilterFactory2(null);
+    private static FilterFactory factory = CommonFactoryFinder.getFilterFactory(null);
     private static GeometryFactory geomFactory = new GeometryFactory();
 
     protected CatalogMode intersection(CatalogMode a, CatalogMode b) {
@@ -73,15 +75,12 @@ public abstract class ResourceAccessManagerWrapper implements ResourceAccessMana
         if (b == null) return a;
 
         CatalogMode mode = intersection(a.getMode(), b.getMode());
-        List<PropertyName> readAttributes =
-                intersection(a.getReadAttributes(), b.getReadAttributes());
+        List<PropertyName> readAttributes = intersection(a.getReadAttributes(), b.getReadAttributes());
         Filter readFilter = intersection(a.getReadFilter(), b.getReadFilter());
-        List<PropertyName> writeAttributes =
-                intersection(a.getReadAttributes(), b.getReadAttributes());
+        List<PropertyName> writeAttributes = intersection(a.getReadAttributes(), b.getReadAttributes());
         Filter writeFilter = intersection(a.getWriteFilter(), b.getWriteFilter());
 
-        return new VectorAccessLimits(
-                mode, readAttributes, readFilter, writeAttributes, writeFilter);
+        return new VectorAccessLimits(mode, readAttributes, readFilter, writeAttributes, writeFilter);
     }
 
     protected CoverageAccessLimits intersection(CoverageAccessLimits a, CoverageAccessLimits b) {
@@ -101,15 +100,11 @@ public abstract class ResourceAccessManagerWrapper implements ResourceAccessMana
                     rasterFilter = (MultiPolygon) intersection;
                 } else {
                     final List<Polygon> accum = new ArrayList<>();
-                    intersection.apply(
-                            (GeometryComponentFilter)
-                                    geom -> {
-                                        if (geom instanceof Polygon) accum.add((Polygon) geom);
-                                    });
+                    intersection.apply((GeometryComponentFilter) geom -> {
+                        if (geom instanceof Polygon) accum.add((Polygon) geom);
+                    });
 
-                    rasterFilter =
-                            geomFactory.createMultiPolygon(
-                                    accum.toArray(new Polygon[accum.size()]));
+                    rasterFilter = geomFactory.createMultiPolygon(accum.toArray(new Polygon[accum.size()]));
                 }
             }
         }
@@ -159,8 +154,7 @@ public abstract class ResourceAccessManagerWrapper implements ResourceAccessMana
         }
     }
 
-    protected GeneralParameterValue[] intersection(
-            GeneralParameterValue[] a, GeneralParameterValue[] b) {
+    protected GeneralParameterValue[] intersection(GeneralParameterValue[] a, GeneralParameterValue[] b) {
         if (a == null) return b;
         if (b == null) return a;
 
@@ -222,8 +216,7 @@ public abstract class ResourceAccessManagerWrapper implements ResourceAccessMana
     }
 
     @Override
-    public DataAccessLimits getAccessLimits(
-            Authentication user, LayerInfo layer, List<LayerGroupInfo> containers) {
+    public DataAccessLimits getAccessLimits(Authentication user, LayerInfo layer, List<LayerGroupInfo> containers) {
         return delegate.getAccessLimits(user, layer, containers);
     }
 
@@ -246,6 +239,16 @@ public abstract class ResourceAccessManagerWrapper implements ResourceAccessMana
     public LayerGroupAccessLimits getAccessLimits(
             Authentication user, LayerGroupInfo layerGroup, List<LayerGroupInfo> containers) {
         return delegate.getAccessLimits(user, layerGroup, containers);
+    }
+
+    @Override
+    public Filter getSecurityFilter(Authentication user, final Class<? extends CatalogInfo> clazz) {
+        return delegate.getSecurityFilter(user, clazz);
+    }
+
+    @Override
+    public boolean isWorkspaceAdmin(Authentication user, Catalog catalog) {
+        return delegate.isWorkspaceAdmin(user, catalog);
     }
 
     public ResourceAccessManager unwrap() {

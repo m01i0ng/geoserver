@@ -8,10 +8,9 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
+import java.time.Instant;
 import org.apache.wicket.util.resource.AbstractResourceStream;
 import org.apache.wicket.util.resource.ResourceStreamNotFoundException;
-import org.apache.wicket.util.time.Time;
-import org.geoserver.platform.resource.Paths;
 import org.geoserver.platform.resource.Resource;
 
 /**
@@ -26,9 +25,9 @@ public class WicketResourceAdaptor extends AbstractResourceStream {
     protected Resource resource;
 
     public WicketResourceAdaptor(Resource resource) {
-        if (Paths.isAbsolute(resource.path())) {
+        if (!resource.isInternal()) {
             // double check resource browser cannot be used to edit
-            // absolute path locations
+            // files outside of resource store
             throw new IllegalStateException("Path location not supported by Resource Browser");
         }
         this.resource = resource;
@@ -54,8 +53,8 @@ public class WicketResourceAdaptor extends AbstractResourceStream {
     }
 
     @Override
-    public Time lastModifiedTime() {
-        return Time.millis(resource.lastmodified());
+    public Instant lastModifiedTime() {
+        return Instant.ofEpochMilli(resource.lastmodified());
     }
 
     @Override

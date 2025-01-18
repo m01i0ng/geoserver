@@ -10,22 +10,22 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.geotools.api.filter.FilterFactory;
+import org.geotools.api.filter.expression.Expression;
+import org.geotools.api.style.ExternalGraphic;
+import org.geotools.api.style.Fill;
+import org.geotools.api.style.Graphic;
+import org.geotools.api.style.GraphicalSymbol;
+import org.geotools.api.style.Mark;
+import org.geotools.api.style.PointSymbolizer;
+import org.geotools.api.style.Stroke;
+import org.geotools.api.style.Style;
+import org.geotools.api.style.StyleFactory;
+import org.geotools.api.style.Symbol;
+import org.geotools.api.style.Symbolizer;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.filter.visitor.IsStaticExpressionVisitor;
 import org.geotools.renderer.style.ExpressionExtractor;
-import org.geotools.styling.ExternalGraphic;
-import org.geotools.styling.Fill;
-import org.geotools.styling.Graphic;
-import org.geotools.styling.Mark;
-import org.geotools.styling.PointSymbolizer;
-import org.geotools.styling.Stroke;
-import org.geotools.styling.Style;
-import org.geotools.styling.StyleFactory;
-import org.geotools.styling.Symbol;
-import org.geotools.styling.Symbolizer;
-import org.opengis.filter.FilterFactory;
-import org.opengis.filter.expression.Expression;
-import org.opengis.style.GraphicalSymbol;
 
 /**
  * Utility to inject static property values into a style
@@ -47,6 +47,7 @@ public final class IconPropertyInjector {
     private List<List<MiniRule>> injectProperties(List<List<MiniRule>> ftStyles) {
         List<List<MiniRule>> result = new ArrayList<>();
         for (int ftIdx = 0; ftIdx < ftStyles.size(); ftIdx++) {
+            boolean empty = true;
             List<MiniRule> origRules = ftStyles.get(ftIdx);
             List<MiniRule> resultRules = new ArrayList<>();
             for (int ruleIdx = 0; ruleIdx < origRules.size(); ruleIdx++) {
@@ -57,11 +58,14 @@ public final class IconPropertyInjector {
                     if (properties.containsKey(key)) {
                         Symbolizer sym = origRule.symbolizers.get(symbIdx);
                         resultSymbolizers.add(injectPointSymbolizer(key, sym));
+                        empty = false;
                     }
                 }
                 resultRules.add(new MiniRule(null, false, resultSymbolizers));
             }
-            result.add(resultRules);
+            if (!empty) {
+                result.add(resultRules);
+            }
         }
         return result;
     }
@@ -121,8 +125,7 @@ public final class IconPropertyInjector {
             marks = new Mark[0];
             externalGraphics = new ExternalGraphic[0];
         }
-        return styleFactory.createGraphic(
-                externalGraphics, marks, symbols, opacity, size, rotation);
+        return styleFactory.createGraphic(externalGraphics, marks, symbols, opacity, size, rotation);
     }
 
     private ExternalGraphic injectExternalGraphic(String key, ExternalGraphic original) {
@@ -133,9 +136,8 @@ public final class IconPropertyInjector {
             if (original.getLocation() == null) {
                 locationExpression = null;
             } else {
-                locationExpression =
-                        ExpressionExtractor.extractCqlExpressions(
-                                original.getLocation().toExternalForm());
+                locationExpression = ExpressionExtractor.extractCqlExpressions(
+                        original.getLocation().toExternalForm());
             }
 
             if (locationExpression == null || isStatic(locationExpression)) {
@@ -153,8 +155,7 @@ public final class IconPropertyInjector {
         final Expression wellKnownName;
         final Stroke stroke;
         final Fill fill;
-        final Expression size =
-                null; // size and fill are handled only at the PointSymbolizer level - bug?
+        final Expression size = null; // size and fill are handled only at the PointSymbolizer level - bug?
         final Expression rotation = null;
 
         if (mark.getWellKnownName() == null || isStatic(mark.getWellKnownName())) {
@@ -183,7 +184,6 @@ public final class IconPropertyInjector {
         final Expression opacity;
         final Expression lineJoin;
         final Expression lineCap;
-        final float[] dashArray;
         final Expression dashOffset;
         final Graphic graphicFill;
         final Graphic graphicStroke;
@@ -277,12 +277,9 @@ public final class IconPropertyInjector {
 
     public static Style injectProperties(Style style, Map<String, String> properties) {
         boolean includeNonPointGraphics =
-                Boolean.valueOf(
-                        properties.getOrDefault(
-                                IconPropertyExtractor.NON_POINT_GRAPHIC_KEY, "false"));
+                Boolean.valueOf(properties.getOrDefault(IconPropertyExtractor.NON_POINT_GRAPHIC_KEY, "false"));
         List<List<MiniRule>> ftStyles = MiniRule.minify(style, includeNonPointGraphics);
         StyleFactory factory = CommonFactoryFinder.getStyleFactory();
-        return MiniRule.makeStyle(
-                factory, new IconPropertyInjector(properties).injectProperties(ftStyles));
+        return MiniRule.makeStyle(factory, new IconPropertyInjector(properties).injectProperties(ftStyles));
     }
 }

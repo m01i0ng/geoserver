@@ -5,7 +5,6 @@
 package org.geoserver.wms;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -17,7 +16,6 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.geoserver.catalog.DimensionInfo;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.catalog.MetadataMap;
@@ -25,13 +23,11 @@ import org.geoserver.catalog.ResourceInfo;
 import org.geoserver.data.DimensionFilterBuilder;
 import org.geoserver.platform.ServiceException;
 import org.geoserver.wms.dimension.DimensionDefaultValueSelectionStrategy;
+import org.geotools.api.feature.type.PropertyDescriptor;
+import org.geotools.api.filter.Filter;
 import org.geotools.util.Converters;
 import org.geotools.util.Range;
 import org.geotools.util.logging.Logging;
-import org.opengis.feature.type.FeatureType;
-import org.opengis.feature.type.PropertyDescriptor;
-import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory;
 
 /**
  * Centralizes filter convert operations for custom dimensions.
@@ -42,85 +38,78 @@ class CustomDimensionFilterConverter {
 
     private static final Logger LOGGER = Logging.getLogger(CustomDimensionFilterConverter.class);
 
-    private DefaultValueStrategyFactory defaultValueStrategyFactory;
-    private final FilterFactory ff;
+    private final FeatureTypeInfo typeInfo;
+    private final DefaultValueStrategyFactory defaultValueStrategyFactory;
+
+    private final Map<String, DimensionInfo> customDimensions;
 
     private static Collection<ValueConverter> converters;
 
-    CustomDimensionFilterConverter(
-            DefaultValueStrategyFactory defaultValueStrategyFactory, FilterFactory ff) {
-        this.ff = ff;
+    CustomDimensionFilterConverter(FeatureTypeInfo typeInfo, DefaultValueStrategyFactory defaultValueStrategyFactory) {
         this.defaultValueStrategyFactory = defaultValueStrategyFactory;
+        this.typeInfo = typeInfo;
+        this.customDimensions = getCustomDimensions();
     }
 
     /**
      * Builds a filter in base to KVP map and Feature type info provided parameters.
      *
      * @param rawKVP Request KVP values
-     * @param typeInfo Feature type info
      * @return builded filter
      */
-    public Filter getDimensionsToFilter(
-            final Map<String, String> rawKVP, final FeatureTypeInfo typeInfo) {
+    public Filter getDimensionsToFilter(final Map<String, String> rawKVP, DimensionFilterBuilder filterBuilder) {
+        // build a filter for each
+        for (Map.Entry<String, DimensionInfo> entry : customDimensions.entrySet()) {
+            final String dimensionName = entry.getKey();
+            DimensionInfo dimension = entry.getValue();
+            buildDimensionFilter(rawKVP, filterBuilder, dimensionName, dimension);
+        }
+
+        return filterBuilder.getFilter();
+    }
+
+    public void buildDimensionFilter(
+            Map<String, String> rawKVP,
+            DimensionFilterBuilder filterBuilder,
+            String dimensionName,
+            DimensionInfo dimension) {
         try {
-            // get the list of configured custom dimensions for this Feature Type
-            final MetadataMap metadataMap = typeInfo.getMetadata();
-            final FeatureType featureType = typeInfo.getFeatureType();
-            final Map<String, Pair<DimensionInfo, String>> rawValuesMap =
-                    getRawDimensionValues(rawKVP, metadataMap);
-            final List<Filter> filters = new ArrayList<>();
-            // convert raw value strings to proper types
-            for (Map.Entry<String, Pair<DimensionInfo, String>> entry : rawValuesMap.entrySet()) {
-                final String dimensionName = entry.getKey();
-                final String attributeName = entry.getValue().getKey().getAttribute();
-                final PropertyDescriptor descriptor = featureType.getDescriptor(attributeName);
-                if (descriptor == null) {
-                    throw new IllegalArgumentException(
-                            "Attribute Name '" + attributeName + "' not found.");
-                }
-                final Class<?> binding = descriptor.getType().getBinding();
-                if (StringUtils.isBlank(attributeName)) {
-                    LOGGER.severe(
-                            "Required attribute name is empty for dimension='"
-                                    + dimensionName
-                                    + "'");
-                    continue;
-                }
-                final String endAttributeName = entry.getValue().getKey().getEndAttribute();
-                final String rawValue = entry.getValue().getRight();
-                // convert values
-                final List<Object> convertedValues =
-                        convertValues(
-                                rawValue,
-                                binding,
-                                () ->
-                                        getDefaultCustomDimension(
-                                                rollDimPrefix(dimensionName), typeInfo, binding));
-                // generate a Filter for every value in convertedValues
-                filters.add(buildFilter(convertedValues, attributeName, endAttributeName));
+            final String attributeName = dimension.getAttribute();
+            final PropertyDescriptor descriptor = typeInfo.getFeatureType().getDescriptor(attributeName);
+            if (descriptor == null) {
+                throw new IllegalArgumentException("Attribute Name '" + attributeName + "' not found.");
             }
-            return ff.and(filters);
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
+            final Class<?> binding = descriptor.getType().getBinding();
+            if (StringUtils.isBlank(attributeName)) {
+                LOGGER.severe("Required attribute name is empty for dimension='" + dimensionName + "'");
+                return;
+            }
+            final String endAttributeName = dimension.getEndAttribute();
+            final String rawValue = rawKVP.get((WMS.DIM_ + dimensionName).toUpperCase());
+            // convert values
+            final List<Object> convertedValues = convertValues(
+                    rawValue, binding, () -> getDefaultCustomDimension(rollDimPrefix(dimensionName), binding));
+            // generate a Filter for every value in convertedValues
+            filterBuilder.appendFilters(attributeName, endAttributeName, convertedValues);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    /** Maps each configured dimension to the KVP key/value found in the request */
-    private Map<String, Pair<DimensionInfo, String>> getRawDimensionValues(
-            Map<String, String> rawKVP, MetadataMap metadataMap) {
+    /**
+     * Collects all enabled vector custom dimensions from feature type metadata.
+     *
+     * @return
+     */
+    public Map<String, DimensionInfo> getCustomDimensions() {
+        final MetadataMap metadataMap = typeInfo.getMetadata();
         return metadataMap.entrySet().stream()
-                .filter(e -> e.getValue() instanceof DimensionInfo && e.getKey().startsWith("dim_"))
-                .collect(
-                        Collectors.toMap(
-                                e -> unrollDimPrefix(e.getKey()),
-                                e ->
-                                        Pair.of(
-                                                (DimensionInfo) e.getValue(),
-                                                rawKVP.get(e.getKey().toUpperCase()))));
+                .filter(e -> e.getValue() instanceof DimensionInfo && e.getKey().startsWith(WMS.DIM_))
+                .filter(e -> ((DimensionInfo) e.getValue()).isEnabled())
+                .collect(Collectors.toMap(e -> unrollDimPrefix(e.getKey()), e -> (DimensionInfo) e.getValue()));
     }
 
-    private List<Object> convertValues(
-            String rawValue, Class<?> binding, Supplier<Object> defaultSupplier) {
+    private List<Object> convertValues(String rawValue, Class<?> binding, Supplier<Object> defaultSupplier) {
 
         if (StringUtils.isBlank(rawValue)) {
             return Arrays.asList(defaultSupplier.get());
@@ -131,17 +120,11 @@ class CustomDimensionFilterConverter {
     }
 
     private String unrollDimPrefix(String key) {
-        return key.replaceFirst("dim_", "");
+        return key.replaceFirst(WMS.DIM_, "");
     }
 
     private String rollDimPrefix(String name) {
-        return "dim_" + name;
-    }
-
-    private Filter buildFilter(List<Object> values, String attributeName, String endAttributeName) {
-        DimensionFilterBuilder builder = new DimensionFilterBuilder(ff);
-        builder.appendFilters(attributeName, endAttributeName, values);
-        return builder.getFilter();
+        return WMS.DIM_ + name;
     }
 
     private List<String> splitStringValue(String value) {
@@ -149,21 +132,16 @@ class CustomDimensionFilterConverter {
         return Arrays.asList(strings);
     }
 
-    private Object getDefaultCustomDimension(
-            String name, ResourceInfo resourceInfo, Class<?> binding) {
+    private Object getDefaultCustomDimension(String name, Class<?> binding) {
         // check the time metadata
-        final DimensionInfo dimensionInfo =
-                resourceInfo.getMetadata().get(name, DimensionInfo.class);
+        final DimensionInfo dimensionInfo = customDimensions.get(unrollDimPrefix(name));
         if (dimensionInfo == null || !dimensionInfo.isEnabled()) {
             throw new ServiceException(
-                    "Layer "
-                            + resourceInfo.prefixedName()
-                            + " does not have custom dimension support enabled");
+                    "Layer " + typeInfo.prefixedName() + " does not have custom dimension support enabled");
         }
         DimensionDefaultValueSelectionStrategy strategy =
-                defaultValueStrategyFactory.getDefaultValueStrategy(
-                        resourceInfo, name, dimensionInfo);
-        return strategy.getDefaultValue(resourceInfo, name, dimensionInfo, binding);
+                defaultValueStrategyFactory.getDefaultValueStrategy(typeInfo, name, dimensionInfo);
+        return strategy.getDefaultValue(typeInfo, name, dimensionInfo, binding);
     }
 
     private List<Object> convertValues(List<String> rawValues, Class<?> binding) {
@@ -192,12 +170,8 @@ class CustomDimensionFilterConverter {
 
     static synchronized Collection<ValueConverter> initValueConverters() {
         if (converters == null) {
-            converters =
-                    Arrays.asList(
-                            new NumberConverter(),
-                            new StringConverter(),
-                            new BooleanConverter(),
-                            new DateConverter());
+            converters = Arrays.asList(
+                    new NumberConverter(), new StringConverter(), new BooleanConverter(), new DateConverter());
         }
         return converters;
     }
@@ -224,9 +198,7 @@ class CustomDimensionFilterConverter {
         }
 
         protected List<String> cleanBlankValues(List<String> values) {
-            return values.stream()
-                    .filter(v -> StringUtils.isNotBlank(v))
-                    .collect(Collectors.toList());
+            return values.stream().filter(v -> StringUtils.isNotBlank(v)).collect(Collectors.toList());
         }
     }
 
@@ -245,16 +217,12 @@ class CustomDimensionFilterConverter {
             Optional<String> rangeValue = getRangeValue(rawValues);
             if (rangeValue.isPresent()) {
                 // range value present, only process it as unique value
-                final List<Object> rangeValues =
-                        splitRangeValues(rangeValue.get()).stream()
-                                .map(v -> Converters.convert(v, binding))
-                                .collect(Collectors.toList());
+                final List<Object> rangeValues = splitRangeValues(rangeValue.get()).stream()
+                        .map(v -> Converters.convert(v, binding))
+                        .collect(Collectors.toList());
                 @SuppressWarnings("unchecked")
                 final Range range =
-                        new Range(
-                                binding,
-                                (Comparable) rangeValues.get(0),
-                                (Comparable) rangeValues.get(1));
+                        new Range(binding, (Comparable) rangeValues.get(0), (Comparable) rangeValues.get(1));
                 return Arrays.asList(range);
             } else {
                 // no range value present, convert all values
@@ -325,16 +293,12 @@ class CustomDimensionFilterConverter {
             Optional<String> rangeValue = getRangeValue(rawValues);
             if (rangeValue.isPresent()) {
                 // range value present, only process it as unique value
-                final List<Object> rangeValues =
-                        splitRangeValues(rangeValue.get()).stream()
-                                .map(v -> Converters.convert(v, binding))
-                                .collect(Collectors.toList());
+                final List<Object> rangeValues = splitRangeValues(rangeValue.get()).stream()
+                        .map(v -> Converters.convert(v, binding))
+                        .collect(Collectors.toList());
                 @SuppressWarnings("unchecked")
                 final Range range =
-                        new Range(
-                                binding,
-                                (Comparable) rangeValues.get(0),
-                                (Comparable) rangeValues.get(1));
+                        new Range(binding, (Comparable) rangeValues.get(0), (Comparable) rangeValues.get(1));
                 return Arrays.asList(range);
             } else {
                 return rawValues.stream()

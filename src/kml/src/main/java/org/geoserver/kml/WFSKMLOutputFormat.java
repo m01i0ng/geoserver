@@ -24,30 +24,26 @@ import org.geoserver.platform.ServiceException;
 import org.geoserver.wfs.WFSGetFeatureOutputFormat;
 import org.geoserver.wfs.WFSInfo;
 import org.geoserver.wfs.request.FeatureCollectionResponse;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.store.ReprojectingFeatureCollection;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 public class WFSKMLOutputFormat extends WFSGetFeatureOutputFormat {
 
     private KMLEncoder encoder;
 
     public WFSKMLOutputFormat(KMLEncoder encoder, GeoServer gs) {
-        super(
-                gs,
-                new HashSet<>(
-                        Arrays.asList(
-                                new String[] {
-                                    "KML",
-                                    KMLMapOutputFormat.MIME_TYPE,
-                                    // added this one to allow people copying and pasting the format
-                                    // name
-                                    KMLMapOutputFormat.MIME_TYPE.replace('+', ' ')
-                                })));
+        super(gs, new HashSet<>(Arrays.asList(new String[] {
+            "KML",
+            KMLMapOutputFormat.MIME_TYPE,
+            // added this one to allow people copying and pasting the format
+            // name
+            KMLMapOutputFormat.MIME_TYPE.replace('+', ' ')
+        })));
         this.encoder = encoder;
     }
 
@@ -57,14 +53,12 @@ public class WFSKMLOutputFormat extends WFSGetFeatureOutputFormat {
     }
 
     @Override
-    protected void write(
-            FeatureCollectionResponse featureCollection, OutputStream output, Operation getFeature)
+    protected void write(FeatureCollectionResponse featureCollection, OutputStream output, Operation getFeature)
             throws IOException, ServiceException {
 
         // prepare the encoding context
         List<SimpleFeatureCollection> collections = getFeatureCollections(featureCollection);
-        KmlEncodingContext context =
-                new WFSKmlEncodingContext(gs.getService(WFSInfo.class), collections);
+        KmlEncodingContext context = new WFSKmlEncodingContext(gs.getService(WFSInfo.class), collections);
 
         // create the document
         Kml kml = new Kml();
@@ -76,9 +70,7 @@ public class WFSKMLOutputFormat extends WFSGetFeatureOutputFormat {
             document = (Document) decorator.decorate(document, context);
             if (document == null) {
                 throw new ServiceException(
-                        "Coding error in decorator "
-                                + decorator
-                                + ", document objects cannot be set to null");
+                        "Coding error in decorator " + decorator + ", document objects cannot be set to null");
             }
         }
 
@@ -111,14 +103,12 @@ public class WFSKMLOutputFormat extends WFSGetFeatureOutputFormat {
         encoder.encode(kml, output, context);
     }
 
-    private List<SimpleFeatureCollection> getFeatureCollections(
-            FeatureCollectionResponse featureCollection) {
+    private List<SimpleFeatureCollection> getFeatureCollections(FeatureCollectionResponse featureCollection) {
         List<FeatureCollection> inputs = featureCollection.getFeatures();
         List<SimpleFeatureCollection> result = new ArrayList<>();
         for (FeatureCollection fc : inputs) {
             if (!(fc instanceof SimpleFeatureCollection)) {
-                throw new ServiceException(
-                        "The KML output format can only be applied to simple features");
+                throw new ServiceException("The KML output format can only be applied to simple features");
             }
 
             // KML is defined only over wgs84 in lon/lat order, ignore what the WFS thinks the
@@ -126,8 +116,7 @@ public class WFSKMLOutputFormat extends WFSGetFeatureOutputFormat {
             // crs should be
             SimpleFeatureCollection sfc = (SimpleFeatureCollection) fc;
             CoordinateReferenceSystem sourceCRS = sfc.getSchema().getCoordinateReferenceSystem();
-            if (sourceCRS != null
-                    && !CRS.equalsIgnoreMetadata(sourceCRS, DefaultGeographicCRS.WGS84)) {
+            if (sourceCRS != null && !CRS.equalsIgnoreMetadata(sourceCRS, DefaultGeographicCRS.WGS84)) {
                 sfc = new ReprojectingFeatureCollection(sfc, DefaultGeographicCRS.WGS84);
             }
             result.add(sfc);

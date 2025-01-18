@@ -21,20 +21,22 @@ import org.geoserver.catalog.CoverageInfo;
 import org.geoserver.catalog.LayerInfo;
 import org.geoserver.catalog.MetadataLinkInfo;
 import org.geoserver.catalog.PublishedType;
+import org.geoserver.catalog.ResourcePool;
 import org.geoserver.wcs.WCSInfo;
 import org.geoserver.wcs.kvp.GridType;
 import org.geoserver.wcs.responses.CoverageResponseDelegate;
 import org.geoserver.wcs.responses.CoverageResponseDelegateFinder;
+import org.geotools.api.referencing.FactoryException;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.operation.Matrix;
 import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.geotools.gml2.SrsSyntax;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.operation.LinearTransform;
 import org.geotools.util.NumberRange;
 import org.geotools.util.logging.Logging;
 import org.geotools.xml.transform.TransformerBase;
 import org.geotools.xml.transform.Translator;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.Matrix;
 import org.vfny.geoserver.util.ResponseUtils;
 import org.vfny.geoserver.wcs.WcsException;
 import org.vfny.geoserver.wcs.WcsException.WcsExceptionCode;
@@ -42,8 +44,8 @@ import org.xml.sax.ContentHandler;
 import org.xml.sax.helpers.AttributesImpl;
 
 /**
- * Based on the <code>org.geotools.xml.transform</code> framework, does the job of encoding a WCS
- * 1.1.1 DescribeCoverage document.
+ * Based on the <code>org.geotools.xml.transform</code> framework, does the job of encoding a WCS 1.1.1 DescribeCoverage
+ * document.
  *
  * @author Andrea Aime, TOPP
  */
@@ -72,8 +74,7 @@ public class DescribeCoverageTransformer extends TransformerBase {
     protected CoverageResponseDelegateFinder responseFactory;
 
     /** Creates a new WFSCapsTransformer object. */
-    public DescribeCoverageTransformer(
-            WCSInfo wcs, Catalog catalog, CoverageResponseDelegateFinder responseFactory) {
+    public DescribeCoverageTransformer(WCSInfo wcs, Catalog catalog, CoverageResponseDelegateFinder responseFactory) {
         super();
         this.wcs = wcs;
         this.catalog = catalog;
@@ -106,8 +107,9 @@ public class DescribeCoverageTransformer extends TransformerBase {
         public void encode(Object o) throws IllegalArgumentException {
             // try {
             if (!(o instanceof DescribeCoverageType)) {
-                throw new IllegalArgumentException(
-                        new StringBuffer("Not a GetCapabilitiesType: ").append(o).toString());
+                throw new IllegalArgumentException(new StringBuffer("Not a GetCapabilitiesType: ")
+                        .append(o)
+                        .toString());
             }
 
             this.request = (DescribeCoverageType) o;
@@ -115,24 +117,20 @@ public class DescribeCoverageTransformer extends TransformerBase {
             final AttributesImpl attributes = new AttributesImpl();
             attributes.addAttribute("", "xmlns:wcs", "xmlns:wcs", "", WCS_URI);
 
-            attributes.addAttribute(
-                    "", "xmlns:xlink", "xmlns:xlink", "", "http://www.w3.org/1999/xlink");
+            attributes.addAttribute("", "xmlns:xlink", "xmlns:xlink", "", "http://www.w3.org/1999/xlink");
             attributes.addAttribute("", "xmlns:ogc", "xmlns:ogc", "", "http://www.opengis.net/ogc");
-            attributes.addAttribute(
-                    "", "xmlns:ows", "xmlns:ows", "", "http://www.opengis.net/ows/1.1");
+            attributes.addAttribute("", "xmlns:ows", "xmlns:ows", "", "http://www.opengis.net/ows/1.1");
             attributes.addAttribute("", "xmlns:gml", "xmlns:gml", "", "http://www.opengis.net/gml");
 
-            final String prefixDef = new StringBuffer("xmlns:").append(XSI_PREFIX).toString();
+            final String prefixDef =
+                    new StringBuffer("xmlns:").append(XSI_PREFIX).toString();
             attributes.addAttribute("", prefixDef, prefixDef, "", XSI_URI);
 
             final String locationAtt =
                     new StringBuffer(XSI_PREFIX).append(":schemaLocation").toString();
 
             final String locationDef =
-                    WCS_URI
-                            + " "
-                            + buildSchemaURL(
-                                    request.getBaseUrl(), "wcs/1.1.1/wcsDescribeCoverage.xsd");
+                    WCS_URI + " " + buildSchemaURL(request.getBaseUrl(), "wcs/1.1.1/wcsDescribeCoverage.xsd");
 
             attributes.addAttribute("", locationAtt, locationAtt, "", locationDef);
 
@@ -153,8 +151,7 @@ public class DescribeCoverageTransformer extends TransformerBase {
                 try {
                     handleCoverageDescription(ci);
                 } catch (Exception e) {
-                    throw new RuntimeException(
-                            "Unexpected error occurred during describe coverage xml encoding", e);
+                    throw new RuntimeException("Unexpected error occurred during describe coverage xml encoding", e);
                 }
             }
             end("wcs:CoverageDescriptions");
@@ -191,8 +188,7 @@ public class DescribeCoverageTransformer extends TransformerBase {
             }
 
             if (isNotBlank(mdl.getMetadataType())) {
-                attributes.addAttribute(
-                        "", "metadataType", "metadataType", "", mdl.getMetadataType());
+                attributes.addAttribute("", "metadataType", "metadataType", "", mdl.getMetadataType());
             }
 
             if (isNotBlank(linkType)) {
@@ -264,8 +260,7 @@ public class DescribeCoverageTransformer extends TransformerBase {
             end("wcs:GridCRS");
         }
 
-        protected void handleBoundingBox(ReferencedEnvelope encodedEnvelope, boolean wgsLonLat)
-                throws Exception {
+        protected void handleBoundingBox(ReferencedEnvelope encodedEnvelope, boolean wgsLonLat) throws Exception {
             final AttributesImpl attributes = new AttributesImpl();
             final CoordinateReferenceSystem crs = encodedEnvelope.getCoordinateReferenceSystem();
             if (wgsLonLat) {
@@ -285,17 +280,15 @@ public class DescribeCoverageTransformer extends TransformerBase {
             start("ows:BoundingBox", attributes);
             element(
                     "ows:LowerCorner",
-                    new StringBuffer(
-                                    Double.toString(
-                                            encodedEnvelope.getLowerCorner().getOrdinate(0)))
+                    new StringBuffer(Double.toString(
+                                    encodedEnvelope.getLowerCorner().getOrdinate(0)))
                             .append(" ")
                             .append(encodedEnvelope.getLowerCorner().getOrdinate(1))
                             .toString());
             element(
                     "ows:UpperCorner",
-                    new StringBuffer(
-                                    Double.toString(
-                                            encodedEnvelope.getUpperCorner().getOrdinate(0)))
+                    new StringBuffer(Double.toString(
+                                    encodedEnvelope.getUpperCorner().getOrdinate(0)))
                             .append(" ")
                             .append(encodedEnvelope.getUpperCorner().getOrdinate(1))
                             .toString());
@@ -343,8 +336,8 @@ public class DescribeCoverageTransformer extends TransformerBase {
         }
 
         /**
-         * Given a set of sample dimensions, this will return a valid range only if all sample
-         * dimensions have one, otherwise null
+         * Given a set of sample dimensions, this will return a valid range only if all sample dimensions have one,
+         * otherwise null
          */
         @SuppressWarnings("unchecked") // dimension range does not have a specific Number type
         protected NumberRange getCoverageRange(List<CoverageDimensionInfo> dimensions) {
@@ -368,8 +361,7 @@ public class DescribeCoverageTransformer extends TransformerBase {
                     // Can we assume min and max are two integer numbers and
                     // make up a list out of them? For the moment, just fail
                     throw new IllegalArgumentException(
-                            "Cannot encode a range of null values, "
-                                    + "only single values are handled");
+                            "Cannot encode a range of null values, " + "only single values are handled");
                 }
             }
         }
@@ -407,7 +399,7 @@ public class DescribeCoverageTransformer extends TransformerBase {
 
         @SuppressWarnings("unchecked") // EMF model without generics
         protected void handleSupportedCRSs(CoverageInfo ci) throws Exception {
-            Set supportedCRSs = new LinkedHashSet();
+            Set supportedCRSs = new LinkedHashSet<>();
             if (ci.getRequestSRS() != null) supportedCRSs.addAll(ci.getRequestSRS());
             if (ci.getResponseSRS() != null) supportedCRSs.addAll(ci.getResponseSRS());
             for (Object crSs : supportedCRSs) {
@@ -418,13 +410,9 @@ public class DescribeCoverageTransformer extends TransformerBase {
             }
         }
 
-        protected String urnIdentifier(final CoordinateReferenceSystem crs)
-                throws FactoryException {
-            String authorityAndCode = CRS.lookupIdentifier(crs, false);
-            String code = authorityAndCode.substring(authorityAndCode.lastIndexOf(":") + 1);
-            // we don't specify the version, but we still need to put a space
-            // for it in the urn form, that's why we have :: before the code
-            return "urn:ogc:def:crs:EPSG::" + code;
+        protected String urnIdentifier(final CoordinateReferenceSystem crs) throws FactoryException {
+            String identifier = ResourcePool.lookupIdentifier(crs, false);
+            return SrsSyntax.OGC_URN.getSRS(identifier);
         }
 
         /** Writes the element if and only if the content is not null and not empty */

@@ -29,24 +29,23 @@ import org.geoserver.wms.GetMapRequest;
 import org.geoserver.wms.WMS;
 import org.geoserver.wms.map.GetMapKvpRequestReader;
 import org.geoserver.wms.map.RenderedImageMapOutputFormat;
+import org.geotools.api.feature.Feature;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.type.Name;
+import org.geotools.api.style.Description;
+import org.geotools.api.style.FeatureTypeStyle;
+import org.geotools.api.style.PointSymbolizer;
+import org.geotools.api.style.Rule;
+import org.geotools.api.style.Style;
+import org.geotools.api.style.StyleFactory;
+import org.geotools.api.style.TextSymbolizer;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.renderer.RenderListener;
 import org.geotools.renderer.lite.StreamingRenderer;
 import org.geotools.styling.AbstractStyleVisitor;
-import org.geotools.styling.DescriptionImpl;
-import org.geotools.styling.FeatureTypeStyle;
-import org.geotools.styling.PointSymbolizer;
-import org.geotools.styling.Rule;
-import org.geotools.styling.Style;
-import org.geotools.styling.StyleFactory2;
-import org.geotools.styling.TextSymbolizer;
 import org.geotools.styling.visitor.DuplicatingStyleVisitor;
 import org.geotools.util.Converters;
 import org.geotools.util.SimpleInternationalString;
-import org.opengis.feature.Feature;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.type.Name;
-import org.opengis.style.Description;
 
 /**
  * Alters a legend to add a count of the rules descriptions
@@ -55,7 +54,7 @@ import org.opengis.style.Description;
  */
 class FeatureCountProcessor {
 
-    static final StyleFactory2 SF = (StyleFactory2) CommonFactoryFinder.getStyleFactory();
+    static final StyleFactory SF = CommonFactoryFinder.getStyleFactory();
     public static final String WIDTH = "WIDTH";
     public static final String HEIGHT = "HEIGHT";
 
@@ -75,19 +74,15 @@ class FeatureCountProcessor {
         public void visit(Rule rule) {
             super.visit(rule);
             Rule copy = (Rule) pages.peek();
-            Description description =
-                    new DescriptionImpl(
-                            new SimpleInternationalString(targetLabel),
-                            copy.getDescription() != null
-                                    ? copy.getDescription().getAbstract()
-                                    : null);
+            Description description = sf.description(
+                    new SimpleInternationalString(targetLabel),
+                    copy.getDescription() != null ? copy.getDescription().getAbstract() : null);
             copy.setDescription(description);
         }
     }
 
     /**
-     * Runs a map generation on an empty graphics object and allows to consume each feature that
-     * gets rendered
+     * Runs a map generation on an empty graphics object and allows to consume each feature that gets rendered
      *
      * @author Andrea Aime - GeoSolutions
      */
@@ -100,17 +95,13 @@ class FeatureCountProcessor {
         }
 
         @Override
-        protected RenderedImage prepareImage(
-                int width, int height, IndexColorModel palette, boolean transparent) {
+        protected RenderedImage prepareImage(int width, int height, IndexColorModel palette, boolean transparent) {
             return null;
         }
 
         @Override
         protected Graphics2D getGraphics(
-                boolean transparent,
-                Color bgColor,
-                RenderedImage preparedImage,
-                Map<Key, Object> hintsMap) {
+                boolean transparent, Color bgColor, RenderedImage preparedImage, Map<Key, Object> hintsMap) {
             return new NoOpGraphics2D();
         }
 
@@ -118,19 +109,18 @@ class FeatureCountProcessor {
         protected void onBeforeRender(StreamingRenderer renderer) {
             super.onBeforeRender(renderer);
             renderer.setGeneralizationDistance(0);
-            renderer.addRenderListener(
-                    new RenderListener() {
+            renderer.addRenderListener(new RenderListener() {
 
-                        @Override
-                        public void featureRenderer(SimpleFeature feature) {
-                            consumer.accept(feature);
-                        }
+                @Override
+                public void featureRenderer(SimpleFeature feature) {
+                    consumer.accept(feature);
+                }
 
-                        @Override
-                        public void errorOccurred(Exception e) {
-                            // nothing to do here
-                        }
-                    });
+                @Override
+                public void errorOccurred(Exception e) {
+                    // nothing to do here
+                }
+            });
         }
     }
 
@@ -147,9 +137,8 @@ class FeatureCountProcessor {
             // yes, it's an approximation, we cannot really work with a mix of FTS that
             // are some evaluate first, others non evaluate first, but the case is so narrow
             // that I'm inclined to wait for dedicated funding before going there
-            matchFirst |=
-                    FeatureTypeStyle.VALUE_EVALUATION_MODE_FIRST.equals(
-                            fts.getOptions().get(FeatureTypeStyle.KEY_EVALUATION_MODE));
+            matchFirst |= FeatureTypeStyle.VALUE_EVALUATION_MODE_FIRST.equals(
+                    fts.getOptions().get(FeatureTypeStyle.KEY_EVALUATION_MODE));
         }
     }
 
@@ -181,27 +170,21 @@ class FeatureCountProcessor {
     private boolean countMatched;
 
     /**
-     * Builds a new feature count processor given the legend graphic request. It can be used to
-     * alter with feature counts many rule sets.
+     * Builds a new feature count processor given the legend graphic request. It can be used to alter with feature
+     * counts many rule sets.
      */
     public FeatureCountProcessor(GetLegendGraphicRequest request) {
         this.request = request;
         this.getMapReader = new GetMapKvpRequestReader(request.getWms());
-        if (Boolean.TRUE.equals(
-                request.getLegendOption(
-                        GetLegendGraphicRequest.COUNT_MATCHED_KEY, Boolean.class))) {
+        if (Boolean.TRUE.equals(request.getLegendOption(GetLegendGraphicRequest.COUNT_MATCHED_KEY, Boolean.class))) {
             countMatched = true;
         }
-        if (Boolean.TRUE.equals(
-                request.getLegendOption(GetLegendGraphicRequest.HIDE_EMPTY_RULES, Boolean.class))) {
+        if (Boolean.TRUE.equals(request.getLegendOption(GetLegendGraphicRequest.HIDE_EMPTY_RULES, Boolean.class))) {
             hideEmptyRules = true;
         }
     }
 
-    /**
-     * Pre-processes the legend request and returns a style whose rules have been altered to contain
-     * a feature count
-     */
+    /** Pre-processes the legend request and returns a style whose rules have been altered to contain a feature count */
     public Rule[] preProcessRules(LegendRequest legend, Rule[] rules) {
         if (rules == null || rules.length == 0) {
             return rules;
@@ -214,8 +197,7 @@ class FeatureCountProcessor {
 
         try {
             GetMapRequest getMapRequest = parseAssociatedGetMap(legend, rules);
-            Map<Rule, AtomicInteger> counters =
-                    renderAndCountFeatures(rules, getMapRequest, matchFirst);
+            Map<Rule, AtomicInteger> counters = renderAndCountFeatures(rules, getMapRequest, matchFirst);
             Rule[] result = updateRuleTitles(rules, counters);
 
             return result;
@@ -255,46 +237,39 @@ class FeatureCountProcessor {
         final WMS wms = request.getWms();
         // the counters for each rule, all initialized at zero
         Map<Rule, AtomicInteger> counters =
-                Arrays.stream(rules)
-                        .collect(Collectors.toMap(Function.identity(), r -> new AtomicInteger(0)));
+                Arrays.stream(rules).collect(Collectors.toMap(Function.identity(), r -> new AtomicInteger(0)));
 
         // run and count
-        GetMap getMap =
-                new GetMap(wms) {
-                    @Override
-                    protected org.geoserver.wms.GetMapOutputFormat getDelegate(String outputFormat)
-                            throws ServiceException {
-                        return new FeatureRenderSpyFormat(
-                                wms,
-                                f -> {
-                                    boolean matched = false;
-                                    for (Rule rule : rules) {
-                                        if (rule.isElseFilter()) {
-                                            if (!matched) {
-                                                AtomicInteger counter = counters.get(rule);
-                                                counter.incrementAndGet();
-                                            }
-                                        } else if (rule.getFilter() == null
-                                                || rule.getFilter().evaluate(f)) {
-                                            AtomicInteger counter = counters.get(rule);
-                                            counter.incrementAndGet();
-                                            matched = true;
-                                            if (matchFirst) {
-                                                break;
-                                            }
-                                        }
-                                    }
-                                });
-                    };
-                };
+        GetMap getMap = new GetMap(wms) {
+            @Override
+            protected org.geoserver.wms.GetMapOutputFormat getDelegate(String outputFormat) throws ServiceException {
+                return new FeatureRenderSpyFormat(wms, f -> {
+                    boolean matched = false;
+                    for (Rule rule : rules) {
+                        if (rule.isElseFilter()) {
+                            if (!matched) {
+                                AtomicInteger counter = counters.get(rule);
+                                counter.incrementAndGet();
+                            }
+                        } else if (rule.getFilter() == null || rule.getFilter().evaluate(f)) {
+                            AtomicInteger counter = counters.get(rule);
+                            counter.incrementAndGet();
+                            matched = true;
+                            if (matchFirst) {
+                                break;
+                            }
+                        }
+                    }
+                });
+            }
+        };
         getMap.run(getMapRequest);
 
         return counters;
     }
 
     /** Parse the equivalent GetMap for this layer */
-    private GetMapRequest parseAssociatedGetMap(LegendRequest legend, Rule[] rules)
-            throws Exception {
+    private GetMapRequest parseAssociatedGetMap(LegendRequest legend, Rule[] rules) throws Exception {
         // setup the KVP for the internal, fake GetMap
         Map<String, Object> kvp = new CaseInsensitiveMap<>(request.getKvp());
         Map<String, Object> rawKvp = new CaseInsensitiveMap<>(new HashMap<>());
@@ -347,8 +322,7 @@ class FeatureCountProcessor {
             return legend.getLayerInfo().prefixedName();
         } else if (legend.getFeatureType() != null) {
             Name name = legend.getFeatureType().getName();
-            NamespaceInfo ns =
-                    request.getWms().getCatalog().getNamespaceByURI(name.getNamespaceURI());
+            NamespaceInfo ns = request.getWms().getCatalog().getNamespaceByURI(name.getNamespaceURI());
             final String localName = name.getLocalPart();
             if (ns != null) {
                 return ns.getPrefix() + ":" + localName;

@@ -23,8 +23,8 @@ import org.geoserver.wfs.request.GetCapabilitiesRequest;
 import org.geoserver.wfs.request.GetFeatureRequest;
 import org.geoserver.wfs.request.LockFeatureRequest;
 import org.geoserver.wfs.request.TransactionRequest;
+import org.geotools.api.filter.FilterFactory;
 import org.geotools.xml.transform.TransformerBase;
-import org.opengis.filter.FilterFactory2;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -41,12 +41,9 @@ public class DefaultWebFeatureService implements WebFeatureService, ApplicationC
     protected Catalog catalog;
 
     /** Filter factory */
-    protected FilterFactory2 filterFactory;
+    protected FilterFactory filterFactory;
 
-    /**
-     * The spring application context, used to look up transaction listeners, plugins and element
-     * handlers
-     */
+    /** The spring application context, used to look up transaction listeners, plugins and element handlers */
     protected ApplicationContext context;
 
     public DefaultWebFeatureService(GeoServer gs) {
@@ -55,7 +52,7 @@ public class DefaultWebFeatureService implements WebFeatureService, ApplicationC
     }
 
     /** Sets the fitler factory. */
-    public void setFilterFactory(FilterFactory2 filterFactory) {
+    public void setFilterFactory(FilterFactory filterFactory) {
         this.filterFactory = filterFactory;
     }
 
@@ -73,10 +70,7 @@ public class DefaultWebFeatureService implements WebFeatureService, ApplicationC
      */
     @Override
     public TransformerBase getCapabilities(GetCapabilitiesType request) throws WFSException {
-        return new GetCapabilities(
-                        getServiceInfo(),
-                        catalog,
-                        WFSExtensions.findExtendedCapabilitiesProviders(context))
+        return new GetCapabilities(getServiceInfo(), catalog, WFSExtensions.findExtendedCapabilitiesProviders(context))
                 .run(new GetCapabilitiesRequest.WFS11(request));
     }
 
@@ -88,10 +82,8 @@ public class DefaultWebFeatureService implements WebFeatureService, ApplicationC
      * @throws WFSException Any service exceptions.
      */
     @Override
-    public FeatureTypeInfo[] describeFeatureType(DescribeFeatureTypeType request)
-            throws WFSException {
-        return new DescribeFeatureType(getServiceInfo(), catalog)
-                .run(new DescribeFeatureTypeRequest.WFS11(request));
+    public FeatureTypeInfo[] describeFeatureType(DescribeFeatureTypeType request) throws WFSException {
+        return new DescribeFeatureType(getServiceInfo(), catalog).run(new DescribeFeatureTypeRequest.WFS11(request));
     }
 
     /**
@@ -117,8 +109,7 @@ public class DefaultWebFeatureService implements WebFeatureService, ApplicationC
      * @throws WFSException Any service exceptions.
      */
     @Override
-    public FeatureCollectionResponse getFeatureWithLock(GetFeatureWithLockType request)
-            throws WFSException {
+    public FeatureCollectionResponse getFeatureWithLock(GetFeatureWithLockType request) throws WFSException {
         return getFeature(request);
     }
 

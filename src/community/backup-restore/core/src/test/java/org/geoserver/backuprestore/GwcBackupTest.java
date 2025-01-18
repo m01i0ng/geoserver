@@ -5,6 +5,7 @@
 package org.geoserver.backuprestore;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -40,31 +41,24 @@ public class GwcBackupTest extends BackupRestoreTestSupport {
         assertTrue(Resources.exists(dd.get("foo/folder")));
 
         Hints hints = new Hints(new HashMap(3));
-        hints.add(
-                new Hints(
-                        new Hints.OptionKey(Backup.PARAM_BEST_EFFORT_MODE),
-                        Backup.PARAM_BEST_EFFORT_MODE));
+        hints.add(new Hints(new Hints.OptionKey(Backup.PARAM_BEST_EFFORT_MODE), Backup.PARAM_BEST_EFFORT_MODE));
         hints.add(new Hints(new Hints.OptionKey(Backup.PARAM_SKIP_GWC), Backup.PARAM_SKIP_GWC));
 
-        Resource backupFile =
-                Files.asResource(File.createTempFile("testRunSpringBatchBackupGWC", ".zip"));
+        Resource backupFile = Files.asResource(File.createTempFile("testRunSpringBatchBackupGWC", ".zip"));
         if (Resources.exists(backupFile)) {
             assertTrue(backupFile.delete());
         }
-        BackupExecutionAdapter backupExecution =
-                backupFacade.runBackupAsync(backupFile, true, null, null, null, hints);
+        BackupExecutionAdapter backupExecution = backupFacade.runBackupAsync(backupFile, true, null, null, null, hints);
 
         // Wait a bit
         Thread.sleep(100);
 
         assertNotNull(backupFacade.getBackupExecutions());
-        assertTrue(!backupFacade.getBackupExecutions().isEmpty());
+        assertFalse(backupFacade.getBackupExecutions().isEmpty());
         assertNotNull(backupExecution);
 
         int cnt = 0;
-        while (cnt < 100
-                && (backupExecution.getStatus() != BatchStatus.COMPLETED
-                        || backupExecution.isRunning())) {
+        while (cnt < 100 && (backupExecution.getStatus() != BatchStatus.COMPLETED || backupExecution.isRunning())) {
             Thread.sleep(100);
             cnt++;
 

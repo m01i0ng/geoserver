@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.WeakHashMap;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.geoserver.catalog.ResourcePool;
 import org.geoserver.config.ConfigurationListenerAdapter;
 import org.geoserver.config.GeoServer;
 import org.geoserver.config.GeoServerInfo;
@@ -27,7 +28,9 @@ import org.geoserver.wfs.TransactionEvent;
 import org.geoserver.wfs.TransactionListener;
 import org.geoserver.wfs.WFSException;
 import org.geoserver.wms.GetMapRequest;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.geotools.gml2.SrsSyntax;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.CRS.AxisOrder;
 import org.geotools.util.CanonicalSet;
@@ -35,8 +38,8 @@ import org.locationtech.jts.geom.Envelope;
 
 public class QuickTileCache implements TransactionListener, GeoServerLifecycleHandler {
     /**
-     * Set of parameters that we can ignore, since they do not define a map, are either unrelated,
-     * or define the tiling instead
+     * Set of parameters that we can ignore, since they do not define a map, are either unrelated, or define the tiling
+     * instead
      */
     private static final Set<String> ignoredParameters;
 
@@ -58,40 +61,32 @@ public class QuickTileCache implements TransactionListener, GeoServerLifecycleHa
     private WeakHashMap<MetaTileKey, CacheElement> tileCache = new WeakHashMap<>();
 
     public QuickTileCache(GeoServer geoServer) {
-        geoServer.addListener(
-                new ConfigurationListenerAdapter() {
-                    @Override
-                    public void handleGlobalChange(
-                            GeoServerInfo global,
-                            List<String> propertyNames,
-                            List<Object> oldValues,
-                            List<Object> newValues) {
-                        tileCache.clear();
-                    }
+        geoServer.addListener(new ConfigurationListenerAdapter() {
+            @Override
+            public void handleGlobalChange(
+                    GeoServerInfo global, List<String> propertyNames, List<Object> oldValues, List<Object> newValues) {
+                tileCache.clear();
+            }
 
-                    @Override
-                    public void handleServiceChange(
-                            ServiceInfo service,
-                            List<String> propertyNames,
-                            List<Object> oldValues,
-                            List<Object> newValues) {
-                        tileCache.clear();
-                    }
+            @Override
+            public void handleServiceChange(
+                    ServiceInfo service, List<String> propertyNames, List<Object> oldValues, List<Object> newValues) {
+                tileCache.clear();
+            }
 
-                    @Override
-                    public void reloaded() {
-                        tileCache.clear();
-                    }
-                });
+            @Override
+            public void reloaded() {
+                tileCache.clear();
+            }
+        });
     }
 
     /** For testing only */
     QuickTileCache() {}
 
     /**
-     * Given a tiled request, builds a key that can be used to access the cache looking for a
-     * specific meta-tile, and also as a synchronization tool to avoid multiple requests to trigger
-     * parallel computation of the same meta-tile
+     * Given a tiled request, builds a key that can be used to access the cache looking for a specific meta-tile, and
+     * also as a synchronization tool to avoid multiple requests to trigger parallel computation of the same meta-tile
      */
     public MetaTileKey getMetaTileKey(GetMapRequest request) {
         String mapDefinition = buildMapDefinition(request.getRawKvp());
@@ -99,20 +94,15 @@ public class QuickTileCache implements TransactionListener, GeoServerLifecycleHa
         Point2D origin = request.getTilesOrigin();
         if (CRS.getAxisOrder(request.getCrs()) == AxisOrder.NORTH_EAST) {
             try {
-                bbox =
-                        new ReferencedEnvelope(
-                                bbox.getMinY(),
-                                bbox.getMaxY(),
-                                bbox.getMinX(),
-                                bbox.getMaxX(),
-                                CRS.decode("EPSG:" + CRS.lookupEpsgCode(request.getCrs(), false)));
+                String crsId = ResourcePool.lookupIdentifier(request.getCrs(), false);
+                CoordinateReferenceSystem enCRS = CRS.decode(SrsSyntax.AUTH_CODE.getSRS(crsId));
+                bbox = new ReferencedEnvelope(bbox.getMinY(), bbox.getMaxY(), bbox.getMinX(), bbox.getMaxX(), enCRS);
                 origin = new Point2D.Double(origin.getY(), origin.getX());
             } catch (Exception e) {
                 throw new ServiceException("Failed to bring the bbox back in a EN order", e);
             }
         }
-        MapKey mapKey =
-                new MapKey(mapDefinition, normalize(bbox.getWidth() / request.getWidth()), origin);
+        MapKey mapKey = new MapKey(mapDefinition, normalize(bbox.getWidth() / request.getWidth()), origin);
         Point tileCoords = getTileCoordinates(bbox, origin);
         Point metaTileCoords = getMetaTileCoordinates(tileCoords);
         ReferencedEnvelope metaTileEnvelope = getMetaTileEnvelope(bbox, tileCoords, metaTileCoords);
@@ -124,8 +114,7 @@ public class QuickTileCache implements TransactionListener, GeoServerLifecycleHa
         return metaTileKeys.unique(key);
     }
 
-    private ReferencedEnvelope getMetaTileEnvelope(
-            ReferencedEnvelope bbox, Point tileCoords, Point metaTileCoords) {
+    private ReferencedEnvelope getMetaTileEnvelope(ReferencedEnvelope bbox, Point tileCoords, Point metaTileCoords) {
         double minx = bbox.getMinX() + (metaTileCoords.x - tileCoords.x) * bbox.getWidth();
         double miny = bbox.getMinY() + (metaTileCoords.y - tileCoords.y) * bbox.getHeight();
         double maxx = minx + bbox.getWidth() * 3;
@@ -134,8 +123,8 @@ public class QuickTileCache implements TransactionListener, GeoServerLifecycleHa
     }
 
     /**
-     * Given a tile, returns the coordinates of the meta-tile that contains it (where the meta-tile
-     * coordinate is the coordinate of its lower left subtile)
+     * Given a tile, returns the coordinates of the meta-tile that contains it (where the meta-tile coordinate is the
+     * coordinate of its lower left subtile)
      */
     Point getMetaTileCoordinates(Point tileCoords) {
         int x = tileCoords.x;
@@ -174,12 +163,11 @@ public class QuickTileCache implements TransactionListener, GeoServerLifecycleHa
     }
 
     /**
-     * This is tricky. We need to have doubles that can be compared by equality because resolution
-     * and origin are doubles, and are part of a hashmap key, so we have to normalize them somehow,
-     * in order to make the little differences disappear. Here we take the mantissa, which is made
-     * of 52 bits, and throw away the 20 more significant ones, which means we're dealing with 12
-     * significant decimal digits (2^40 -> more or less one billion million). See also <a
-     * href="http://en.wikipedia.org/wiki/IEEE_754">IEEE 754</a> on Wikipedia.
+     * This is tricky. We need to have doubles that can be compared by equality because resolution and origin are
+     * doubles, and are part of a hashmap key, so we have to normalize them somehow, in order to make the little
+     * differences disappear. Here we take the mantissa, which is made of 52 bits, and throw away the 20 more
+     * significant ones, which means we're dealing with 12 significant decimal digits (2^40 -> more or less one billion
+     * million). See also <a href="http://en.wikipedia.org/wiki/IEEE_754">IEEE 754</a> on Wikipedia.
      */
     static double normalize(double d) {
         if (Double.isInfinite(d) || Double.isNaN(d)) {
@@ -274,8 +262,7 @@ public class QuickTileCache implements TransactionListener, GeoServerLifecycleHa
 
         ReferencedEnvelope metaTileEnvelope;
 
-        public MetaTileKey(
-                MapKey mapKey, Point metaTileCoords, ReferencedEnvelope metaTileEnvelope) {
+        public MetaTileKey(MapKey mapKey, Point metaTileCoords, ReferencedEnvelope metaTileEnvelope) {
             super();
             this.mapKey = mapKey;
             this.metaTileCoords = metaTileCoords;
@@ -350,9 +337,7 @@ public class QuickTileCache implements TransactionListener, GeoServerLifecycleHa
         return tiles[tileCoord.x + (tileCoord.y * key.getMetaFactor())];
     }
 
-    /**
-     * Puts the specified tile array in the cache, and returns the tile the request was looking for
-     */
+    /** Puts the specified tile array in the cache, and returns the tile the request was looking for */
     public synchronized void storeTiles(MetaTileKey key, RenderedImage[] tiles) {
         tileCache.put(key, new CacheElement(tiles));
     }

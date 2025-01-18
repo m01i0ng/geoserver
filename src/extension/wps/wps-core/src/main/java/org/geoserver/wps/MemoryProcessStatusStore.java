@@ -15,11 +15,11 @@ import java.util.logging.Logger;
 import org.apache.commons.beanutils.BeanComparator;
 import org.geoserver.wps.executor.ExecutionStatus;
 import org.geoserver.wps.executor.ProcessState;
-import org.geotools.data.Query;
+import org.geotools.api.data.Query;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.filter.sort.SortBy;
+import org.geotools.api.filter.sort.SortOrder;
 import org.geotools.util.logging.Logging;
-import org.opengis.filter.Filter;
-import org.opengis.filter.sort.SortBy;
-import org.opengis.filter.sort.SortOrder;
 
 /**
  * In memory implementation of the {@link ProcessStatusStore} interface
@@ -49,11 +49,7 @@ public class MemoryProcessStatusStore implements ProcessStatusStore {
                 ProcessState previousPhase = oldStatus.getPhase();
                 ProcessState currPhase = status.getPhase();
                 if (!currPhase.isValidSuccessor(previousPhase)) {
-                    throw new WPSException(
-                            "Cannot switch process status from "
-                                    + previousPhase
-                                    + " to "
-                                    + currPhase);
+                    throw new WPSException("Cannot switch process status from " + previousPhase + " to " + currPhase);
                 }
                 ExecutionStatus prevInMap = statuses.put(status.getExecutionId(), newStatus);
                 succeded = prevInMap == oldStatus;

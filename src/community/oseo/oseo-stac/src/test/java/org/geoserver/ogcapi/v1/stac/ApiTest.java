@@ -44,8 +44,7 @@ public class ApiTest extends STACTestSupport {
     public void testApiJson() throws Exception {
         MockHttpServletResponse response = getAsMockHttpServletResponse("ogc/stac/v1/openapi", 200);
         assertThat(
-                response.getContentType(),
-                CoreMatchers.startsWith(OpenAPIMessageConverter.OPEN_API_MEDIA_TYPE_VALUE));
+                response.getContentType(), CoreMatchers.startsWith(OpenAPIMessageConverter.OPEN_API_MEDIA_TYPE_VALUE));
         String json = response.getContentAsString();
         LOGGER.log(Level.INFO, json);
 
@@ -56,8 +55,7 @@ public class ApiTest extends STACTestSupport {
 
     @Test
     public void testApiHTML() throws Exception {
-        MockHttpServletResponse response =
-                getAsMockHttpServletResponse("ogc/stac/v1/openapi?f=text/html", 200);
+        MockHttpServletResponse response = getAsMockHttpServletResponse("ogc/stac/v1/openapi?f=text/html", 200);
         assertEquals("text/html", response.getContentType());
         String html = response.getContentAsString();
         LOGGER.info(html);
@@ -73,8 +71,7 @@ public class ApiTest extends STACTestSupport {
                         "<link rel=\"icon\" type=\"image/png\" href=\"http://localhost:8080/geoserver/swagger-ui/favicon-16x16.png\" sizes=\"16x16\" />"));
         assertThat(
                 html,
-                containsString(
-                        "<script src=\"http://localhost:8080/geoserver/swagger-ui/swagger-ui-bundle.js\">"));
+                containsString("<script src=\"http://localhost:8080/geoserver/swagger-ui/swagger-ui-bundle.js\">"));
         assertThat(
                 html,
                 containsString(
@@ -82,12 +79,12 @@ public class ApiTest extends STACTestSupport {
         assertThat(
                 html,
                 containsString(
-                        "url: \"http://localhost:8080/geoserver/ogc/stac/v1/openapi?f=application%2Fvnd.oai.openapi%2Bjson%3Bversion%3D3.0"));
+                        "value=\"http://localhost:8080/geoserver/ogc/stac/v1/openapi?f=application%2Fvnd.oai.openapi%2Bjson%3Bversion%3D3.0"));
     }
 
     @Test
     public void testApiYaml() throws Exception {
-        String yaml = getAsString("ogc/stac/v1/openapi?f=application/x-yaml");
+        String yaml = getAsString("ogc/stac/v1/openapi?f=application/yaml");
         LOGGER.log(Level.INFO, yaml);
 
         ObjectMapper mapper = Yaml.mapper();
@@ -100,11 +97,12 @@ public class ApiTest extends STACTestSupport {
         MockHttpServletRequest request = createRequest("ogc/stac/v1/openapi");
         request.setMethod("GET");
         request.setContent(new byte[] {});
-        request.addHeader(HttpHeaders.ACCEPT, "foo/bar, application/x-yaml, text/html");
+        request.addHeader(HttpHeaders.ACCEPT, "foo/bar, application/yaml, text/html");
         MockHttpServletResponse response = dispatch(request);
         assertEquals(200, response.getStatus());
-        assertThat(response.getContentType(), CoreMatchers.startsWith("application/x-yaml"));
-        String yaml = string(new ByteArrayInputStream(response.getContentAsString().getBytes()));
+        assertThat(response.getContentType(), CoreMatchers.startsWith("application/yaml"));
+        String yaml =
+                string(new ByteArrayInputStream(response.getContentAsString().getBytes()));
 
         ObjectMapper mapper = Yaml.mapper();
         OpenAPI api = mapper.readValue(yaml, OpenAPI.class);
@@ -175,8 +173,7 @@ public class ApiTest extends STACTestSupport {
         Parameter collectionId = params.get("collectionId");
         List<String> collectionIdValues = collectionId.getSchema().getEnum();
         List<String> expectedCollectionIds =
-                Arrays.asList(
-                        "ATMTEST", "ATMTEST2", "GS_TEST", "LANDSAT8", "SENTINEL1", "SENTINEL2");
+                Arrays.asList("ATMTEST", "ATMTEST2", "GS_TEST", "LANDSAT8", "SENTINEL1", "SENTINEL2");
         assertThat(collectionIdValues, equalTo(expectedCollectionIds));
 
         // check the limit parameter

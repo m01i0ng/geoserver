@@ -14,7 +14,6 @@
         <include>gt-process-geometry*</include>
         <include>gt-xsd-wps*</include>
         <include>net.opengis.wps*</include>
-        <include>serializer*</include>
         <include>gt-csv*</include>
         <include>opencsv*</include>
         <!-- kmlppio dependencies -->
@@ -24,12 +23,20 @@
     </fileSet>
     <fileSet>
       <directory>release/target/html/licenses</directory>
-      <outputDirectory></outputDirectory>
+      <outputDirectory>licenses</outputDirectory>
       <includes>
          <include>LGPL.html</include>
          <include>GEOTOOLS_NOTICE.html</include>
          <include>GPL.html</include>
          <include>NOTICE.html</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>release/target/html/extensions</directory>
+      <outputDirectory></outputDirectory>
+      <includes>
+         <include>README.html</include>
+         <include>LICENSE.html</include>
       </includes>
     </fileSet>
   </fileSets>

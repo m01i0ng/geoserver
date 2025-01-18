@@ -13,10 +13,10 @@ import org.geoserver.gwc.GWC;
 import org.geoserver.gwc.layer.GeoServerTileLayer;
 import org.geoserver.ogcapi.v1.images.ImageListener;
 import org.geoserver.ogcapi.v1.images.ImagesService;
+import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.util.logging.Logging;
 import org.geowebcache.GeoWebCacheException;
-import org.opengis.feature.simple.SimpleFeature;
 import org.springframework.stereotype.Component;
 
 /**
@@ -37,8 +37,7 @@ public class ChangesetImageListener implements ImageListener {
     private final ChangesetIndexProvider indexProvider;
     private final Catalog catalog;
 
-    public ChangesetImageListener(Catalog catalog, ChangesetIndexProvider indexProvider, GWC gwc)
-            throws IOException {
+    public ChangesetImageListener(Catalog catalog, ChangesetIndexProvider indexProvider, GWC gwc) throws IOException {
         this.indexProvider = indexProvider;
         this.gwc = gwc;
         this.catalog = catalog;
@@ -60,8 +59,7 @@ public class ChangesetImageListener implements ImageListener {
             indexProvider.addCheckpoint(ci, feature);
             truncateTilesForCoverage(ci, feature);
         } catch (IOException e) {
-            LOGGER.log(
-                    Level.SEVERE, "Failure while trying to record a image removed checkpoint", e);
+            LOGGER.log(Level.SEVERE, "Failure while trying to record a image removed checkpoint", e);
         }
     }
 

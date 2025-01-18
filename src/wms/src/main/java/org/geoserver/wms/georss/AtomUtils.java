@@ -20,18 +20,17 @@ import org.geoserver.wms.WMS;
 import org.geoserver.wms.WMSMapContent;
 import org.geoserver.wms.WMSRequests;
 import org.geoserver.wms.featureinfo.FeatureTemplate;
+import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.map.Layer;
-import org.opengis.feature.simple.SimpleFeature;
 
 /**
- * The AtomUtils class provides some static methods useful in producing atom metadata related to
- * GeoServer features.
+ * The AtomUtils class provides some static methods useful in producing atom metadata related to GeoServer features.
  *
  * @author David Winslow
  */
 public final class AtomUtils {
 
-    /** A number formatting object to format the the timezone offset info in RFC3339 output. */
+    /** A number formatting object to format the timezone offset info in RFC3339 output. */
     private static NumberFormat doubleDigit = new DecimalFormat("00");
 
     /** A FeatureTemplate used for formatting feature info. @TODO: Are these things threadsafe? */
@@ -70,9 +69,9 @@ public final class AtomUtils {
     }
 
     /**
-     * A date formatting object that does most of the formatting work for RFC3339. Note that since
-     * Java's SimpleDateFormat does not provide all the facilities needed for RFC3339 there is still
-     * some custom code to finish the job.
+     * A date formatting object that does most of the formatting work for RFC3339. Note that since Java's
+     * SimpleDateFormat does not provide all the facilities needed for RFC3339 there is still some custom code to finish
+     * the job.
      */
     private static String formatRFC3339(Date d) {
         return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(d);
@@ -91,8 +90,7 @@ public final class AtomUtils {
             params.put("layers", nsPrefix + ":" + feature.getType().getTypeName());
             params.put("featureid", feature.getID());
 
-            return ResponseUtils.buildURL(
-                    context.getRequest().getBaseUrl(), "wms/reflect", params, URLType.SERVICE);
+            return ResponseUtils.buildURL(context.getRequest().getBaseUrl(), "wms/reflect", params, URLType.SERVICE);
         }
     }
 

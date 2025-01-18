@@ -26,6 +26,9 @@ import org.geoserver.platform.Operation;
 import org.geoserver.platform.ServiceException;
 import org.geoserver.wms.GetFeatureInfoRequest;
 import org.geoserver.wms.WMS;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.crs.ProjectedCRS;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.geometry.jts.ReferencedEnvelope;
@@ -40,9 +43,6 @@ import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.xy.XYDataset;
 import org.locationtech.jts.geom.Coordinate;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.crs.ProjectedCRS;
 import org.springframework.util.Assert;
 
 /** Formats the output of a GetTimeSeries response as a JPG or PNG chart or as a CSV file. */
@@ -78,8 +78,7 @@ public class GetTimeSeriesResponse extends Response {
     @Override
     public String getMimeType(Object value, Operation operation) throws ServiceException {
         GetFeatureInfoRequest request =
-                (GetFeatureInfoRequest)
-                        OwsUtils.parameter(operation.getParameters(), GetFeatureInfoRequest.class);
+                (GetFeatureInfoRequest) OwsUtils.parameter(operation.getParameters(), GetFeatureInfoRequest.class);
         String infoFormat = (String) request.getRawKvp().get("INFO_FORMAT");
         if (infoFormat != null && outputFormats.contains(infoFormat.toLowerCase())) {
             return infoFormat;
@@ -89,15 +88,13 @@ public class GetTimeSeriesResponse extends Response {
     }
 
     @Override
-    public void write(Object value, OutputStream output, Operation operation)
-            throws IOException, ServiceException {
+    public void write(Object value, OutputStream output, Operation operation) throws IOException, ServiceException {
         Assert.notNull(value, "value is null");
         Assert.notNull(operation, "operation is null");
         Assert.isTrue(value instanceof FeatureCollectionType, "unrecognized result type:");
-        Assert.isTrue(
-                operation.getParameters() != null
-                        && operation.getParameters().length == 1
-                        && operation.getParameters()[0] instanceof GetFeatureInfoRequest);
+        Assert.isTrue(operation.getParameters() != null
+                && operation.getParameters().length == 1
+                && operation.getParameters()[0] instanceof GetFeatureInfoRequest);
 
         GetFeatureInfoRequest request = (GetFeatureInfoRequest) operation.getParameters()[0];
         FeatureCollectionType results = (FeatureCollectionType) value;
@@ -111,10 +108,7 @@ public class GetTimeSeriesResponse extends Response {
     }
 
     private void writeChart(
-            GetFeatureInfoRequest request,
-            FeatureCollectionType results,
-            OutputStream output,
-            String mimeType)
+            GetFeatureInfoRequest request, FeatureCollectionType results, OutputStream output, String mimeType)
             throws IOException {
         final TimeSeries series = new TimeSeries("time", Millisecond.class);
         String valueAxisLabel = "Value";
@@ -141,8 +135,7 @@ public class GetTimeSeriesResponse extends Response {
         XYDataset dataset = new TimeSeriesCollection(series);
 
         JFreeChart chart =
-                ChartFactory.createTimeSeriesChart(
-                        title, timeaxisLabel, valueAxisLabel, dataset, false, false, false);
+                ChartFactory.createTimeSeriesChart(title, timeaxisLabel, valueAxisLabel, dataset, false, false, false);
         XYPlot plot = (XYPlot) chart.getPlot();
         plot.setRenderer(new XYLineAndShapeRenderer());
         if (mimeType.startsWith("image/png")) {
@@ -152,20 +145,18 @@ public class GetTimeSeriesResponse extends Response {
         }
     }
 
-    private void writeCsv(
-            GetFeatureInfoRequest request, FeatureCollectionType results, OutputStream output) {
+    private void writeCsv(GetFeatureInfoRequest request, FeatureCollectionType results, OutputStream output) {
         Charset charSet = wms.getCharSet();
         OutputStreamWriter osw = new OutputStreamWriter(output, charSet);
         PrintWriter writer = new PrintWriter(osw);
 
         CoordinateReferenceSystem crs = request.getGetMapRequest().getCrs();
-        final Coordinate middle =
-                WMS.pixelToWorld(
-                        request.getXPixel(),
-                        request.getYPixel(),
-                        new ReferencedEnvelope(request.getGetMapRequest().getBbox(), crs),
-                        request.getGetMapRequest().getWidth(),
-                        request.getGetMapRequest().getHeight());
+        final Coordinate middle = WMS.pixelToWorld(
+                request.getXPixel(),
+                request.getYPixel(),
+                new ReferencedEnvelope(request.getGetMapRequest().getBbox(), crs),
+                request.getGetMapRequest().getWidth(),
+                request.getGetMapRequest().getHeight());
 
         if (crs instanceof ProjectedCRS) {
             writer.println("# X: " + middle.y);
@@ -186,8 +177,7 @@ public class GetTimeSeriesResponse extends Response {
                     SimpleFeature f = fi.next();
                     Date date = (Date) f.getAttribute("date");
                     Double value = (Double) f.getAttribute("value");
-                    writer.println(
-                            isoFormatter.format(date) + "," + (Double.isNaN(value) ? "" : value));
+                    writer.println(isoFormatter.format(date) + "," + (Double.isNaN(value) ? "" : value));
                 }
             }
         }

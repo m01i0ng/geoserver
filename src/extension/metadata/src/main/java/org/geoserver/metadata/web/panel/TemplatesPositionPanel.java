@@ -30,10 +30,8 @@ public class TemplatesPositionPanel extends Panel {
             GeoServerTablePanel<MetadataTemplate> tablePanel) {
         super(id, model);
         ImageAjaxLink<Object> upLink =
-                new ImageAjaxLink<Object>(
-                        "up",
-                        new PackageResourceReference(
-                                GeoServerBasePage.class, "img/icons/silk/arrow_up.png")) {
+                new ImageAjaxLink<>(
+                        "up", new PackageResourceReference(GeoServerBasePage.class, "img/icons/silk/arrow_up.png")) {
                     private static final long serialVersionUID = -4165434301439054175L;
 
                     @Override
@@ -41,9 +39,10 @@ public class TemplatesPositionPanel extends Panel {
                         int index = templates.getObject().indexOf(model.getObject());
                         tracker.switchTemplates(
                                 model.getObject(), templates.getObject().get(index - 1));
-                        templates.getObject().add(index - 1, templates.getObject().remove(index));
-                        ((MarkupContainer) tablePanel.get("listContainer").get("items"))
-                                .removeAll();
+                        templates
+                                .getObject()
+                                .add(index - 1, templates.getObject().remove(index));
+                        ((MarkupContainer) tablePanel.get("listContainer").get("items")).removeAll();
                         tablePanel.clearSelection();
                         target.add(tablePanel);
                     }
@@ -51,9 +50,9 @@ public class TemplatesPositionPanel extends Panel {
                     @Override
                     protected void onComponentTag(ComponentTag tag) {
                         if (templates.getObject().indexOf(model.getObject()) == 0) {
-                            tag.put("style", "visibility:hidden");
+                            tag.put("class", "visibility-hidden");
                         } else {
-                            tag.put("style", "visibility:visible");
+                            tag.put("class", "visibility-visible");
                         }
                     }
                 };
@@ -61,10 +60,9 @@ public class TemplatesPositionPanel extends Panel {
         add(upLink);
 
         ImageAjaxLink<Object> downLink =
-                new ImageAjaxLink<Object>(
+                new ImageAjaxLink<>(
                         "down",
-                        new PackageResourceReference(
-                                GeoServerBasePage.class, "img/icons/silk/arrow_down.png")) {
+                        new PackageResourceReference(GeoServerBasePage.class, "img/icons/silk/arrow_down.png")) {
                     private static final long serialVersionUID = -8005026702401617344L;
 
                     @Override
@@ -72,10 +70,11 @@ public class TemplatesPositionPanel extends Panel {
                         int index = templates.getObject().indexOf(model.getObject());
                         tracker.switchTemplates(
                                 model.getObject(), templates.getObject().get(index + 1));
-                        templates.getObject().add(index + 1, templates.getObject().remove(index));
+                        templates
+                                .getObject()
+                                .add(index + 1, templates.getObject().remove(index));
 
-                        ((MarkupContainer) tablePanel.get("listContainer").get("items"))
-                                .removeAll();
+                        ((MarkupContainer) tablePanel.get("listContainer").get("items")).removeAll();
                         tablePanel.clearSelection();
                         target.add(tablePanel);
                     }
@@ -84,9 +83,9 @@ public class TemplatesPositionPanel extends Panel {
                     protected void onComponentTag(ComponentTag tag) {
                         if (templates.getObject().indexOf(model.getObject())
                                 == templates.getObject().size() - 1) {
-                            tag.put("style", "visibility:hidden");
+                            tag.put("class", "visibility-hidden");
                         } else {
-                            tag.put("style", "visibility:visible");
+                            tag.put("class", "visibility-visible");
                         }
                     }
                 };

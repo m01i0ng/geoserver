@@ -37,22 +37,22 @@ public class GeoserverWicketEncrypterFactory implements ICryptFactory {
     protected static Logger LOGGER = Logging.getLogger("org.geoserver.security");
     static final String ICRYPT_ATTR_NAME = "__ICRYPT";
 
-    ICrypt NoCrypt =
-            new ICrypt() {
+    ICrypt NoCrypt = new ICrypt() {
 
-                @Override
-                public String decryptUrlSafe(String text) {
-                    return text;
-                }
+        @Override
+        public String decryptUrlSafe(String text) {
+            return text;
+        }
 
-                @Override
-                public String encryptUrlSafe(String plainText) {
-                    return plainText;
-                }
+        @Override
+        public String encryptUrlSafe(String plainText) {
+            return plainText;
+        }
 
-                @Override
-                public void setKey(String key) {}
-            };
+        @Override
+        @SuppressWarnings("removal")
+        public void setKey(String key) {}
+    };
 
     class CryptImpl extends AbstractCrypt {
         protected StandardPBEByteEncryptor enc;
@@ -69,11 +69,10 @@ public class GeoserverWicketEncrypterFactory implements ICryptFactory {
                 return enc.decrypt(input);
             }
         }
-    };
+    }
 
     /**
-     * Look up in the Spring Context for an implementation of {@link ICryptFactory} if nothing found
-     * use this default.
+     * Look up in the Spring Context for an implementation of {@link ICryptFactory} if nothing found use this default.
      */
     public static ICryptFactory get() {
         if (Factory != null) return Factory;
@@ -112,8 +111,10 @@ public class GeoserverWicketEncrypterFactory implements ICryptFactory {
         if (manager.isStrongEncryptionAvailable()) {
             enc.setProvider(new BouncyCastleProvider());
             enc.setAlgorithm("PBEWITHSHA256AND128BITAES-CBC-BC");
-        } else // US export restrictions
-        enc.setAlgorithm("PBEWITHMD5ANDDES");
+        } else {
+            // US export restrictions
+            enc.setAlgorithm("PBEWITHMD5ANDDES");
+        }
 
         result = new CryptImpl(enc);
         s.setAttribute(ICRYPT_ATTR_NAME, result);

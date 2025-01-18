@@ -18,7 +18,8 @@ A field is defined in the yaml following key-value pairs:
     - `label`_
     - `occurrence`_
     - `condition`_
-    - `values`_  (specific field types)
+    - `tab`_
+    - `values <#values>`_  (specific field types)
     - `derivedFrom`_  (specific field types)
     - `typename`_  (specific field types)
 
@@ -107,13 +108,21 @@ condition
 ^^^^^^^^^
 
 Conditional attributes are attributes that are only visible for some layers. A typical example are attributes only present for raster or vector layers.
-The condition is specified in `CQL <cql_tutorial>`_ which is evaluated against the layer's `ResourceInfo <csw_features>`_ object.
+The condition is specified in :ref:`CQL <cql_tutorial>` which is evaluated against the layer's :ref:`ResourceInfo <csw_features>` object.
 
 For example:
 
 .. code:: YAML
 
   condition: equalTo(typeOf("."), 'FeatureTypeInfo')
+
+tab
+^^^
+Optionally, attributes may be displayed on separate tabs. All tabs must be listed under `tabs` in the main configuration. Then this
+property is used to assign each attribute to one or more tab (separated by comma), 
+so that the custom metadata panel is divided in tabs:
+
+    .. figure:: images/metadata-tabs.png
 
 values
 ^^^^^^

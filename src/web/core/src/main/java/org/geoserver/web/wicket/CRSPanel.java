@@ -15,7 +15,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.form.Form;
@@ -26,10 +25,10 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.geoserver.catalog.ResourcePool;
-import org.geoserver.web.data.resource.BasicResourceConfig;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.gml2.SrsSyntax;
 import org.geotools.referencing.CRS;
 import org.geotools.util.logging.Logging;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
  * A form component for a {@link CoordinateReferenceSystem} object.
@@ -55,7 +54,7 @@ public class CRSPanel extends FormComponentPanel<CoordinateReferenceSystem> {
     private static Behavior READ_ONLY = new AttributeModifier("readonly", new Model<>("readonly"));
 
     /** pop-up window for WKT and SRS list */
-    protected ModalWindow popupWindow;
+    protected GSModalWindow popupWindow;
 
     /** srs/epsg code text field */
     protected TextField<String> srsTextField;
@@ -76,10 +75,9 @@ public class CRSPanel extends FormComponentPanel<CoordinateReferenceSystem> {
     /**
      * Constructs the CRS panel.
      *
-     * <p>This constructor should be used if the panel is to inherit from a parent model (ie a
-     * CompoundPropertyModel). If no such model is available the CRS will be left uninitialized. To
-     * avoid inheriting from a parent model the constructor {@link #CRSPanel(String, IModel)} should
-     * be used, specifying explicitly an uninitialized model.
+     * <p>This constructor should be used if the panel is to inherit from a parent model (ie a CompoundPropertyModel).
+     * If no such model is available the CRS will be left uninitialized. To avoid inheriting from a parent model the
+     * constructor {@link #CRSPanel(String, IModel)} should be used, specifying explicitly an uninitialized model.
      *
      * @param id The component id.
      */
@@ -102,8 +100,8 @@ public class CRSPanel extends FormComponentPanel<CoordinateReferenceSystem> {
     /**
      * Constructs the CRS panel specifying the underlying CRS explicitly.
      *
-     * <p>When this constructor is used the {@link #getCRS()} method should be used after the form
-     * is submitted to retrieve the final value of the CRS.
+     * <p>When this constructor is used the {@link #getCRS()} method should be used after the form is submitted to
+     * retrieve the final value of the CRS.
      *
      * @param id The component id.
      * @param crs The underlying CRS object.
@@ -135,15 +133,10 @@ public class CRSPanel extends FormComponentPanel<CoordinateReferenceSystem> {
      * @param id The component id.
      * @param model The model, usually a {@link PropertyModel}.
      * @param otherSRS list of srs to show in popup
-     * @param useSRSFromList flag to ensure the srsTextField is always populated with SRS code from
-     *     srs items from otherSRS items. This will ensure that non EPSG:XXX formats will stay
-     *     intact on GUI and Catalog
+     * @param useSRSFromList flag to ensure the srsTextField is always populated with SRS code from srs items from
+     *     otherSRS items. This will ensure that non EPSG:XXX formats will stay intact on GUI and Catalog
      */
-    public CRSPanel(
-            String id,
-            IModel<CoordinateReferenceSystem> model,
-            List<String> otherSRS,
-            boolean useSRSFromList) {
+    public CRSPanel(String id, IModel<CoordinateReferenceSystem> model, List<String> otherSRS, boolean useSRSFromList) {
         super(id, model);
         this.srsProvider = new SRSProvider(otherSRS);
         this.useSRSFromList = useSRSFromList;
@@ -155,64 +148,61 @@ public class CRSPanel extends FormComponentPanel<CoordinateReferenceSystem> {
      */
     void initComponents() {
 
-        popupWindow = new ModalWindow("popup");
+        popupWindow = new GSModalWindow("popup");
         add(popupWindow);
 
         srsTextField = new TextField<>("srs", new Model<>());
         add(srsTextField);
         srsTextField.setOutputMarkupId(true);
 
-        srsTextField.add(
-                new AjaxFormComponentUpdatingBehavior("blur") {
+        srsTextField.add(new AjaxFormComponentUpdatingBehavior("blur") {
 
-                    @Override
-                    protected void onUpdate(AjaxRequestTarget target) {
-                        convertInput();
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                convertInput();
 
-                        CoordinateReferenceSystem crs = getConvertedInput();
-                        if (crs != null) {
-                            setModelObject(crs);
-                            wktLabel.setDefaultModelObject(crs.getName().toString());
-                            wktLink.setEnabled(true);
-                        } else {
-                            wktLabel.setDefaultModelObject(null);
-                            wktLink.setEnabled(false);
-                        }
-                        target.add(wktLink);
+                CoordinateReferenceSystem crs = getConvertedInput();
+                if (crs != null) {
+                    setModelObject(crs);
+                    wktLabel.setDefaultModelObject(crs.getName().toString());
+                    wktLink.setEnabled(true);
+                } else {
+                    wktLabel.setDefaultModelObject(null);
+                    wktLink.setEnabled(false);
+                }
+                target.add(wktLink);
 
-                        String srs = toSRS(crs);
-                        if (srs == null && crs != null) srs = srsTextField.getInput();
-                        onSRSUpdated(srs, target);
-                    }
-                });
+                String srs = toSRS(crs);
+                if (srs == null && crs != null) srs = srsTextField.getInput();
+                onSRSUpdated(srs, target);
+            }
+        });
 
-        findLink =
-                new AjaxLink<Void>("find") {
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        popupWindow.setContent(srsListPanel());
-                        popupWindow.setTitle(new ParamResourceModel("selectSRS", CRSPanel.this));
-                        popupWindow.show(target);
-                    }
-                };
+        findLink = new AjaxLink<>("find") {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                popupWindow.setContent(srsListPanel());
+                popupWindow.setTitle(new ParamResourceModel("selectSRS", CRSPanel.this));
+                popupWindow.show(target);
+            }
+        };
         add(findLink);
 
-        wktLink =
-                new GeoServerAjaxFormLink("wkt") {
-                    @Override
-                    public void onClick(AjaxRequestTarget target, Form<?> form) {
-                        popupWindow.setInitialHeight(375);
-                        popupWindow.setInitialWidth(525);
-                        popupWindow.setContent(new WKTPanel(popupWindow.getContentId(), getCRS()));
-                        CoordinateReferenceSystem crs = CRSPanel.this.getModelObject();
-                        if (crs != null) popupWindow.setTitle(crs.getName().toString());
-                        popupWindow.show(target);
-                    }
-                };
+        wktLink = new GeoServerAjaxFormLink("wkt") {
+            @Override
+            public void onClick(AjaxRequestTarget target, Form<?> form) {
+                popupWindow.setInitialHeight(375);
+                popupWindow.setInitialWidth(525);
+                popupWindow.setContent(new WKTPanel(popupWindow.getContentId(), getCRS()));
+                CoordinateReferenceSystem crs = CRSPanel.this.getModelObject();
+                if (crs != null) popupWindow.setTitle(crs.getName().toString());
+                popupWindow.show(target);
+            }
+        };
         wktLink.setEnabled(getModelObject() != null);
         add(wktLink);
 
-        wktLabel = new Label("wktLabel", new Model<String>());
+        wktLabel = new Label("wktLabel", new Model<>());
         wktLink.add(wktLabel);
         wktLabel.setOutputMarkupId(true);
     }
@@ -250,10 +240,9 @@ public class CRSPanel extends FormComponentPanel<CoordinateReferenceSystem> {
 
     private String getSupportedSRS(CoordinateReferenceSystem crs) {
 
-        List<String> supportedSRSList =
-                this.srsProvider.getItems().stream()
-                        .map(srsObject -> srsObject.getCode())
-                        .collect(Collectors.toList());
+        List<String> supportedSRSList = this.srsProvider.getItems().stream()
+                .map(srsObject -> srsObject.getIdentifier())
+                .collect(Collectors.toList());
 
         for (String supportedSRS : supportedSRSList) {
             try {
@@ -269,8 +258,8 @@ public class CRSPanel extends FormComponentPanel<CoordinateReferenceSystem> {
     }
 
     /**
-     * Subclasses can override to perform custom behaviors when the SRS is updated, which happens
-     * either when the text field is left or when the find dialog returns
+     * Subclasses can override to perform custom behaviors when the SRS is updated, which happens either when the text
+     * field is left or when the find dialog returns
      */
     protected void onSRSUpdated(String srs, AjaxRequestTarget target) {
         // do nothing by default
@@ -323,7 +312,7 @@ public class CRSPanel extends FormComponentPanel<CoordinateReferenceSystem> {
                 return "UNKNOWN";
             }
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Could not succesffully lookup an EPSG code", e);
+            LOGGER.log(Level.WARNING, "Could not successfully lookup an CRS identifier", e);
             return null;
         }
     }
@@ -335,7 +324,7 @@ public class CRSPanel extends FormComponentPanel<CoordinateReferenceSystem> {
         try {
             return CRS.decode(srs);
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Unknown EPSG code " + srs, e);
+            LOGGER.log(Level.WARNING, "Unknown CRS identifier " + srs, e);
             return null;
         }
     }
@@ -344,37 +333,31 @@ public class CRSPanel extends FormComponentPanel<CoordinateReferenceSystem> {
      * Builds the srs list panel component.
      */
     protected SRSListPanel srsListPanel() {
-        SRSListPanel srsList =
-                new SRSListPanel(popupWindow.getContentId(), srsProvider) {
+        SRSListPanel srsList = new SRSListPanel(popupWindow.getContentId(), srsProvider) {
 
-                    @Override
-                    protected void onCodeClicked(AjaxRequestTarget target, String epsgCode) {
-                        popupWindow.close(target);
+            @Override
+            protected void onCodeClicked(AjaxRequestTarget target, String identifier) {
+                popupWindow.close(target);
 
-                        String srs = epsgCode;
+                String srs = SrsSyntax.AUTH_CODE.getSRS(identifier);
 
-                        // do not append EPSG for OGC URN
-                        if (!epsgCode.startsWith(BasicResourceConfig.URN_OGC_PREFIX)) {
-                            srs = "EPSG:" + srs;
-                        }
+                srsTextField.setModelObject(srs);
+                target.add(srsTextField);
 
-                        srsTextField.setModelObject(srs);
-                        target.add(srsTextField);
+                CoordinateReferenceSystem crs = fromSRS(srs);
+                CRSPanel.this.setModelObject(crs);
+                if (crs != null) {
+                    wktLabel.setDefaultModelObject(crs.getName().toString());
+                    wktLink.setEnabled(true);
+                } else {
+                    wktLabel.setDefaultModelObject(null);
+                    wktLink.setEnabled(false);
+                }
+                target.add(wktLink);
 
-                        CoordinateReferenceSystem crs = fromSRS(srs);
-                        CRSPanel.this.setModelObject(crs);
-                        if (crs != null) {
-                            wktLabel.setDefaultModelObject(crs.getName().toString());
-                            wktLink.setEnabled(true);
-                        } else {
-                            wktLabel.setDefaultModelObject(null);
-                            wktLink.setEnabled(false);
-                        }
-                        target.add(wktLink);
-
-                        onSRSUpdated(srs, target);
-                    }
-                };
+                onSRSUpdated(srs, target);
+            }
+        };
         srsList.setCompactMode(true);
         return srsList;
     }

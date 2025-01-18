@@ -7,6 +7,16 @@ Four commands are available and are documented in the next sections.
 
 Every command uses the HTTP status code to notify errors.
 
+.. note::  Warranty disclaimer and license
+
+   The authors provide these documents "AS-IS", without warranty of any kind
+   either expressed or implied.
+
+   Document under `Creative Common License Attribution-Share Alike 2.5 Generic
+   <http://creativecommons.org/licenses/by-sa/2.5/>`_.
+
+   Authors: MapFish developers.
+
 info.json
 ---------
 
@@ -125,7 +135,7 @@ The print module will use the nearest scale and will make sure the aspect ratio 
 
 The geodetic parameter can be set to true so the scale of geodetic layers can correctly be calculated.  Certain projections (Google and Latlong for example) are based on a spheroid and therefore require **geodetic: true** in order to correctly calculate the scale.  If the geodetic parameter is not present it will be assumed to be false.
 
-The _optional_ strictEpsg4326 parameter can be set to true to control how EPSG:4326 is interpreted. This needs to be true for WMS version 1.3.0 GetMap requests. See https://www.google.ch/search?q=epsg+4326+latitude+longitude+order&oq=epsg+4326+&aqs=chrome.3.69i57j0l5.5996j0j4&sourceid=chrome&espv=210&es_sm=93&ie=UTF-8 for some links to the history and mess that is EPSG:4326.
+The **optional** strictEpsg4326 parameter can be set to true to control how EPSG:4326 is interpreted. This needs to be true for WMS version 1.3.0 GetMap requests. See https://www.google.ch/search?q=epsg+4326+latitude+longitude+order&oq=epsg+4326+&aqs=chrome.3.69i57j0l5.5996j0j4&sourceid=chrome&espv=210&es_sm=93&ie=UTF-8 for some links to the history and mess that is EPSG:4326.
 
 The outputFilename parameter is optional and if omitted the values used in the server's configuration will be used instead.  If it is present it will be the name of the downloaded file.  The suffix will be added if not left off in the parameter.  The date can be substituted into the filename as well if desired.  See configuration's outputFilename for more information and examples
 
@@ -177,9 +187,9 @@ To print more than one map on a single page you need to:
  * specify several map blocks in a page of the yaml file, each with a distinct name property value
  * use a particular syntax in the spec to bind different rendering properties to each map block
  
-This is possible specifying a _maps_ object in spec root object with a distinct key - object pair for each map. The
+This is possible specifying a **maps** object in spec root object with a distinct key - object pair for each map. The
 key will refer the map block name as defined in yaml file. The object will contain layers and srs for the named map.
-Another _maps_ object has to be specified inside the page object to describe positioning, scale and so on.
+Another **maps** object has to be specified inside the page object to describe positioning, scale and so on.
 
 .. code-block:: javascript
 
@@ -245,7 +255,8 @@ Render vector layers. The geometries and the styling comes directly from the spe
 * geoJson (Required) the geoJson to render
 * styleProperty (Defaults to '_style') Name of the property within the features to use as style name. The given property may contain a style object directly.
 * styles (Optional) dictionary of styles. One style is defined as in OpenLayers.Feature.Vector.style.
-* name (Defaults to ``vector``) the layer name.
+* name (Defaults to ``vector``) the layer name. (deprecated: use pdfLayerName instead)
+* pdfLayerName (Defaults to ``vector``) PDF layer name.
 
 WMS
 ---
@@ -261,6 +272,7 @@ Support for the WMS protocol with possibilities to go through a WMS-C service (T
 * format (Required)
 * version (Defaults to ``1.1.1``)
 * useNativeAngle (Defaults to false) it true transform the map angle to customParams.angle for GeoServer, and customParams.map_angle for MapServer.
+* pdfLayerName (Defaults to stringify layers field comma separated) PDF layer name.
 
 WMTS
 ----
@@ -295,6 +307,7 @@ Standard mode:
     }, ...]
 
 * format (Optional, Required id requestEncoding is ``KVP``)
+* pdfLayerName (Defaults to layer field) PDF layer name.
 
 Simple mode:
 
@@ -328,6 +341,7 @@ Support the TMS tile layout.
 * layer (Required)
 * resolutions (Required) Array of resolutions
 * tileOrigin (Optional) Object, tile origin.  Defaults to ``0,0``
+* pdfLayerName (Defaults to layer field) PDF layer name.
 
 Resources:
 
@@ -350,6 +364,7 @@ Support the tile layout z/x/y.<extension>.
 * tileOrigin (Optional) Array, tile origin e.g. ``[420000, 350000]``
 * tileOriginCorner ``tl`` or ``bl`` (Defaults to ``bl``)
 * path_format (Optional) url fragment used to construct the tile location. Can support variable replacement of ``${x}``, ``${y}``, ``${z}`` and ``${extension}``. Defaults to zz/x/y.extension format.  You can use multiple "letters" to indicate a replaceable pattern (aka, ``${zzzz}`` will ensure the z variable is 0 padded to have a length of AT LEAST 4 characters).
+* pdfLayerName (Defaults to "t") PDF layer name.
 
 Osm
 ---
@@ -364,6 +379,7 @@ Support the OSM tile layout.
 * tileSize (Required) Array, tile size e.g. ``[256, 256]``
 * resolutions (Required) Array of resolutions
 * extension (Required) file extension
+* pdfLayerName (Defaults to "t") PDF layer name.
 
 TileCache
 ---------
@@ -379,6 +395,7 @@ Support for the protocol using directly the content of a TileCache directory.
 * tileSize (Required) Array, tile size e.g. ``[256, 256]``
 * resolutions (Required) Array of resolutions
 * extension (Required) file extension
+* pdfLayerName (Defaults to layer field) PDF layer name.
 
 Image
 -----
@@ -388,6 +405,7 @@ Type: image
 * name (Required)
 * baseURL (Required) Service URL
 * extent (Required)
+* pdfLayerName (Defaults to name field) PDF layer name.
 
 MapServer
 ---------
@@ -400,6 +418,7 @@ Support mapserver WMS server.
 * customParams (Optional) Map, additional URL arguments
 * layers (Required)
 * format (Required)
+* pdfLayerName (Defaults to stringify layers field comma separated) PDF layer name.
 
 KaMap
 -----
@@ -416,6 +435,7 @@ Support for the protocol using the KaMap tiling method
 * tileSize (Required) Array, tile size e.g. ``[256, 256]``
 * resolutions (Required) Array of resolutions
 * extension (Required) file extension
+* pdfLayerName (Defaults to map field) PDF layer name.
 
 KaMapCache
 ----------
@@ -435,6 +455,7 @@ Support for the protocol talking directly to a web-accessible ka-Map cache gener
 * tileSize (Required) Array, tile size e.g. ``[256, 256]``
 * resolutions (Required) Array of resolutions
 * extension (Required) file extension
+* pdfLayerName (Defaults to map field) PDF layer name.
 
 Google
 ------
@@ -455,6 +476,7 @@ The google map reader has several custom parameters that can be added to the req
 * maptype (Required) - type of map to display: http://code.google.com/apis/maps/documentation/staticmaps/#MapTypes
 * sensor  (Optional) - specifies whether the application requesting the static map is using a sensor to determine the user's location
 * language (Optional) - language of labels.
+* pdfLayerName (Defaults to "t") PDF layer name.
 * markers (Optional) - add markers to the map: http://code.google.com/apis/maps/documentation/staticmaps/#Markers
 
 .. code-block:: javascript

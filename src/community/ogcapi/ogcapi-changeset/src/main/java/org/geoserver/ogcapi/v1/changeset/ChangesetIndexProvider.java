@@ -26,13 +26,20 @@ import org.geoserver.catalog.event.CatalogRemoveEvent;
 import org.geoserver.config.GeoServerDataDirectory;
 import org.geoserver.ogcapi.InvalidParameterValueException;
 import org.geoserver.platform.resource.Resource;
-import org.geotools.data.DataStore;
-import org.geotools.data.DataStoreFinder;
+import org.geotools.api.data.DataStore;
+import org.geotools.api.data.DataStoreFinder;
+import org.geotools.api.data.Query;
+import org.geotools.api.data.SimpleFeatureStore;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.filter.FilterFactory;
+import org.geotools.api.filter.PropertyIsGreaterThan;
+import org.geotools.api.filter.sort.SortBy;
+import org.geotools.api.filter.sort.SortOrder;
 import org.geotools.data.DataUtilities;
-import org.geotools.data.Query;
 import org.geotools.data.h2.H2DataStoreFactory;
 import org.geotools.data.simple.SimpleFeatureCollection;
-import org.geotools.data.simple.SimpleFeatureStore;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
@@ -41,19 +48,14 @@ import org.geotools.util.logging.Logging;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Polygon;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory2;
-import org.opengis.filter.PropertyIsGreaterThan;
-import org.opengis.filter.sort.SortBy;
-import org.opengis.filter.sort.SortOrder;
+import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ChangesetIndexProvider {
 
-    private static final FilterFactory2 FF = CommonFactoryFinder.getFilterFactory2();
+    private static final FilterFactory FF = CommonFactoryFinder.getFilterFactory();
     private static final Logger LOGGER = Logging.getLogger(ChangesetIndexProvider.class);
 
     public static final String INITIAL_STATE = "Initial";
@@ -66,6 +68,11 @@ public class ChangesetIndexProvider {
     public ChangesetIndexProvider(GeoServerDataDirectory dd, Catalog catalog) throws IOException {
         this.checkpointIndex = getCheckpointDataStore(dd);
         catalog.addListener(new IndexCatalogListener());
+    }
+
+    @EventListener
+    public void handleContextClosedEvent(ContextClosedEvent event) {
+        this.checkpointIndex.dispose();
     }
 
     DataStore getCheckpointDataStore(GeoServerDataDirectory dd) throws IOException {
@@ -97,11 +104,10 @@ public class ChangesetIndexProvider {
     }
 
     /**
-     * Looks up the feature type associated to the coverage. Uses the identifier, rather than the
-     * name, as it's stable across renames and workspace moves
+     * Looks up the feature type associated to the coverage. Uses the identifier, rather than the name, as it's stable
+     * across renames and workspace moves
      */
-    SimpleFeatureStore getStoreForCoverage(CoverageInfo ci, boolean createIfMissing)
-            throws IOException {
+    SimpleFeatureStore getStoreForCoverage(CoverageInfo ci, boolean createIfMissing) throws IOException {
         String typeName = ci.getId();
         if (!Arrays.asList(checkpointIndex.getTypeNames()).contains(typeName)) {
             if (createIfMissing) {
@@ -136,27 +142,23 @@ public class ChangesetIndexProvider {
         if (featureGeometry instanceof MultiPolygon) {
             return featureGeometry;
         } else if (featureGeometry instanceof Polygon) {
-            return featureGeometry
-                    .getFactory()
-                    .createMultiPolygon(new Polygon[] {(Polygon) featureGeometry});
+            return featureGeometry.getFactory().createMultiPolygon(new Polygon[] {(Polygon) featureGeometry});
         } else {
-            throw new IllegalArgumentException(
-                    "Unexpected geometry (type) from checkpoint: " + featureGeometry);
+            throw new IllegalArgumentException("Unexpected geometry (type) from checkpoint: " + featureGeometry);
         }
     }
 
     /**
-     * Returns the list of checkpoint featues for the given coverage, checkpoint and spatial filter.
-     * Will throw an {@link org.geoserver.ogcapi.APIException} if the checkpoint is not known to the
-     * server.
+     * Returns the list of checkpoint featues for the given coverage, checkpoint and spatial filter. Will throw an
+     * {@link org.geoserver.ogcapi.APIException} if the checkpoint is not known to the server.
      *
      * @param ci Returns the modified areas for this coverage info
      * @param checkpoint The reference checkpoint from which to start
      * @param spatialFilter The eventual spatial filter to consider selecting the modified areas
      * @return The list of modifications, or null if nothing changed
      */
-    public SimpleFeatureCollection getModifiedAreas(
-            CoverageInfo ci, String checkpoint, Filter spatialFilter) throws IOException {
+    public SimpleFeatureCollection getModifiedAreas(CoverageInfo ci, String checkpoint, Filter spatialFilter)
+            throws IOException {
         SimpleFeatureStore store = getStoreForCoverage(ci, false);
         // if no changes recorded yet, return everything
         if (store == null) {
@@ -165,8 +167,7 @@ public class ChangesetIndexProvider {
 
         // make sure
         if (spatialFilter != null) {
-            ReprojectingFilterVisitor visitor =
-                    new ReprojectingFilterVisitor(FF, store.getSchema());
+            ReprojectingFilterVisitor visitor = new ReprojectingFilterVisitor(FF, store.getSchema());
             spatialFilter = (Filter) spatialFilter.accept(visitor, null);
         }
 
@@ -179,8 +180,7 @@ public class ChangesetIndexProvider {
 
         // return all features that are after the checkpoint, and in the desired area
         Query q = new Query();
-        PropertyIsGreaterThan timeFilter =
-                FF.greater(FF.property(TIMESTAMP), FF.literal(reference));
+        PropertyIsGreaterThan timeFilter = FF.greater(FF.property(TIMESTAMP), FF.literal(reference));
         if (spatialFilter != Filter.INCLUDE) {
             q.setFilter(FF.and(timeFilter, spatialFilter));
         } else {
@@ -190,14 +190,11 @@ public class ChangesetIndexProvider {
         return store.getFeatures(q);
     }
 
-    private Timestamp getTimestampForCheckpoint(SimpleFeatureStore store, String checkpoint)
-            throws IOException {
-        SimpleFeatureCollection fc =
-                store.getFeatures(FF.equals(FF.property(CHECKPOINT), FF.literal(checkpoint)));
+    private Timestamp getTimestampForCheckpoint(SimpleFeatureStore store, String checkpoint) throws IOException {
+        SimpleFeatureCollection fc = store.getFeatures(FF.equals(FF.property(CHECKPOINT), FF.literal(checkpoint)));
         SimpleFeature first = DataUtilities.first(fc);
         if (first == null) {
-            throw new InvalidParameterValueException(
-                    "Checkpoint " + checkpoint + " cannot be found in change history");
+            throw new InvalidParameterValueException("Checkpoint " + checkpoint + " cannot be found in change history");
         }
 
         return (Timestamp) first.getAttribute(TIMESTAMP);

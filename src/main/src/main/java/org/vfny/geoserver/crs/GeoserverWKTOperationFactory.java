@@ -12,14 +12,13 @@ import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.platform.GeoServerResourceLoader;
 import org.geoserver.platform.resource.Resource;
 import org.geoserver.platform.resource.Resource.Type;
+import org.geotools.api.referencing.operation.CoordinateOperationAuthorityFactory;
 import org.geotools.referencing.factory.epsg.CoordinateOperationFactoryUsingWKT;
 import org.geotools.util.URLs;
 import org.geotools.util.factory.Hints;
-import org.opengis.referencing.operation.CoordinateOperationAuthorityFactory;
 
 /**
- * Authority allowing users to define their own CoordinateOperations in a separate file. Will
- * override EPSG definitions.
+ * Authority allowing users to define their own CoordinateOperations in a separate file. Will override EPSG definitions.
  *
  * @author Oscar Fonts
  */
@@ -54,10 +53,9 @@ public class GeoserverWKTOperationFactory extends CoordinateOperationFactoryUsin
                     LOGGER.log(Level.SEVERE, "Had troubles converting file name to URL");
                 }
             } else {
-                LOGGER.info(
-                        definition.path()
-                                + " was not found, using the default set of "
-                                + "coordinate operation overrides (normally empty)");
+                LOGGER.info(definition.path()
+                        + " was not found, using the default set of "
+                        + "coordinate operation overrides (normally empty)");
             }
         }
         return GeoserverOverridingWKTFactory.class.getResource(FILENAME);

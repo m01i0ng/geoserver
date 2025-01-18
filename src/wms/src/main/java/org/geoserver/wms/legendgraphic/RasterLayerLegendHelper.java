@@ -12,8 +12,11 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import javax.imageio.ImageIO;
 import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.platform.GeoServerResourceLoader;
@@ -25,14 +28,14 @@ import org.geoserver.wms.GetLegendGraphicRequest;
 import org.geoserver.wms.legendgraphic.Cell.ColorMapEntryLegendBuilder;
 import org.geoserver.wms.legendgraphic.ColorMapLegendCreator.Builder;
 import org.geoserver.wms.map.ImageUtils;
-import org.geotools.styling.ChannelSelection;
-import org.geotools.styling.ColorMap;
-import org.geotools.styling.ColorMapEntry;
-import org.geotools.styling.FeatureTypeStyle;
-import org.geotools.styling.RasterSymbolizer;
-import org.geotools.styling.Rule;
-import org.geotools.styling.Style;
-import org.geotools.styling.Symbolizer;
+import org.geotools.api.style.ChannelSelection;
+import org.geotools.api.style.ColorMap;
+import org.geotools.api.style.ColorMapEntry;
+import org.geotools.api.style.FeatureTypeStyle;
+import org.geotools.api.style.RasterSymbolizer;
+import org.geotools.api.style.Rule;
+import org.geotools.api.style.Style;
+import org.geotools.api.style.Symbolizer;
 
 /**
  * Helper class to create legends for raster styles by parsing the rastersymbolizer element.
@@ -47,8 +50,7 @@ public class RasterLayerLegendHelper {
     static {
         BufferedImage imgShape = null;
         try {
-            GeoServerResourceLoader loader =
-                    GeoServerExtensions.bean(GeoServerResourceLoader.class);
+            GeoServerResourceLoader loader = GeoServerExtensions.bean(GeoServerResourceLoader.class);
             Resource rasterLegend = loader.get(Paths.path("styles", "rasterLegend.png"));
             if (rasterLegend.getType() == Type.RESOURCE) {
                 imgShape = ImageIO.read(rasterLegend.file());
@@ -83,15 +85,13 @@ public class RasterLayerLegendHelper {
      * @param style the {@link Style} for which we want to build a legend
      * @param ruleName the {@link Rule} to use for rendering
      */
-    public RasterLayerLegendHelper(
-            final GetLegendGraphicRequest request, Style style, String ruleName) {
+    public RasterLayerLegendHelper(final GetLegendGraphicRequest request, Style style, String ruleName) {
         PackagedUtils.ensureNotNull(request, "The provided GetLegendGraphicRequest is null");
 
         parseRequest(request, style, ruleName);
     }
 
-    private void parseRequest(
-            final GetLegendGraphicRequest request, Style gt2Style, String ruleName) {
+    private void parseRequest(final GetLegendGraphicRequest request, Style gt2Style, String ruleName) {
         // get the requested layer
         // and check that it is actually a grid
         // final FeatureType layer = request.getLayer();
@@ -100,9 +100,8 @@ public class RasterLayerLegendHelper {
         // if(!found)
         // throw new IllegalArgumentException("Unable to create legend for non raster style");
 
-        final FeatureTypeStyle[] ftStyles =
-                gt2Style.featureTypeStyles()
-                        .toArray(new FeatureTypeStyle[gt2Style.featureTypeStyles().size()]);
+        final FeatureTypeStyle[] ftStyles = gt2Style.featureTypeStyles()
+                .toArray(new FeatureTypeStyle[gt2Style.featureTypeStyles().size()]);
         final double scaleDenominator = request.getScale();
 
         final Rule[] applicableRules;
@@ -110,8 +109,7 @@ public class RasterLayerLegendHelper {
         if (ruleName != null) {
             Rule rule = LegendUtils.getRule(ftStyles, ruleName);
             if (rule == null) {
-                throw new ServiceException(
-                        "Specified style does not contains a rule named " + ruleName);
+                throw new ServiceException("Specified style does not contains a rule named " + ruleName);
             }
             applicableRules = new Rule[] {rule};
         } else {
@@ -127,8 +125,7 @@ public class RasterLayerLegendHelper {
             width = request.getWidth();
             height = request.getHeight();
             if (width <= 0 || height <= 0)
-                throw new IllegalArgumentException(
-                        "Invalid width and or height for the GetLegendGraphicRequest");
+                throw new IllegalArgumentException("Invalid width and or height for the GetLegendGraphicRequest");
 
             final List<Symbolizer> symbolizers = applicableRules[0].symbolizers();
             if (symbolizers.size() != 1 || symbolizers.get(0) == null)
@@ -150,9 +147,7 @@ public class RasterLayerLegendHelper {
             // colormap element
             final ColorMap cmap = rasterSymbolizer.getColorMap();
             final Builder cmapLegendBuilder = new ColorMapLegendCreator.Builder();
-            if (cmap != null
-                    && cmap.getColorMapEntries() != null
-                    && cmap.getColorMapEntries().length > 0) {
+            if (cmap != null && cmap.getColorMapEntries() != null && cmap.getColorMapEntries().length > 0) {
 
                 // passing additional options
                 cmapLegendBuilder.setAdditionalOptions(request.getLegendOptions());
@@ -187,14 +182,16 @@ public class RasterLayerLegendHelper {
 
                 // set band
                 final ChannelSelection channelSelection = rasterSymbolizer.getChannelSelection();
-                cmapLegendBuilder.setBand(
-                        channelSelection != null ? channelSelection.getGrayChannel() : null);
+                cmapLegendBuilder.setBand(channelSelection != null ? channelSelection.getGrayChannel() : null);
                 cmapLegendBuilder.setWrap(LegendUtils.isWrap(request));
                 // check the additional options before proceeding
                 cmapLegendBuilder.checkAdditionalOptions();
 
                 // adding the colormap entries
-                final ColorMapEntry[] colorMapEntries = cmap.getColorMapEntries();
+                ColorMapEntry[] colorMapEntries = cmap.getColorMapEntries();
+                if (cmap.getType() == ColorMap.TYPE_VALUES) {
+                    colorMapEntries = removeDuplicates(cmap.getColorMapEntries());
+                }
                 ColorMapEntryLegendBuilder lastEntry = null;
                 boolean first = true;
                 for (ColorMapEntry ce : colorMapEntries) {
@@ -202,10 +199,7 @@ public class RasterLayerLegendHelper {
                         continue;
                     }
                     final Double qty = ce.getQuantity().evaluate(null, Double.class);
-                    if (cmap.getType() == ColorMap.TYPE_INTERVALS
-                            && first
-                            && qty < 0
-                            && Double.isInfinite(qty)) {
+                    if (cmap.getType() == ColorMap.TYPE_INTERVALS && first && qty < 0 && Double.isInfinite(qty)) {
                         continue;
                     }
                     lastEntry = cmapLegendBuilder.addColorMapEntry(ce);
@@ -220,6 +214,21 @@ public class RasterLayerLegendHelper {
 
             } else cMapLegendCreator = null;
         }
+    }
+
+    /** Removes color map entries that would result in duplicate entries in the legend (same color and same label) */
+    protected static ColorMapEntry[] removeDuplicates(ColorMapEntry[] colorMapEntries) {
+        List<ColorMapEntry> results = new ArrayList<>();
+        Map<Color, String> found = new HashMap<>();
+        for (ColorMapEntry entry : colorMapEntries) {
+            Color color = LegendUtils.color(entry);
+            String label = LegendUtils.getLabel(entry);
+            if (color != null && (!found.containsKey(color) || !Objects.equals(label, found.get(color)))) {
+                results.add(entry);
+                found.put(color, label);
+            }
+        }
+        return results.toArray(new ColorMapEntry[results.size()]);
     }
 
     /**
@@ -245,13 +254,11 @@ public class RasterLayerLegendHelper {
             else {
                 image = ImageUtils.createImage(width, height, null, transparent);
                 final Graphics2D graphics =
-                        ImageUtils.prepareTransparency(
-                                transparent, bgColor, image, new HashMap<>());
+                        ImageUtils.prepareTransparency(transparent, bgColor, image, new HashMap<>());
                 if (defaultLegend == null) {
                     drawRasterIcon(graphics);
                 } else {
-                    graphics.setRenderingHint(
-                            RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                     graphics.drawImage(defaultLegend, 0, 0, width, height, null);
                 }
                 graphics.dispose();
@@ -279,12 +286,8 @@ public class RasterLayerLegendHelper {
         }
 
         // overlay a shade of blue that becomes more solid on the lower right corner
-        GradientPaint paint =
-                new GradientPaint(
-                        new Point(0, 0),
-                        new Color(0, 0, 255, 0),
-                        new Point(width, height),
-                        new Color(0, 0, 255, 100));
+        GradientPaint paint = new GradientPaint(
+                new Point(0, 0), new Color(0, 0, 255, 0), new Point(width, height), new Color(0, 0, 255, 100));
         graphics.setPaint(paint);
         graphics.fillRect(0, 0, width, height);
 

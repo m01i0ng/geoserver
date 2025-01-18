@@ -11,10 +11,10 @@ import java.util.logging.Logger;
 import org.geoserver.platform.ExtensionPriority;
 import org.geoserver.rest.converters.BaseMessageConverter;
 import org.geoserver.rest.util.IOUtils;
+import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.data.geojson.GeoJSONReader;
 import org.geotools.data.geojson.GeoJSONWriter;
 import org.geotools.util.logging.Logging;
-import org.opengis.feature.simple.SimpleFeature;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
@@ -52,8 +52,7 @@ public class OseoGeoJSONFeatureConverter extends BaseMessageConverter<Object> {
             throws IOException, HttpMessageNotReadableException {
         try {
             return GeoJSONReader.parseFeature(
-                    new String(
-                            IOUtils.toByteArray(inputMessage.getBody()), StandardCharsets.UTF_8));
+                    new String(IOUtils.toByteArray(inputMessage.getBody()), StandardCharsets.UTF_8));
             // parser throws RuntimeException, however this changes the Spring response from
             // 400 (user's fault) to 500 (internal server error). Catching and re-wrapping instead.
         } catch (RuntimeException e) {

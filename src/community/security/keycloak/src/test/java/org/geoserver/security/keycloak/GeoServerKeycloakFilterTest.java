@@ -4,6 +4,8 @@
  */
 package org.geoserver.security.keycloak;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -20,6 +22,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -30,6 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.geoserver.security.GeoServerSecurityTestSupport;
 import org.geoserver.security.config.PreAuthenticatedUserNameFilterConfig;
 import org.geoserver.security.filter.GeoServerSecurityFilter;
+import org.geoserver.security.impl.AbstractRoleService;
 import org.geoserver.security.impl.GeoServerRole;
 import org.junit.After;
 import org.junit.Before;
@@ -50,8 +55,7 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 public class GeoServerKeycloakFilterTest extends GeoServerSecurityTestSupport {
 
     // name shortening
-    public static final String AEP_HEADER =
-            GeoServerSecurityFilter.AUTHENTICATION_ENTRY_POINT_HEADER;
+    public static final String AEP_HEADER = GeoServerSecurityFilter.AUTHENTICATION_ENTRY_POINT_HEADER;
 
     // identifiers for the auth context
     public static final String REALM = "master";
@@ -59,6 +63,7 @@ public class GeoServerKeycloakFilterTest extends GeoServerSecurityTestSupport {
 
     // locations for useful resources
     public static final String APP_URL = "http://localhost:8080/app";
+    public static final String APP_URL_WIREMOCk = "http://localhost:8080/auth";
     public static final String AUTH_URL = "https://cas.core.maui.mda.ca:8040/auth";
     public static final String OPENID_URL = AUTH_URL + "/realms/" + REALM;
 
@@ -96,15 +101,58 @@ public class GeoServerKeycloakFilterTest extends GeoServerSecurityTestSupport {
     private HttpServletRequest request;
     private HttpServletResponse response;
     private FilterChain chain;
+    private WireMockServer keycloackService;
 
     // do setup before each test
     @SuppressWarnings("PMD.CloseResource") // just a mock
     @Before
     public void before() throws IOException {
+        keycloackService = new WireMockServer(8080);
+        keycloackService.start();
+
+        String openidConfig = "{\n"
+                + "  \"issuer\": \""
+                + OPENID_URL
+                + "\",\n"
+                + "  \"authorization_endpoint\": \""
+                + OPENID_URL
+                + "/protocol/openid-connect/auth\",\n"
+                + "  \"token_endpoint\": \""
+                + OPENID_URL
+                + "/protocol/openid-connect/token\",\n"
+                + "  \"token_introspection_endpoint\": \""
+                + OPENID_URL
+                + "/protocol/openid-connect/token/introspect\",\n"
+                + "  \"userinfo_endpoint\": \""
+                + OPENID_URL
+                + "/protocol/openid-connect/userinfo\",\n"
+                + "  \"end_session_endpoint\": \""
+                + OPENID_URL
+                + "/protocol/openid-connect/logout\",\n"
+                + "  \"jwks_uri\": \""
+                + OPENID_URL
+                + "/protocol/openid-connect/certs\",\n"
+                + "  \"check_session_iframe\": \""
+                + OPENID_URL
+                + "/protocol/openid-connect/login-status-iframe.html\",\n"
+                + "  \"registration_endpoint\": \""
+                + OPENID_URL
+                + "/clients-registrations/openid-connect\",\n"
+                + "  \"introspection_endpoint\": \""
+                + OPENID_URL
+                + "/protocol/openid-connect/token/introspect\"\n"
+                + "}";
+
+        keycloackService.stubFor(
+                WireMock.get(urlEqualTo(String.format("/auth/realms/%s/.well-known/openid-configuration", REALM)))
+                        .willReturn(aResponse()
+                                .withHeader("Content-Type", "application/json")
+                                .withBody(openidConfig)));
+
         AdapterConfig aConfig = new AdapterConfig();
         aConfig.setRealm(REALM);
         aConfig.setResource(CLIENT_ID);
-        aConfig.setAuthServerUrl(AUTH_URL);
+        aConfig.setAuthServerUrl(APP_URL_WIREMOCk);
         config = new GeoServerKeycloakFilterConfig();
         config.writeAdapterConfig(aConfig);
         config.setEnableRedirectEntryPoint(true);
@@ -113,6 +161,12 @@ public class GeoServerKeycloakFilterTest extends GeoServerSecurityTestSupport {
         when(request.getHeaders(anyString())).thenReturn(Collections.emptyEnumeration());
         response = mock(HttpServletResponse.class);
         chain = mock(FilterChain.class);
+
+        AbstractRoleService mockRoleService = mock(AbstractRoleService.class);
+        GeoServerRole admin = new GeoServerRole("admin");
+        when(mockRoleService.getRoleByName("admin")).thenReturn(admin);
+        when(mockRoleService.getAdminRole()).thenReturn(admin);
+        getSecurityManager().setActiveRoleService(mockRoleService);
     }
 
     // remove any possible side-effects to avoid interfering with the next test
@@ -124,6 +178,8 @@ public class GeoServerKeycloakFilterTest extends GeoServerSecurityTestSupport {
         request = null;
         response = null;
         chain = null;
+
+        keycloackService.stop();
     }
 
     // AuthOutcome.NOT_ATTEMPTED
@@ -141,8 +197,7 @@ public class GeoServerKeycloakFilterTest extends GeoServerSecurityTestSupport {
         filter.doFilter(request, response, chain);
 
         // simulate execution of the AEP
-        ArgumentCaptor<AuthenticationEntryPoint> aep =
-                ArgumentCaptor.forClass(AuthenticationEntryPoint.class);
+        ArgumentCaptor<AuthenticationEntryPoint> aep = ArgumentCaptor.forClass(AuthenticationEntryPoint.class);
         verify(request).setAttribute(eq(AEP_HEADER), aep.capture());
         aep.getValue().commence(request, response, null);
 
@@ -151,9 +206,7 @@ public class GeoServerKeycloakFilterTest extends GeoServerSecurityTestSupport {
         ArgumentCaptor<Integer> status = ArgumentCaptor.forClass(Integer.class);
         verify(response).setStatus(status.capture());
         assertTrue(HttpStatus.valueOf(status.getValue()).is3xxRedirection());
-        verify(response)
-                .setHeader(
-                        eq(HttpHeaders.LOCATION), and(startsWith(OPENID_URL), contains(CLIENT_ID)));
+        verify(response).setHeader(eq(HttpHeaders.LOCATION), and(startsWith(OPENID_URL), contains(CLIENT_ID)));
     }
 
     // AuthOutcome.NOT_ATTEMPTED + bearer-only
@@ -173,8 +226,7 @@ public class GeoServerKeycloakFilterTest extends GeoServerSecurityTestSupport {
         filter.doFilter(request, response, chain);
 
         // simulate execution of the AEP
-        ArgumentCaptor<AuthenticationEntryPoint> aep =
-                ArgumentCaptor.forClass(AuthenticationEntryPoint.class);
+        ArgumentCaptor<AuthenticationEntryPoint> aep = ArgumentCaptor.forClass(AuthenticationEntryPoint.class);
         verify(request).setAttribute(eq(AEP_HEADER), aep.capture());
         aep.getValue().commence(request, response, null);
 
@@ -203,8 +255,7 @@ public class GeoServerKeycloakFilterTest extends GeoServerSecurityTestSupport {
         filter.doFilter(request, response, chain);
 
         // simulate execution of the AEP
-        ArgumentCaptor<AuthenticationEntryPoint> aep =
-                ArgumentCaptor.forClass(AuthenticationEntryPoint.class);
+        ArgumentCaptor<AuthenticationEntryPoint> aep = ArgumentCaptor.forClass(AuthenticationEntryPoint.class);
         verify(request).setAttribute(eq(AEP_HEADER), aep.capture());
         aep.getValue().commence(request, response, null);
 
@@ -244,13 +295,12 @@ public class GeoServerKeycloakFilterTest extends GeoServerSecurityTestSupport {
         assertNotNull(authn);
         assertTrue(authn instanceof PreAuthenticatedAuthenticationToken);
         List<String> roles =
-                authn.getAuthorities().stream()
-                        .map(a -> a.getAuthority())
-                        .collect(Collectors.toList());
+                authn.getAuthorities().stream().map(a -> a.getAuthority()).collect(Collectors.toList());
         assertTrue(roles.contains(GeoServerRole.AUTHENTICATED_ROLE.getAuthority()));
         assertTrue(roles.contains("create-realm"));
         assertTrue(roles.contains("admin"));
         assertTrue(roles.contains("uma_authorization"));
+        assertTrue(roles.contains(GeoServerRole.ADMIN_ROLE.getAuthority()));
     }
 
     @Test
@@ -267,8 +317,7 @@ public class GeoServerKeycloakFilterTest extends GeoServerSecurityTestSupport {
         filter.doFilter(request, response, chain);
 
         // simulate execution of the AEP
-        ArgumentCaptor<AuthenticationEntryPoint> aep =
-                ArgumentCaptor.forClass(AuthenticationEntryPoint.class);
+        ArgumentCaptor<AuthenticationEntryPoint> aep = ArgumentCaptor.forClass(AuthenticationEntryPoint.class);
         verify(request).setAttribute(eq(AEP_HEADER), aep.capture());
         aep.getValue().commence(request, response, null);
 
@@ -287,8 +336,7 @@ public class GeoServerKeycloakFilterTest extends GeoServerSecurityTestSupport {
         AdapterConfig aConfig = config.readAdapterConfig();
         aConfig.setRealmKey(PUBLIC_KEY);
         config.writeAdapterConfig(aConfig);
-        config.setRoleSource(
-                PreAuthenticatedUserNameFilterConfig.PreAuthenticatedUserNameRoleSource.Header);
+        config.setRoleSource(PreAuthenticatedUserNameFilterConfig.PreAuthenticatedUserNameRoleSource.Header);
         config.setRolesHeaderAttribute("role");
         String auth_header = "bearer " + JWT_2018_2037;
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(auth_header);
@@ -296,8 +344,7 @@ public class GeoServerKeycloakFilterTest extends GeoServerSecurityTestSupport {
                 .thenReturn(Collections.enumeration(Collections.singleton(auth_header)));
         String role = "ROLE_ADMINISTRATOR";
         when(request.getHeader("role")).thenReturn(role);
-        when(request.getHeaders("role"))
-                .thenReturn(Collections.enumeration(Collections.singleton(role)));
+        when(request.getHeaders("role")).thenReturn(Collections.enumeration(Collections.singleton(role)));
         when(response.getStatus()).thenReturn(HttpStatus.OK.value());
         GeoServerKeycloakFilter filter = new GeoServerKeycloakFilter();
         filter.initializeFromConfig(config);

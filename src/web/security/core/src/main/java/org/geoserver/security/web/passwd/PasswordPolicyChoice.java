@@ -31,11 +31,8 @@ public class PasswordPolicyChoice extends DropDownChoice<String> {
 
         PasswordPolicyNamesModel() {
             try {
-                policyNames =
-                        new ArrayList<>(
-                                GeoServerApplication.get()
-                                        .getSecurityManager()
-                                        .listPasswordValidators());
+                policyNames = new ArrayList<>(
+                        GeoServerApplication.get().getSecurityManager().listPasswordValidators());
             } catch (IOException e) {
                 throw new WicketRuntimeException(e);
             }
@@ -44,11 +41,6 @@ public class PasswordPolicyChoice extends DropDownChoice<String> {
         @Override
         public List<String> getObject() {
             return policyNames;
-        }
-
-        @Override
-        public void detach() {
-            // do nothing
         }
 
         @Override

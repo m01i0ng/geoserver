@@ -8,15 +8,19 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import org.apache.commons.beanutils.BeanUtilsBean2;
+import org.geoserver.catalog.ResourcePool;
 import org.geoserver.platform.ServiceException;
 import org.geoserver.wms.CachedGridReaderLayer;
 import org.geoserver.wms.GetMapCallback;
 import org.geoserver.wms.GetMapRequest;
 import org.geoserver.wms.WMSMapContent;
 import org.geoserver.wms.WebMap;
-import org.geotools.data.FeatureSource;
+import org.geotools.api.data.FeatureSource;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.operation.MathTransform;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.geometry.jts.WKTReader2;
+import org.geotools.gml2.SrsSyntax;
 import org.geotools.map.FeatureLayer;
 import org.geotools.map.GridReaderLayer;
 import org.geotools.map.Layer;
@@ -25,8 +29,6 @@ import org.geotools.util.logging.Logging;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Polygon;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.MathTransform;
 
 /** @author ImranR */
 public class ClipWMSGetMapCallBack implements GetMapCallback {
@@ -61,10 +63,8 @@ public class ClipWMSGetMapCallBack implements GetMapCallback {
                 // wrap around
                 FeatureLayer fl = (FeatureLayer) layer;
 
-                FeatureSource<?, ?> clippedFS =
-                        new ClippedFeatureSource<>(layer.getFeatureSource(), wktGeom);
-                FeatureLayer clippedLayer =
-                        new FeatureLayer(clippedFS, fl.getStyle(), fl.getTitle());
+                FeatureSource<?, ?> clippedFS = new ClippedFeatureSource<>(layer.getFeatureSource(), wktGeom);
+                FeatureLayer clippedLayer = new FeatureLayer(clippedFS, fl.getStyle(), fl.getTitle());
                 BeanUtilsBean2.getInstance().copyProperties(clippedLayer, fl);
                 fl.getUserData().putAll(layer.getUserData());
                 return clippedLayer;
@@ -75,11 +75,8 @@ public class ClipWMSGetMapCallBack implements GetMapCallback {
                 // wrap
                 CroppedGridCoverage2DReader croppedGridReader =
                         new CroppedGridCoverage2DReader(gr.getReader(), wktGeom);
-                CachedGridReaderLayer croppedGridLayer =
-                        new CachedGridReaderLayer(
-                                croppedGridReader,
-                                layer.getStyle(),
-                                ((GridReaderLayer) layer).getParams());
+                CachedGridReaderLayer croppedGridLayer = new CachedGridReaderLayer(
+                        croppedGridReader, layer.getStyle(), ((GridReaderLayer) layer).getParams());
                 BeanUtilsBean2.getInstance().copyProperties(croppedGridLayer, gr);
                 croppedGridLayer.getUserData().putAll(layer.getUserData());
                 return croppedGridLayer;
@@ -106,29 +103,33 @@ public class ClipWMSGetMapCallBack implements GetMapCallback {
     @Override
     public void failed(Throwable t) {}
 
-    public static synchronized Geometry readGeometry(
-            final String wkt, final CoordinateReferenceSystem mapCRS) throws Exception {
+    public static synchronized Geometry readGeometry(final String wkt, final CoordinateReferenceSystem mapCRS)
+            throws Exception {
         String[] wktContents = wkt.split(";");
         Geometry geom = reader.read(wktContents[wktContents.length - 1]);
-        if (!(geom.getClass().isAssignableFrom(Polygon.class)
-                || geom.getClass().isAssignableFrom(MultiPolygon.class)))
-            throw new ServiceException(
-                    "Clip must be a polygon or multipolygon", "InvalidParameterValue", "clip");
+        if (!(geom.getClass().isAssignableFrom(Polygon.class) || geom.getClass().isAssignableFrom(MultiPolygon.class)))
+            throw new ServiceException("Clip must be a polygon or multipolygon", "InvalidParameterValue", "clip");
         // parse SRID if passed
         // looking for a pattern srid=4326:Polygon(...)
-        if (wktContents.length == 2 && SRID_REGEX.matcher(wktContents[0].toUpperCase()).matches()) {
+        if (wktContents.length == 2
+                && SRID_REGEX.matcher(wktContents[0].toUpperCase()).matches()) {
             String sridString = wktContents[0].split("=")[1];
-            // force xy
+            // force xy. Forcing EPSG in this case is legit, as EWKT does not advertise an authority
             CoordinateReferenceSystem geomCRS = CRS.decode("EPSG:" + sridString, true);
-            CoordinateReferenceSystem mapCRSXY =
-                    CRS.decode("EPSG:" + CRS.lookupEpsgCode(mapCRS, false), true);
+            CoordinateReferenceSystem mapCRSXY = CRS.decode("EPSG:" + CRS.lookupEpsgCode(mapCRS, false), true);
             if (CRS.isTransformationRequired(mapCRSXY, geomCRS)) {
                 MathTransform transform = CRS.findMathTransform(geomCRS, mapCRSXY);
                 geom = JTS.transform(geom, transform);
             }
         }
-        // finally assign map crs
-        geom.setSRID(CRS.lookupEpsgCode(mapCRS, false));
+        // finally assign map crs in lon/lat order (EWKT is defined in that order)
+        if (CRS.getAxisOrder(mapCRS) == CRS.AxisOrder.NORTH_EAST) {
+            String id = ResourcePool.lookupIdentifier(mapCRS, false);
+            CoordinateReferenceSystem crs = CRS.decode(SrsSyntax.AUTH_CODE.getSRS(id));
+            geom.setUserData(crs);
+        } else {
+            geom.setUserData(mapCRS);
+        }
         return geom;
     }
 }

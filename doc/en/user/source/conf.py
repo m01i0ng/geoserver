@@ -48,7 +48,7 @@ copyright = u'{}, Open Source Geospatial Foundation'.format(now.year)
 # other places throughout the built documents.
 #
 # The replacement |version| provides short X.Y version.
-version = '2.24'
+version = '2.27'
 
 # The relacement |release| provides the full version, including alpha/beta/rc tags.
 
@@ -58,7 +58,7 @@ version = '2.24'
 # check environmental variable to see if ant build.xml passed in project.version
 project_version = os.getenv("project.version")
 if project_version == None: 
-  release = '2.24-SNAPSHOT'
+  release = '2.27-SNAPSHOT'
 else:
   release = project_version
 
@@ -70,7 +70,7 @@ branch = 'main'
 if release.find('SNAPSHOT') != -1:
    tags.add('snapshot')
    download = version+'.x'
-   release = '2.24.x'
+   release = '2.27.x'
    latest = '-latest'
    download_release = 'https://build.geoserver.org/geoserver/'+branch+'/geoserver-'+version+'.x-latest-%s.zip'
    download_extension = 'https://build.geoserver.org/geoserver/'+branch+'/ext-latest/geoserver-'+version+'-SNAPSHOT-%s-plugin.zip'
@@ -79,7 +79,7 @@ else:
    download = release
    latest = ''
    download_release = 'http://sourceforge.net/projects/geoserver/files/GeoServer/'+release+'/geoserver-'+release+'-%s.zip'
-   download_extension = 'http://sourceforge.net/projects/geoserver/files/GeoServer/'+release+'/extensions/geoserver-'+release+'-%s-plugin.zip'
+   download_extension = 'https://sourceforge.net/projects/geoserver/files/GeoServer/'+release+'/extensions/geoserver-'+release+'-%s-plugin.zip'
    download_community = 'https://build.geoserver.org/geoserver/'+branch+'/community-latest/geoserver-'+version+'.x-SNAPSHOT-%s-plugin.zip'
 
 # There are two options for replacing |today|: either, you set today to some
@@ -90,6 +90,13 @@ today_fmt = '%B %d, %Y'
 
 # List of documents that shouldn't be included in the build.
 #unused_docs = []
+
+# A list of glob-style patterns [1] that should be excluded when looking for source files.
+# They are matched against the source file names relative to the source directory,
+# using slashes as directory separators on all platforms.
+exclude_patterns = [
+   '**/symbolizers/include/*.rst'
+]
 
 # List of directories, relative to source directories, that shouldn't be searched
 # for source files.
@@ -137,14 +144,12 @@ extlinks = {
 # Common substitutions
 
 rst_epilog = "\n" \
- ".. |install_directory_winXP| replace:: :file:`C:\Program Files\\\\GeoServer "+release+"`\n" \
- ".. |install_directory_win| replace:: :file:`C:\\\\Program Files (x86)\\\\GeoServer "+release+"`\n" \
- ".. |install_directory_linux| replace:: :file:`/var/lib/tomcat7/webapps/geoserver`\n" \
- ".. |install_directory_mac| replace:: :file:`/Applications`\n" \
- ".. |data_directory_winXP| replace:: :file:`C:\Program Files\\\\GeoServer "+release+"\\\\data_dir`\n" \
- ".. |data_directory_win| replace:: :file:`C:\\\\Program Files (x86)\\\\GeoServer "+release+"\\\\data_dir`\n" \
- ".. |data_directory_linux| replace:: :file:`/var/lib/tomcat7/webapps/geoserver/data`\n" \
- ".. |data_directory_mac| replace:: :file:`/Applications/GeoServer.app/Contents/Resources/Java/data_dir`"
+ ".. |install_directory_win| replace:: :file:`C:\\\\Program Files\\\\GeoServer "+release+"`\n" \
+ ".. |install_directory_linux| replace:: :file:`/var/lib/tomcat9/webapps/geoserver`\n" \
+ ".. |install_directory_mac| replace:: :file:`~/Applications`\n" \
+ ".. |data_directory_win| replace:: :file:`C:\\\\ProgramData\\\\GeoServer`\n" \
+ ".. |data_directory_linux| replace:: :file:`/var/opt/geoserver/data`\n" \
+ ".. |data_directory_mac| replace:: :file:`~/Library/Application Support/GeoServer/data_dir`"
 
 # Options for HTML output
 # -----------------------
@@ -196,7 +201,7 @@ html_last_updated_fmt = '%b %d, %Y'
 #html_additional_pages = {}
 
 # If false, no module index is generated.
-html_use_modindex = False
+html_domain_indices = False
 
 # If false, no index is generated.
 html_use_index = False

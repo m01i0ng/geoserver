@@ -11,11 +11,11 @@ import java.awt.image.RenderedImage;
 import java.io.OutputStream;
 import org.geoserver.platform.ServiceException;
 import org.geoserver.wms.WMSMapContent;
+import org.geotools.api.style.ColorMap;
+import org.geotools.api.style.Style;
 import org.geotools.image.ImageWorker;
 import org.geotools.map.Layer;
 import org.geotools.styling.AbstractStyleVisitor;
-import org.geotools.styling.ColorMap;
-import org.geotools.styling.Style;
 
 /**
  * Encodes the image in PNG using the PNGJ library
@@ -34,11 +34,10 @@ public class PNGJWriter {
         boolean isScanlineSupported = writer.isScanlineSupported(image);
         // If it is not supported, then the image is rescaled to bytes
         if (!isScanlineSupported) {
-            image =
-                    new ImageWorker(image)
-                            .rescaleToBytes()
-                            .forceComponentColorModel()
-                            .getRenderedImage();
+            image = new ImageWorker(image)
+                    .rescaleToBytes()
+                    .forceComponentColorModel()
+                    .getRenderedImage();
         }
 
         RenderedImage output = null;
@@ -53,8 +52,8 @@ public class PNGJWriter {
     }
 
     /**
-     * SUB filtering is useful for raster images with "high" variation, otherwise we go for NONE,
-     * empirically it provides better compression at lower effort
+     * SUB filtering is useful for raster images with "high" variation, otherwise we go for NONE, empirically it
+     * provides better compression at lower effort
      */
     private FilterType getFilterType(WMSMapContent mapContent) {
         RasterSymbolizerVisitor visitor = new RasterSymbolizerVisitor();
@@ -78,8 +77,8 @@ public class PNGJWriter {
     }
 
     /**
-     * Check if the style contains a "high change" raster symbolizer, that is, one that generates a
-     * continuous set of values for which SUB filtering provides better results
+     * Check if the style contains a "high change" raster symbolizer, that is, one that generates a continuous set of
+     * values for which SUB filtering provides better results
      *
      * @author Andrea Aime - GeoSolutions
      */
@@ -88,7 +87,7 @@ public class PNGJWriter {
         boolean highChangeRasterSymbolizer;
 
         @Override
-        public void visit(org.geotools.styling.RasterSymbolizer raster) {
+        public void visit(org.geotools.api.style.RasterSymbolizer raster) {
             if (raster.getColorMap() == null) {
                 highChangeRasterSymbolizer = true;
                 return;

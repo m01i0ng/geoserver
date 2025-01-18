@@ -43,6 +43,7 @@ public class ConformanceTest extends STACTestSupport {
             STACService.FEATURE_OAS30,
             STACService.FEATURE_HTML,
             STACService.FEATURE_GEOJSON,
+            STACService.STAC_COLLECTIONS,
             STACService.STAC_CORE,
             STACService.STAC_FEATURES,
             STACService.STAC_SEARCH,
@@ -66,7 +67,7 @@ public class ConformanceTest extends STACTestSupport {
 
     @Test
     public void testCollectionsYaml() throws Exception {
-        String yaml = getAsString("ogc/stac/v1/conformance/?f=application/x-yaml");
+        String yaml = getAsString("ogc/stac/v1/conformance/?f=application/yaml");
         checkConformance(convertYamlToJsonPath(yaml));
     }
 
@@ -77,9 +78,7 @@ public class ConformanceTest extends STACTestSupport {
                 "GeoServer SpatioTemporal Asset Catalog Conformance",
                 document.select("#title").text());
         List<String> classes =
-                document.select("#content li").stream()
-                        .map(e -> e.text())
-                        .collect(Collectors.toList());
+                document.select("#content li").stream().map(e -> e.text()).collect(Collectors.toList());
         assertThat(classes, containsInAnyOrder(getExpectedConformanceClasses()));
     }
 }

@@ -22,13 +22,13 @@ import org.geoserver.catalog.StoreInfo;
 import org.geoserver.catalog.WMSStoreInfo;
 import org.geoserver.catalog.WMTSStoreInfo;
 import org.geoserver.web.wicket.GeoServerDataProvider;
+import org.geotools.api.coverage.grid.GridCoverageReader;
+import org.geotools.api.feature.type.Name;
 import org.geotools.feature.NameImpl;
 import org.geotools.ows.wms.Layer;
 import org.geotools.ows.wmts.WebMapTileServer;
 import org.geotools.ows.wmts.model.WMTSCapabilities;
 import org.geotools.ows.wmts.model.WMTSLayer;
-import org.opengis.coverage.grid.GridCoverageReader;
-import org.opengis.feature.type.Name;
 
 /**
  * Provides a list of resources for a specific data store
@@ -42,8 +42,7 @@ public class NewLayerPageProvider extends GeoServerDataProvider<Resource> {
     public static final Property<Resource> NAME = new BeanProperty<>("name", "localName");
     public static final Property<Resource> ACTION = new PropertyPlaceholder<>("action");
 
-    public static final List<Property<Resource>> PROPERTIES =
-            Arrays.asList(PUBLISHED, NAME, ACTION);
+    public static final List<Property<Resource>> PROPERTIES = Arrays.asList(PUBLISHED, NAME, ACTION);
 
     boolean showPublished;
 
@@ -77,24 +76,20 @@ public class NewLayerPageProvider extends GeoServerDataProvider<Resource> {
                 // namespace qualified NameImpl
                 List<Name> names = expandedStore.getDataStore(null).getNames();
                 for (Name name : names) {
-                    FeatureTypeInfo fti =
-                            getCatalog()
-                                    .getFeatureTypeByDataStore(expandedStore, name.getLocalPart());
+                    FeatureTypeInfo fti = getCatalog().getFeatureTypeByDataStore(expandedStore, name.getLocalPart());
                     // skip views, we cannot have two layers use the same feature type info, as the
                     // underlying definition is attached to the feature type info itself
-                    if (fti == null
-                            || fti.getMetadata().get(FeatureTypeInfo.JDBC_VIRTUAL_TABLE) == null) {
+                    if (fti == null || fti.getMetadata().get(FeatureTypeInfo.JDBC_VIRTUAL_TABLE) == null) {
                         resources.put(name.getLocalPart(), new Resource(name));
                     }
                 }
 
             } else if (store instanceof CoverageStoreInfo) {
                 CoverageStoreInfo cstore = (CoverageStoreInfo) store;
-                CoverageStoreInfo expandedStore =
-                        getCatalog().getResourcePool().clone(cstore, true);
+                CoverageStoreInfo expandedStore = getCatalog().getResourcePool().clone(cstore, true);
 
-                NamespaceInfo ns =
-                        getCatalog().getNamespaceByPrefix(expandedStore.getWorkspace().getName());
+                NamespaceInfo ns = getCatalog()
+                        .getNamespaceByPrefix(expandedStore.getWorkspace().getName());
                 GridCoverageReader reader = expandedStore.getGridCoverageReader(null, null);
                 try {
                     String[] names = reader.getGridCoverageNames();
@@ -149,8 +144,7 @@ public class NewLayerPageProvider extends GeoServerDataProvider<Resource> {
             }
 
             // lookup all configured layers, mark them as published in the resources
-            List<ResourceInfo> configuredTypes =
-                    getCatalog().getResourcesByStore(store, ResourceInfo.class);
+            List<ResourceInfo> configuredTypes = getCatalog().getResourcesByStore(store, ResourceInfo.class);
             for (ResourceInfo type : configuredTypes) {
                 // compare with native name, which is what the DataStore provides through getNames()
                 // above
@@ -176,9 +170,7 @@ public class NewLayerPageProvider extends GeoServerDataProvider<Resource> {
             return result;
         } catch (Exception e) {
             throw new RuntimeException(
-                    "Could not list layers for this store, "
-                            + "an error occurred retrieving them: "
-                            + e.getMessage(),
+                    "Could not list layers for this store, " + "an error occurred retrieving them: " + e.getMessage(),
                     e);
         }
     }

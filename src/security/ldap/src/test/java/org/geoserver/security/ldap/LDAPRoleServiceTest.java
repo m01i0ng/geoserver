@@ -6,6 +6,7 @@
 package org.geoserver.security.ldap;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -54,8 +55,7 @@ public class LDAPRoleServiceTest extends LDAPBaseTest {
     }
 
     protected void configureAuthentication() {
-        config.setUser(
-                "uid=admin,ou=People,dc=example,dc=com"); // ("uid=admin,ou=People,dc=example,dc=com");
+        config.setUser("uid=admin,ou=People,dc=example,dc=com"); // ("uid=admin,ou=People,dc=example,dc=com");
         config.setPassword("admin");
         config.setBindBeforeGroupSearch(true);
     }
@@ -81,8 +81,7 @@ public class LDAPRoleServiceTest extends LDAPBaseTest {
         assertEquals("test_admin", service.getAdminRole().toString());
     }
 
-    protected void checkUserNamesForRole(String roleName, int expected, boolean userFilter)
-            throws IOException {
+    protected void checkUserNamesForRole(String roleName, int expected, boolean userFilter) throws IOException {
         createRoleService(userFilter, null, null);
 
         SortedSet<String> userNames = service.getUserNamesForRole(new GeoServerRole(roleName));
@@ -123,7 +122,7 @@ public class LDAPRoleServiceTest extends LDAPBaseTest {
 
         SortedSet<GeoServerRole> roles = service.getRoles();
         assertNotNull(roles);
-        assertTrue(roles.size() > 0);
+        assertFalse(roles.isEmpty());
         GeoServerRole role = roles.first();
         assertTrue(role.toString().startsWith("ROLE_"));
         assertEquals(role.toString().toUpperCase(), role.toString());
@@ -132,7 +131,7 @@ public class LDAPRoleServiceTest extends LDAPBaseTest {
 
         roles = service.getRoles();
         assertNotNull(roles);
-        assertTrue(roles.size() > 0);
+        assertFalse(roles.isEmpty());
         role = roles.first();
         assertTrue(role.toString().startsWith("test_"));
         assertNotEquals(role.toString().toUpperCase(), role.toString());
@@ -143,7 +142,7 @@ public class LDAPRoleServiceTest extends LDAPBaseTest {
         SortedSet<GeoServerRole> allRoles = service.getRoles();
         SortedSet<GeoServerRole> roles = service.getRolesForUser(username);
         assertNotNull(roles);
-        assertTrue(roles.size() > 0);
+        assertFalse(roles.isEmpty());
         assertTrue(roles.size() < allRoles.size());
         GeoServerRole role = roles.first();
         assertTrue(role.toString().startsWith("ROLE_"));
@@ -153,7 +152,7 @@ public class LDAPRoleServiceTest extends LDAPBaseTest {
         allRoles = service.getRoles();
         roles = service.getRolesForUser(username);
         assertNotNull(roles);
-        assertTrue(roles.size() > 0);
+        assertFalse(roles.isEmpty());
         assertTrue(roles.size() < allRoles.size());
         role = roles.first();
         assertTrue(role.toString().startsWith("test_"));
@@ -326,8 +325,7 @@ public class LDAPRoleServiceTest extends LDAPBaseTest {
             config.setMaxGroupSearchLevel(5);
             service = new LDAPRoleService();
             service.initializeFromConfig(config);
-            SortedSet<String> userNames =
-                    service.getUserNamesForRole(service.getRoleByName("ROLE_EXTRA"));
+            SortedSet<String> userNames = service.getUserNamesForRole(service.getRoleByName("ROLE_EXTRA"));
             assertNotNull(userNames);
             assertEquals(2, userNames.size());
             // check parent role ROLE_EXTRA

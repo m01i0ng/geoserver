@@ -13,8 +13,7 @@ import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.Page;
 
 /**
- * Dumps a wicket component/page hierarchy to text, eventually writing down the class and the model
- * value as a string.
+ * Dumps a wicket component/page hierarchy to text, eventually writing down the class and the model value as a string.
  *
  * <p>Each line in the dump follow the <code>componentId(class) 'value'</code> format.
  *
@@ -109,11 +108,9 @@ public class WicketHierarchyPrinter {
             try {
                 String value = "null";
                 if (c.getDefaultModel() != null && c.getDefaultModelObject() != null) {
-                    value =
-                            "'"
-                                    + NEWLINE.matcher(c.getDefaultModelObjectAsString())
-                                            .replaceAll("\\\\n")
-                                    + "'";
+                    value = "'"
+                            + NEWLINE.matcher(c.getDefaultModelObjectAsString()).replaceAll("\\\\n")
+                            + "'";
                 }
                 out.print(" " + value);
             } catch (Exception e) {
@@ -128,7 +125,7 @@ public class WicketHierarchyPrinter {
     String tab(int level) {
         char[] spaces = new char[level * 3];
         Arrays.fill(spaces, ' ');
-        return new String(spaces);
+        return String.valueOf(spaces);
     }
 
     /** If the page relative path dumping is enabled */

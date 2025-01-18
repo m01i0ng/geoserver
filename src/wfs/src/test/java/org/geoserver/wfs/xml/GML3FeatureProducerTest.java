@@ -24,11 +24,11 @@ import org.geoserver.wfs.WFSTestSupport;
 import org.geoserver.wfs.request.FeatureCollectionResponse;
 import org.geoserver.wfs.xml.v1_1_0.WFS;
 import org.geoserver.wfs.xml.v1_1_0.WFSConfiguration;
-import org.geotools.data.FeatureSource;
+import org.geotools.api.data.FeatureSource;
+import org.geotools.api.feature.Feature;
+import org.geotools.api.feature.type.FeatureType;
 import org.geotools.feature.FeatureCollection;
 import org.junit.Test;
-import org.opengis.feature.Feature;
-import org.opengis.feature.type.FeatureType;
 import org.w3c.dom.Document;
 
 public class GML3FeatureProducerTest extends WFSTestSupport {
@@ -62,8 +62,7 @@ public class GML3FeatureProducerTest extends WFSTestSupport {
 
     @Test
     public void testSingle() throws Exception {
-        FeatureSource<? extends FeatureType, ? extends Feature> source =
-                getFeatureSource(MockData.SEVEN);
+        FeatureSource<? extends FeatureType, ? extends Feature> source = getFeatureSource(MockData.SEVEN);
         FeatureCollection<? extends FeatureType, ? extends Feature> features = source.getFeatures();
 
         FeatureCollectionResponse fcType =

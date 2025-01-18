@@ -16,28 +16,23 @@ This will run the container, with the data directory included with the container
 
 #. Download the container:
 
+   .. only:: not snapshot
+
+      These instructions are for GeoServer |release|.
+      
+      .. parsed-literal::
+         
+         docker pull docker.osgeo.org/geoserver:|release|
+
    .. only:: snapshot
       
       These instructions are for GeoServer |version|-SNAPSHOT which is provided as a :website:`Nightly <release/main>` release.
       Testing a Nightly release is a great way to try out new features, and test community modules.
       Nightly releases change on an ongoing basis and are not suitable for a production environment.
-      
-   .. only:: not snapshot
-
-      These instructions are for GeoServer |release|.
-   
-   .. only:: not snapshot
    
       .. parsed-literal::
-
-         docker pull docker.osgeo.org/geoserver:|release|
-
-   .. only:: snapshot
-   
-      .. parsed-literal::
-
+         
          docker pull docker.osgeo.org/geoserver:|version|.x
-   
 
 #. Run the container
 
@@ -64,12 +59,14 @@ This will run the container, with the data directory included with the container
       
 #. This setup is a quick test to ensure the software is working, but is difficult to use as file data can only be transferred to the data directory included with the container via the REST API.
 
+.. _installation_docker_data:
+
 Using your own Data Directory
 -----------------------------
 
 This will run the container with a local data directory.  The data directory will be `mounted <https://docs.docker.com/storage/bind-mounts/>`__ into the docker container.
 
-.. Note::
+.. note::
 
     Change `/MY/DATADIRECTORY` to your data directory.  If this directory is empty it will be populated with the standard Geoserver Sample Data Directory.
 
@@ -94,14 +91,18 @@ This will run the container with a local data directory.  The data directory wil
    .. only:: not snapshot
 
       .. parsed-literal::
-      
-         docker run \-\-mount type=bind,src=/MY/DATADIRECTORY,target=/opt/geoserver_data -it -p8080:8080 docker.osgeo.org/geoserver:|release|
+         
+         docker run  -it -p8080:8080 \\
+           --mount type=bind,src=/MY/DATADIRECTORY,target=/opt/geoserver_data \\
+           docker.osgeo.org/geoserver:|release|
       
    .. only:: snapshot
    
       .. parsed-literal::
-   
-         docker run \-\-mount type=bind,src=/MY/DATADIRECTORY,target=/opt/geoserver_data -it -p8080:8080 docker.osgeo.org/geoserver:|version|.x
+         
+         docker run -it -p8080:8080 \\
+           --mount type=bind,src=/MY/DATADIRECTORY,target=/opt/geoserver_data \\
+           docker.osgeo.org/geoserver:|version|.x
 
 #. In a web browser, navigate to ``http://localhost:8080/geoserver``.
 
@@ -123,8 +124,8 @@ You can add GeoServer Extensions - the container will download them during start
    .. parsed-literal::
    
       docker run -it -p8080:8080 \\
-        \-\-env INSTALL_EXTENSIONS=true \\
-        \-\-env STABLE_EXTENSIONS="ysld,h2" \\
+        --env INSTALL_EXTENSIONS=true \\
+        --env STABLE_EXTENSIONS="ysld,h2" \\
         docker.osgeo.org/geoserver:|release|
 
 .. only:: snapshot
@@ -132,8 +133,8 @@ You can add GeoServer Extensions - the container will download them during start
    .. parsed-literal::
 
       docker run -it -p8080:8080 \\
-        \-\-env INSTALL_EXTENSIONS=true \\
-        \-\-env STABLE_EXTENSIONS="ysld,h2" \\
+        --env INSTALL_EXTENSIONS=true \\
+        --env STABLE_EXTENSIONS="ysld,h2" \\
         docker.osgeo.org/geoserver:|version|.x
 
 
@@ -146,12 +147,12 @@ Here is a list of available extensions (taken from the `build server <https://bu
     app-schema   gdal            jp2k          ogr-wps          web-resource
     authkey      geofence        libjpeg-turbo oracle           wmts-multi-dimensional
     cas          geofence-server mapml         params-extractor wps-cluster-hazelcast
-    charts       geopkg-output   mbstyle       printing         wps-cluster-hazelcast
-    control-flow grib            mongodb       pyramid          wps-download
-    css          gwc-s3          monitor       querylayer       wps-jdbc
-    csw          h2              mysql         sldservice       wps
-    db2          imagemap        netcdf-out    sqlserver        xslt
-    dxf          importer        netcdf        vectortiles      ysld
+    charts       geopkg-output   mbstyle       printing         wps-download
+    control-flow grib            mongodb       pyramid          wps-jdbc
+    css          gwc-s3          monitor       querylayer       wps
+    csw          h2              mysql         sldservice       xslt
+    db2          imagemap        netcdf-out    sqlserver        ysld
+    dxf          importer        netcdf        vectortiles      
     excel        inspire         ogr-wfs       wcs2_0-eo
 
 Testing Geoserver Community modules
@@ -159,39 +160,58 @@ Testing Geoserver Community modules
 
 Working with a Nightly build is a good way to test community modules and provide feedback to developers working on new functionality.
 
-To work with community modules you must be using the GeoServer |version|.x nightly build that matches the community module build:
+.. only:: not snapshot
 
-.. parsed-literal::
+   Community modules are shared as part GeoServer |release| source code bundle to be compiled for testing
+   and feedback by the developer community.
+   
+   When the developer has met the documentation and quality assurance standards for GeoServer they may
+   ask for the module to be included in GeoServer.
+   
+   If you are interested in helping out please contact the developer (list in the :file:`pom.xml` file for the module).
+   
+   Reference:
+   
+   * :developer:`community modules <policies/community-modules.html>` (Developer Guide)
+      
+   
+.. only:: snapshot
+   
+   To work with community modules you must be using the GeoServer |version|.x nightly build that matches the community module build:
+   
+   .. parsed-literal::
+   
+      docker run -it -p8080:8080 \\
+        --env INSTALL_EXTENSIONS=true \\
+        --env STABLE_EXTENSIONS="ysld,h2" \\
+        --env COMMUNITY_EXTENSIONS="ogcapi-features,ogcapi-images,ogcapi-maps,ogcapi-styles,ogcapi-tiles" \\
+        docker.osgeo.org/geoserver:|version|.x
+   
+   For the current list see GeoServer `build server <https://build.geoserver.org/geoserver/main/community-latest/>`__.
+   
+   ::
+   
+    activeMQ-broker            jdbcconfig                 proxy-base-ext
+    backup-restore             jdbcstore                  s3-geotiff
+    cog                        jms-cluster                sec-keycloak
+    colormap                   libdeflate                 sec-oauth2-geonode
+    cov-json                   mbtiles                    sec-oauth2-github
+    dds                        mbtiles-store              sec-oauth2-google
+    dyndimension               mongodb-schemaless         sec-oauth2-openid-connect
+    elasticsearch              ncwms                      smart-data-loader
+    features-templating        netcdf-ghrsst              solr
+    flatgeobuf                 notification               spatialjson
+    gdal-wcs                   ogcapi-coverages           stac-datastore
+    gdal-wps                   ogcapi-dggs                taskmanager-core
+    geopkg                     ogcapi-features            taskmanager-s3
+    gpx                        ogcapi-images              vector-mosaic
+    gsr                        ogcapi-maps                vsi
+    gwc-azure-blobstore        ogcapi-styles              webp
+    gwc-mbtiles                ogcapi-tiled-features      wps-remote
+    gwc-sqlite                 ogcapi-tiles
+    hz-cluster                 ogr-datastore
+    importer-jdbc              opensearch-eo
+    jdbc-metrics
 
-   docker run -it -p8080:8080 \\
-     \-\-env INSTALL_EXTENSIONS=true \\
-     \-\-env STABLE_EXTENSIONS="ysld,h2" \\
-     \-\-env COMMUNITY_EXTENSIONS="ogcapi-features,ogcapi-images,ogcapi-maps,ogcapi-styles,ogcapi-tiles" \\
-     docker.osgeo.org/geoserver:|version|.x
 
-For the current list see GeoServer `build server <https://build.geoserver.org/geoserver/main/community-latest/>`__.
-
-::
-
-    activeMQ-broker            jdbcconfig                 pgraster                    
-    backup-restore             jdbcstore                  proxy-base-ext              
-    cog                        jms-cluster                s3-geotiff                  
-    colormap                   libdeflate                 sec-keycloak             
-    cov-json                   mbtiles                    sec-oauth2-geonode          
-    dds                        mbtiles-store              sec-oauth2-github           
-    dyndimension               mongodb-schemaless         sec-oauth2-google           
-    elasticsearch              ncwms                      sec-oauth2-openid-connect   
-    features-templating        netcdf-ghrsst              smart-data-loader           
-    flatgeobuf                 notification               solr                        
-    gdal-wcs                   ogcapi-coverages           spatialjson                 
-    gdal-wps                   ogcapi-dggs                stac-datastore              
-    geopkg                     ogcapi-features            taskmanager-core            
-    gpx                        ogcapi-images              taskmanager-s3              
-    gsr                        ogcapi-maps                vector-mosaic
-    gwc-azure-blobstore        ogcapi-styles              vsi                         
-    gwc-distributed            ogcapi-tiled-features      webp                        
-    gwc-mbtiles                ogcapi-tiles               wps-remote
-    gwc-sqlite                 ogr-datastore              
-    hz-cluster                 opensearch-eo                          
-    importer-jdbc              
-    jdbc-metrics                                      
+    

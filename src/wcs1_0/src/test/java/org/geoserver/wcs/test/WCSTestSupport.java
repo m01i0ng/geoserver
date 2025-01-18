@@ -9,10 +9,12 @@ import static org.custommonkey.xmlunit.XMLAssert.assertXpathEvaluatesTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
+import javax.imageio.stream.MemoryCacheImageInputStream;
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 import javax.xml.validation.Schema;
@@ -26,6 +28,9 @@ import org.geoserver.catalog.DimensionPresentation;
 import org.geoserver.catalog.impl.DimensionInfoImpl;
 import org.geoserver.data.test.SystemTestData;
 import org.geoserver.data.test.TestData;
+import org.geotools.coverage.grid.GridCoverage2D;
+import org.geotools.gce.geotiff.GeoTiffReader;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -48,26 +53,20 @@ public abstract class WCSTestSupport extends CoverageTestSupport {
 
     static {
         try {
-            final SchemaFactory factory =
-                    SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            WCS10_GETCAPABILITIES_SCHEMA =
-                    factory.newSchema(new File("./schemas/wcs/1.0.0/wcsCapabilities.xsd"));
+            final SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            WCS10_GETCAPABILITIES_SCHEMA = factory.newSchema(new File("./schemas/wcs/1.0.0/wcsCapabilities.xsd"));
         } catch (Exception e) {
             throw new RuntimeException("Could not parse the WCS 1.0.0 schemas", e);
         }
         try {
-            final SchemaFactory factory =
-                    SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            WCS10_GETCOVERAGE_SCHEMA =
-                    factory.newSchema(new File("./schemas/wcs/1.0.0/getCoverage.xsd"));
+            final SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            WCS10_GETCOVERAGE_SCHEMA = factory.newSchema(new File("./schemas/wcs/1.0.0/getCoverage.xsd"));
         } catch (Exception e) {
             throw new RuntimeException("Could not parse the WCS 1.0.0 schemas", e);
         }
         try {
-            final SchemaFactory factory =
-                    SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            WCS10_DESCRIBECOVERAGE_SCHEMA =
-                    factory.newSchema(new File("./schemas/wcs/1.0.0/describeCoverage.xsd"));
+            final SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            WCS10_DESCRIBECOVERAGE_SCHEMA = factory.newSchema(new File("./schemas/wcs/1.0.0/describeCoverage.xsd"));
         } catch (Exception e) {
             throw new RuntimeException("Could not parse the WCS 1.0.0 schemas", e);
         }
@@ -88,6 +87,8 @@ public abstract class WCSTestSupport extends CoverageTestSupport {
         testData.setUpRasterLayer(WATTEMP, "watertemp.zip", null, null, TestData.class);
         // a raster layer with time, elevation and custom dimensions as ranges
         testData.setUpRasterLayer(TIMERANGES, "timeranges.zip", null, null, TestData.class);
+        // adding layers to test IAU support
+        testData.setupIAULayers(true, false);
     }
 
     @Override
@@ -139,5 +140,23 @@ public abstract class WCSTestSupport extends CoverageTestSupport {
         }
         info.getMetadata().put(metadata, di);
         getCatalog().save(info);
+    }
+
+    public interface ThrowingConsumer<T> {
+
+        public void accept(T t) throws Exception;
+    }
+
+    /**
+     * Utility method that reads a GeoTIFF from a HTTP servlet response, and passes the resulting coverage to the
+     * provided consumer for testing
+     */
+    protected void checkGeotiffResponse(MockHttpServletResponse response, ThrowingConsumer<GridCoverage2D> consumer)
+            throws Exception {
+        try (MemoryCacheImageInputStream stream =
+                new MemoryCacheImageInputStream(new ByteArrayInputStream(response.getContentAsByteArray()))) {
+            GridCoverage2D coverage = new GeoTiffReader(stream).read(null);
+            consumer.accept(coverage);
+        }
     }
 }

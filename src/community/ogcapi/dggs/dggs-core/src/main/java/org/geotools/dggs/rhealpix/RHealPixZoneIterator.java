@@ -48,12 +48,8 @@ class RHealPixZoneIterator<R> implements Iterator<R> {
             Function<RHealPixZone, Boolean> drill,
             Function<RHealPixZone, Boolean> accept,
             Function<RHealPixZone, R> map) {
-        this(
-                rpix,
-                drill,
-                accept,
-                map,
-                (List<String>) rpix.runtime.runSafe(si -> si.getValue("dggs.cells0", List.class)));
+        this(rpix, drill, accept, map, (List<String>)
+                rpix.runtime.runSafe(si -> si.getValue("dggs.cells0", List.class)));
     }
 
     public RHealPixZoneIterator(
@@ -74,20 +70,17 @@ class RHealPixZoneIterator<R> implements Iterator<R> {
     public boolean hasNext() {
         // look for the next item, or drill down through children
         while (next == null && !candidates.isEmpty()) {
-            String test = candidates.pop();
+            String test = String.valueOf(candidates.pop());
             RHealPixZone zone = rpix.getZone(test);
             if (accept.apply(zone)) {
                 next = map.apply(zone);
             } else {
                 if (drill.apply(zone)) {
-                    candidates.addAll(
-                            0,
-                            rpix.runtime.runSafe(
-                                    si -> {
-                                        setCellId(si, "id", test);
-                                        si.exec("c = Cell(dggs, id)");
-                                        return si.getValue("list(c.subcells())", List.class);
-                                    }));
+                    candidates.addAll(0, rpix.runtime.runSafe(si -> {
+                        setCellId(si, "id", test);
+                        si.exec("c = Cell(dggs, id)");
+                        return si.getValue("list(c.subcells())", List.class);
+                    }));
                 }
             }
         }

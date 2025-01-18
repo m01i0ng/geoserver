@@ -16,8 +16,8 @@ import org.geoserver.importer.DatePattern;
 import org.geoserver.importer.Dates;
 import org.geoserver.importer.ImportTask;
 import org.geoserver.importer.ValidationException;
-import org.geotools.data.DataStore;
-import org.opengis.feature.simple.SimpleFeature;
+import org.geotools.api.data.DataStore;
+import org.geotools.api.feature.simple.SimpleFeature;
 
 /**
  * Transform that converts a non date attribute in a date attribute. This class is not thread-safe.
@@ -35,21 +35,20 @@ public class DateFormatTransform extends AttributeRemapTransform {
     private String presentation;
 
     /**
-     * Default Constructor taking two parameters - [mandatory] The field used as time dimension -
-     * [optional] The date-time pattern to be used in case of String fields
+     * Default Constructor taking two parameters - [mandatory] The field used as time dimension - [optional] The
+     * date-time pattern to be used in case of String fields
      */
     public DateFormatTransform(String field, String datePattern) throws ValidationException {
         this(field, datePattern, null, null);
     }
 
     /**
-     * Default Constructor taking four parameters - [mandatory] The field used as time dimension -
-     * [optional] The date-time pattern to be used in case of String fields - [optional] The field
-     * used as end date for the time dimension - [optional] The time dimension presentation type;
-     * one of {LIST; DISCRETE_INTERVAL; CONTINUOUS_INTERVAL}
+     * Default Constructor taking four parameters - [mandatory] The field used as time dimension - [optional] The
+     * date-time pattern to be used in case of String fields - [optional] The field used as end date for the time
+     * dimension - [optional] The time dimension presentation type; one of {LIST; DISCRETE_INTERVAL;
+     * CONTINUOUS_INTERVAL}
      */
-    public DateFormatTransform(
-            String field, String datePattern, String enddate, String presentation)
+    public DateFormatTransform(String field, String datePattern, String enddate, String presentation)
             throws ValidationException {
         init(field, datePattern, enddate, presentation);
         init();
@@ -106,16 +105,13 @@ public class DateFormatTransform extends AttributeRemapTransform {
     }
 
     @Override
-    public SimpleFeature apply(
-            ImportTask task, DataStore dataStore, SimpleFeature oldFeature, SimpleFeature feature)
+    public SimpleFeature apply(ImportTask task, DataStore dataStore, SimpleFeature oldFeature, SimpleFeature feature)
             throws Exception {
         Object val = oldFeature.getAttribute(field);
         if (val != null) {
             Date parsed = (val instanceof Date ? (Date) val : parseDate(val.toString()));
             if (parsed == null) {
-                task.addMessage(
-                        Level.WARNING,
-                        "Invalid date '" + val + "' specified for " + feature.getID());
+                task.addMessage(Level.WARNING, "Invalid date '" + val + "' specified for " + feature.getID());
                 feature = null;
             } else {
                 feature.setAttribute(field, parsed);

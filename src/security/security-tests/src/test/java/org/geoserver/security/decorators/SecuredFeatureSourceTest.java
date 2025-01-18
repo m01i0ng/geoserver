@@ -21,28 +21,28 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import org.geoserver.security.WrapperPolicy;
 import org.geoserver.security.impl.SecureObjectsTest;
-import org.geotools.data.DataAccess;
-import org.geotools.data.DataStore;
-import org.geotools.data.FeatureSource;
-import org.geotools.data.FeatureStore;
-import org.geotools.data.Query;
+import org.geotools.api.data.DataAccess;
+import org.geotools.api.data.DataStore;
+import org.geotools.api.data.FeatureSource;
+import org.geotools.api.data.FeatureStore;
+import org.geotools.api.data.Query;
+import org.geotools.api.data.SimpleFeatureSource;
+import org.geotools.api.data.SimpleFeatureStore;
+import org.geotools.api.feature.Feature;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.type.FeatureType;
+import org.geotools.api.feature.type.PropertyDescriptor;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.filter.FilterFactory;
+import org.geotools.api.filter.expression.PropertyName;
 import org.geotools.data.complex.feature.type.ComplexFeatureTypeImpl;
 import org.geotools.data.simple.SimpleFeatureCollection;
-import org.geotools.data.simple.SimpleFeatureSource;
-import org.geotools.data.simple.SimpleFeatureStore;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.NameImpl;
 import org.geotools.util.logging.Logging;
 import org.junit.Test;
-import org.opengis.feature.Feature;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.FeatureType;
-import org.opengis.feature.type.PropertyDescriptor;
-import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory2;
-import org.opengis.filter.expression.PropertyName;
 
 public class SecuredFeatureSourceTest extends SecureObjectsTest {
 
@@ -92,8 +92,7 @@ public class SecuredFeatureSourceTest extends SecureObjectsTest {
     }
 
     @Test
-    public <T extends FeatureType, F extends Feature> void testReadOnlyFeatureSourceDataAccess()
-            throws Exception {
+    public <T extends FeatureType, F extends Feature> void testReadOnlyFeatureSourceDataAccess() throws Exception {
         // build the mock up
         @SuppressWarnings("unchecked")
         DataAccess<T, F> da = createNiceMock(DataAccess.class);
@@ -103,14 +102,13 @@ public class SecuredFeatureSourceTest extends SecureObjectsTest {
         expect(fs.getDataStore()).andReturn(da);
         replay(fs);
 
-        SecuredFeatureSource<T, F> ro =
-                new SecuredFeatureSource<>(fs, WrapperPolicy.readOnlyChallenge(null));
+        SecuredFeatureSource<T, F> ro = new SecuredFeatureSource<>(fs, WrapperPolicy.readOnlyChallenge(null));
         assertTrue(ro.getDataStore() instanceof ReadOnlyDataAccess);
     }
 
     @Test
-    public <T extends FeatureType, F extends Feature>
-            void testSecuredFeatureSourceLoggingWithComplex() throws Exception {
+    public <T extends FeatureType, F extends Feature> void testSecuredFeatureSourceLoggingWithComplex()
+            throws Exception {
         // build up the mock
         @SuppressWarnings("unchecked")
         T schema = (T) createNiceMock(ComplexFeatureTypeImpl.class);
@@ -158,11 +156,10 @@ public class SecuredFeatureSourceTest extends SecureObjectsTest {
         customLogHandler.setLevel(Level.SEVERE);
         logger.addHandler(customLogHandler);
         try {
-            SecuredFeatureStore ro =
-                    new SecuredFeatureStore<>(fStore, WrapperPolicy.readOnlyHide(null));
+            SecuredFeatureStore ro = new SecuredFeatureStore<>(fStore, WrapperPolicy.readOnlyHide(null));
             Query q = new Query("testComplextFt");
             List<PropertyName> pnames = new ArrayList<>(1);
-            FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
+            FilterFactory ff = CommonFactoryFinder.getFilterFactory();
             pnames.add(ff.property("someProperty"));
             q.setProperties(pnames);
             ro.getFeatures(q);

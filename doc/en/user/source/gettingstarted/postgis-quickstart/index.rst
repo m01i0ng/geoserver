@@ -10,7 +10,7 @@ This tutorial walks through the steps of publishing a PostGIS table with GeoServ
 Data preparation
 ----------------
 
-First let's gather that the data that we'll be publishing.
+First let's gather the data that we'll be publishing.
 
 #. Download the file :download:`nyc_buildings.zip`. It contains a PostGIS dump of a dataset of buildings from New York City.
 
@@ -65,9 +65,11 @@ The next step is to create a workspace for the data. A workspace is a container 
 Creating a store
 ----------------
 
-Once the workspace is created, we are ready to add a new store. The store tells GeoServer how to connect to the database. 
+Once the workspace is created we are ready to add a new store. The store tells GeoServer how to connect to the database. 
 
 #. Navigate to :menuselection:`Data-->Stores`.
+
+#. Click on ``Add new Store``.
     
 #. You should see a list of stores, including the type of store and the workspace that the store belongs to.
 
@@ -122,7 +124,7 @@ Once the workspace is created, we are ready to add a new store. The store tells 
 Creating a layer
 ----------------
 
-Now that the store is loaded, we can publish the layer.
+Now that the store is loaded we can publish the layer.
 
 #. Navigate to :menuselection:`Data --> Layers`.
 

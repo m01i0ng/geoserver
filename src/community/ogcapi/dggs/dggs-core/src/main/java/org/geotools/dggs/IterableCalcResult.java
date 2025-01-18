@@ -16,12 +16,11 @@
  */
 package org.geotools.dggs;
 
-import org.geotools.data.CloseableIterator;
+import org.geotools.api.data.CloseableIterator;
 import org.geotools.feature.visitor.CalcResult;
 
 /**
- * A CalcResult that can return a {@link CloseableIterator}, providing a streaming option to get
- * large result sets
+ * A CalcResult that can return a {@link CloseableIterator}, providing a streaming option to get large result sets
  *
  * @param <T>
  */

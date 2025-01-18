@@ -19,6 +19,9 @@ import org.geoserver.wms.FeatureInfoRequestParameters;
 import org.geoserver.wms.MapLayerInfo;
 import org.geoserver.wms.WMS;
 import org.geoserver.wms.clip.ClippedFeatureCollection;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.data.DataUtilities;
 import org.geotools.data.crs.ForceCoordinateSystemFeatureResults;
 import org.geotools.data.simple.SimpleFeatureCollection;
@@ -34,9 +37,6 @@ import org.geotools.util.logging.Logging;
 import org.geotools.wfs.v1_0.WFSConfiguration_1_0;
 import org.geotools.xsd.Parser;
 import org.locationtech.jts.geom.Geometry;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
  * Layer identifier specialized in WMS cascading layers
@@ -58,8 +58,7 @@ public class WMSLayerIdentifier implements LayerIdentifier<SimpleFeatureCollecti
     }
 
     @Override
-    public List<FeatureCollection> identify(FeatureInfoRequestParameters params, int maxFeatures)
-            throws IOException {
+    public List<FeatureCollection> identify(FeatureInfoRequestParameters params, int maxFeatures) throws IOException {
         final int x = params.getX();
         final int y = params.getY();
         WMSLayerInfo info = (WMSLayerInfo) params.getLayer().getResource();
@@ -94,9 +93,7 @@ public class WMSLayerIdentifier implements LayerIdentifier<SimpleFeatureCollecti
         // code
         // that we want to be consistently reproduced for GetFeatureInfo as well
         List<FeatureCollection> results = new ArrayList<>();
-        try (InputStream is =
-                ml.getFeatureInfo(
-                        bbox, width, height, x, y, "application/vnd.ogc.gml", maxFeatures)) {
+        try (InputStream is = ml.getFeatureInfo(bbox, width, height, x, y, "application/vnd.ogc.gml", maxFeatures)) {
             Parser parser = new Parser(new WFSConfiguration_1_0());
             parser.setStrict(false);
             parser.setEntityResolver(resolverProvider.getEntityResolver());
@@ -118,11 +115,8 @@ public class WMSLayerIdentifier implements LayerIdentifier<SimpleFeatureCollecti
                     builder.setNamespaceURI(info.getNamespace().getURI());
 
                     SimpleFeatureType targetFeatureType = builder.buildFeatureType();
-                    SimpleFeatureCollection rfc =
-                            DataUtilities.simple(
-                                    handleClipParam(
-                                            params,
-                                            new ReTypingFeatureCollection(fc, targetFeatureType)));
+                    SimpleFeatureCollection rfc = DataUtilities.simple(
+                            handleClipParam(params, new ReTypingFeatureCollection(fc, targetFeatureType)));
 
                     // if possible force a CRS to be defined
                     results.add(forceCrs(rfc));
@@ -148,12 +142,10 @@ public class WMSLayerIdentifier implements LayerIdentifier<SimpleFeatureCollecti
     }
 
     /**
-     * Helper method that tries to force a CRS to be defined. If no CRS is defined buf if all the
-     * feature collection geometries use the same CRS that CRS will be forced. This only work for
-     * simple features.
+     * Helper method that tries to force a CRS to be defined. If no CRS is defined buf if all the feature collection
+     * geometries use the same CRS that CRS will be forced. This only work for simple features.
      */
-    private FeatureCollection forceCrs(
-            FeatureCollection<SimpleFeatureType, SimpleFeature> featureCollection) {
+    private FeatureCollection forceCrs(FeatureCollection<SimpleFeatureType, SimpleFeature> featureCollection) {
         if (featureCollection.getSchema().getCoordinateReferenceSystem() != null) {
             // a CRS is already defined
             return featureCollection;
@@ -169,9 +161,7 @@ public class WMSLayerIdentifier implements LayerIdentifier<SimpleFeatureCollecti
             return new ForceCoordinateSystemFeatureResults(featureCollection, crs);
         } catch (Exception exception) {
             throw new RuntimeException(
-                    String.format(
-                            "Error forcing feature collection to use SRS '%s'.", CRS.toSRS(crs)),
-                    exception);
+                    String.format("Error forcing feature collection to use SRS '%s'.", CRS.toSRS(crs)), exception);
         }
     }
 
@@ -189,8 +179,7 @@ public class WMSLayerIdentifier implements LayerIdentifier<SimpleFeatureCollecti
     }
 
     @Override
-    public SimpleFeatureCollection handleClipParam(
-            FeatureInfoRequestParameters params, SimpleFeatureCollection fc) {
+    public SimpleFeatureCollection handleClipParam(FeatureInfoRequestParameters params, SimpleFeatureCollection fc) {
         Geometry clipGeometry = params.getGetMapRequest().getClip();
         if (clipGeometry == null) return fc;
 

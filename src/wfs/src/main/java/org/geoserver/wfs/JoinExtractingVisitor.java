@@ -15,33 +15,33 @@ import java.util.Optional;
 import java.util.Set;
 import javax.xml.namespace.QName;
 import org.geoserver.catalog.FeatureTypeInfo;
-import org.geotools.data.Join;
+import org.geotools.api.data.Join;
+import org.geotools.api.filter.And;
+import org.geotools.api.filter.BinaryComparisonOperator;
+import org.geotools.api.filter.BinaryLogicOperator;
+import org.geotools.api.filter.ExcludeFilter;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.filter.FilterFactory;
+import org.geotools.api.filter.Id;
+import org.geotools.api.filter.IncludeFilter;
+import org.geotools.api.filter.Not;
+import org.geotools.api.filter.PropertyIsBetween;
+import org.geotools.api.filter.PropertyIsLike;
+import org.geotools.api.filter.PropertyIsNil;
+import org.geotools.api.filter.PropertyIsNull;
+import org.geotools.api.filter.expression.Expression;
+import org.geotools.api.filter.expression.PropertyName;
+import org.geotools.api.filter.spatial.BinarySpatialOperator;
+import org.geotools.api.filter.temporal.BinaryTemporalOperator;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.filter.FilterAttributeExtractor;
 import org.geotools.filter.visitor.DuplicatingFilterVisitor;
 import org.geotools.filter.visitor.FilterVisitorSupport;
-import org.opengis.filter.And;
-import org.opengis.filter.BinaryComparisonOperator;
-import org.opengis.filter.BinaryLogicOperator;
-import org.opengis.filter.ExcludeFilter;
-import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory2;
-import org.opengis.filter.Id;
-import org.opengis.filter.IncludeFilter;
-import org.opengis.filter.Not;
-import org.opengis.filter.PropertyIsBetween;
-import org.opengis.filter.PropertyIsLike;
-import org.opengis.filter.PropertyIsNil;
-import org.opengis.filter.PropertyIsNull;
-import org.opengis.filter.expression.Expression;
-import org.opengis.filter.expression.PropertyName;
-import org.opengis.filter.spatial.BinarySpatialOperator;
-import org.opengis.filter.temporal.BinaryTemporalOperator;
 import org.xml.sax.helpers.NamespaceSupport;
 
 public class JoinExtractingVisitor extends FilterVisitorSupport {
 
-    static FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(null);
+    static FilterFactory ff = CommonFactoryFinder.getFilterFactory(null);
 
     FeatureTypeInfo primaryFeatureType;
     String primaryAlias;
@@ -119,22 +119,17 @@ public class JoinExtractingVisitor extends FilterVisitorSupport {
     private void checkValidJoinFilter(Filter filter) {
         Set<String> prefixes = getFilterPrefixes(filter);
         if (prefixes.size() > 2) {
-            throw new WFSException(
-                    "Not subfilter joins against more than one table "
-                            + prefixes
-                            + ", this kind of filter is not supported: "
-                            + filter);
+            throw new WFSException("Not subfilter joins against more than one table "
+                    + prefixes
+                    + ", this kind of filter is not supported: "
+                    + filter);
         }
     }
 
     @Override
     public Object visit(PropertyIsBetween filter, Object extraData) {
         return handle(
-                filter,
-                extraData,
-                filter.getLowerBoundary(),
-                filter.getUpperBoundary(),
-                filter.getUpperBoundary());
+                filter, extraData, filter.getLowerBoundary(), filter.getUpperBoundary(), filter.getUpperBoundary());
     }
 
     @Override
@@ -289,9 +284,8 @@ public class JoinExtractingVisitor extends FilterVisitorSupport {
     }
 
     /**
-     * Returns the joined feature types. If called past join extraction, it will return the types in
-     * the same order as the joins (which might have been reordered to locate the center of the star
-     * join)
+     * Returns the joined feature types. If called past join extraction, it will return the types in the same order as
+     * the joins (which might have been reordered to locate the center of the star join)
      */
     public List<FeatureTypeInfo> getFeatureTypes() {
         if (primaryFeatureType == null) {
@@ -305,8 +299,8 @@ public class JoinExtractingVisitor extends FilterVisitorSupport {
     }
 
     /**
-     * Find the center of the star join, and remove it from the feature types and aliases arrays the
-     * rest of the algorithm is setup to have only the secondary types in these arrays
+     * Find the center of the star join, and remove it from the feature types and aliases arrays the rest of the
+     * algorithm is setup to have only the secondary types in these arrays
      */
     private void setupPrimary() {
         if (primaryFeatureType == null) {
@@ -349,16 +343,15 @@ public class JoinExtractingVisitor extends FilterVisitorSupport {
             prefixes.remove(primaryName);
             prefixes.remove(primaryUnqualifiedName);
             if (prefixes.size() != 1) {
-                throw new WFSException(
-                        "Extracted invalid join filter "
-                                + filter
-                                + ", it joins more than "
-                                + "one secondary feature type + "
-                                + prefixes
-                                + " with the central join feature type "
-                                + primaryAlias
-                                + "/"
-                                + primaryName);
+                throw new WFSException("Extracted invalid join filter "
+                        + filter
+                        + ", it joins more than "
+                        + "one secondary feature type + "
+                        + prefixes
+                        + " with the central join feature type "
+                        + primaryAlias
+                        + "/"
+                        + primaryName);
             }
 
             Filter rewritten = (Filter) filter.accept(rewriter, null);
@@ -367,10 +360,7 @@ public class JoinExtractingVisitor extends FilterVisitorSupport {
             int idx = featureTypes.indexOf(ft);
             if (idx == -1) {
                 throw new WFSException(
-                        "Extracted invalid join filter "
-                                + filter
-                                + ", it uses the unkonwn alias/typename "
-                                + alias);
+                        "Extracted invalid join filter " + filter + ", it uses the unkonwn alias/typename " + alias);
             }
             updateFilter(sorted, idx + 1, rewritten);
         }
@@ -395,11 +385,10 @@ public class JoinExtractingVisitor extends FilterVisitorSupport {
                     if (namespaceSupport != null) {
                         String ns = namespaceSupport.getURI(localNsPrefix);
                         if (ns != null) {
-                            Optional<String> wsName =
-                                    featureTypes.stream()
-                                            .filter(ft -> matchesNamespace(ns, ft))
-                                            .map(ft -> ft.getStore().getWorkspace().getName())
-                                            .findFirst();
+                            Optional<String> wsName = featureTypes.stream()
+                                    .filter(ft -> matchesNamespace(ns, ft))
+                                    .map(ft -> ft.getStore().getWorkspace().getName())
+                                    .findFirst();
                             if (wsName.isPresent()) {
                                 prefix = wsName.get() + ":" + prefix.substring(idx + 1);
                             }
@@ -428,11 +417,10 @@ public class JoinExtractingVisitor extends FilterVisitorSupport {
             Set<String> prefixes = getFilterPrefixes(filter);
             prefixes.remove(primaryName);
             if (prefixes.size() != 1) {
-                throw new WFSException(
-                        "Extracted invalid join sub-filter "
-                                + filter
-                                + ", it users more than one feature type + "
-                                + prefixes);
+                throw new WFSException("Extracted invalid join sub-filter "
+                        + filter
+                        + ", it users more than one feature type + "
+                        + prefixes);
             }
 
             Filter rewritten = (Filter) filter.accept(rewriter, null);
@@ -444,11 +432,10 @@ public class JoinExtractingVisitor extends FilterVisitorSupport {
                 int idx = featureTypes.indexOf(ft);
                 if (idx == -1) {
 
-                    throw new WFSException(
-                            "Extracted invalid join filter "
-                                    + filter
-                                    + ", it uses the unkonwn alias/typename "
-                                    + alias);
+                    throw new WFSException("Extracted invalid join filter "
+                            + filter
+                            + ", it uses the unkonwn alias/typename "
+                            + alias);
                 }
                 updateFilter(sorted, idx + 1, rewritten);
             }
@@ -458,8 +445,8 @@ public class JoinExtractingVisitor extends FilterVisitorSupport {
     }
 
     /**
-     * Builds a map going from alias, prefixed type name and simple type name to FeatureTypeInfo. In
-     * case of conflicts aliases will override the type names
+     * Builds a map going from alias, prefixed type name and simple type name to FeatureTypeInfo. In case of conflicts
+     * aliases will override the type names
      */
     private Map<String, FeatureTypeInfo> buildTypeMap() {
         Map<String, FeatureTypeInfo> typeMap = new HashMap<>();
@@ -525,9 +512,8 @@ public class JoinExtractingVisitor extends FilterVisitorSupport {
     }
 
     /**
-     * Geotools only support "star" joins with a primary being the center of the join. Figure out if
-     * we have one feature type that is acting as the center of the star, or throw an exception if
-     * we don't have one.
+     * Geotools only support "star" joins with a primary being the center of the join. Figure out if we have one feature
+     * type that is acting as the center of the star, or throw an exception if we don't have one.
      */
     private int getPrimaryFeatureTypeIndex(List<Filter> filters) {
         if (featureTypes.size() == 2) {
@@ -545,9 +531,8 @@ public class JoinExtractingVisitor extends FilterVisitorSupport {
         }
 
         if (connecteds.isEmpty()) {
-            throw new WFSException(
-                    "Cannot run this type of join, at the moment GeoServer only supports "
-                            + "joins having a single central feature type joined to all others");
+            throw new WFSException("Cannot run this type of join, at the moment GeoServer only supports "
+                    + "joins having a single central feature type joined to all others");
         } else {
             return connecteds.iterator().next();
         }
@@ -585,8 +570,8 @@ public class JoinExtractingVisitor extends FilterVisitorSupport {
     }
 
     /**
-     * Rewrites property names to either remove the join prefixes (for local filters) or replace the
-     * <code>alias/attribute</code> or <code>typename/attribute</code> syntax with a <code>
+     * Rewrites property names to either remove the join prefixes (for local filters) or replace the <code>
+     * alias/attribute</code> or <code>typename/attribute</code> syntax with a <code>
      * alias.attribute</code> syntax
      *
      * @author Andrea Aime - GeoSolutions

@@ -27,19 +27,20 @@ import org.springframework.web.client.RestOperations;
 import org.springframework.web.client.RestTemplate;
 
 /**
- * Base Class for GeoServer specific {@link RemoteTokenServices}. Each specific GeoServer OAuth2
- * Extension must implement its own.
+ * Base Class for GeoServer specific {@link RemoteTokenServices}. Each specific GeoServer OAuth2 Extension must
+ * implement its own.
  *
  * @author Alessio Fabiani, GeoSoltuions S.A.S.
  */
 public abstract class GeoServerOAuthRemoteTokenServices extends RemoteTokenServices {
 
-    protected static Logger LOGGER =
-            LoggerFactory.getLogger(GeoServerOAuthRemoteTokenServices.class);
+    protected static Logger LOGGER = LoggerFactory.getLogger(GeoServerOAuthRemoteTokenServices.class);
 
     protected RestOperations restTemplate;
 
     protected String checkTokenEndpointUrl;
+
+    protected String introspectionEndpointUrl;
 
     protected String clientId;
 
@@ -54,18 +55,15 @@ public abstract class GeoServerOAuthRemoteTokenServices extends RemoteTokenServi
     protected GeoServerOAuthRemoteTokenServices(AccessTokenConverter tokenConverter) {
         this.tokenConverter = tokenConverter;
         this.restTemplate = new RestTemplate();
-        ((RestTemplate) restTemplate)
-                .setErrorHandler(
-                        new DefaultResponseErrorHandler() {
-                            @Override
-                            // Ignore 400
-                            public void handleError(ClientHttpResponse response)
-                                    throws IOException {
-                                if (response.getRawStatusCode() != 400) {
-                                    super.handleError(response);
-                                }
-                            }
-                        });
+        ((RestTemplate) restTemplate).setErrorHandler(new DefaultResponseErrorHandler() {
+            @Override
+            // Ignore 400
+            public void handleError(ClientHttpResponse response) throws IOException {
+                if (response.getRawStatusCode() != 400) {
+                    super.handleError(response);
+                }
+            }
+        });
     }
 
     @Override
@@ -76,6 +74,11 @@ public abstract class GeoServerOAuthRemoteTokenServices extends RemoteTokenServi
     @Override
     public void setCheckTokenEndpointUrl(String checkTokenEndpointUrl) {
         this.checkTokenEndpointUrl = checkTokenEndpointUrl;
+    }
+
+    /** Sets the introspection endpoint used to validate opaque access tokens */
+    public void setIntrospectionEndpointUrl(String introspectionEndpointUrl) {
+        this.introspectionEndpointUrl = introspectionEndpointUrl;
     }
 
     @Override
@@ -103,8 +106,7 @@ public abstract class GeoServerOAuthRemoteTokenServices extends RemoteTokenServi
         transformNonStandardValuesToStandardValues(checkTokenResponse);
 
         Assert.state(
-                checkTokenResponse.containsKey("client_id"),
-                "Client id must be present in response from auth server");
+                checkTokenResponse.containsKey("client_id"), "Client id must be present in response from auth server");
         return tokenConverter.extractAuthentication(checkTokenResponse);
     }
 
@@ -124,11 +126,10 @@ public abstract class GeoServerOAuthRemoteTokenServices extends RemoteTokenServi
         formData.add("token", accessToken);
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", getAuthorizationHeader(accessToken));
-        String accessTokenUrl =
-                new StringBuilder(checkTokenEndpointUrl)
-                        .append("?access_token=")
-                        .append(accessToken)
-                        .toString();
+        String accessTokenUrl = new StringBuilder(checkTokenEndpointUrl)
+                .append("?access_token=")
+                .append(accessToken)
+                .toString();
         return postForMap(accessTokenUrl, formData, headers);
     }
 
@@ -136,13 +137,11 @@ public abstract class GeoServerOAuthRemoteTokenServices extends RemoteTokenServi
         return "Bearer " + accessToken;
     }
 
-    protected Map<String, Object> postForMap(
-            String path, MultiValueMap<String, String> formData, HttpHeaders headers) {
+    protected Map<String, Object> postForMap(String path, MultiValueMap<String, String> formData, HttpHeaders headers) {
         if (headers.getContentType() == null) {
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         }
-        ParameterizedTypeReference<Map<String, Object>> map =
-                new ParameterizedTypeReference<Map<String, Object>>() {};
+        ParameterizedTypeReference<Map<String, Object>> map = new ParameterizedTypeReference<Map<String, Object>>() {};
         return restTemplate
                 .exchange(path, HttpMethod.POST, new HttpEntity<>(formData, headers), map)
                 .getBody();

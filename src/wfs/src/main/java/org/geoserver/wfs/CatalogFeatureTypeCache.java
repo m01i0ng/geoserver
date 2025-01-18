@@ -9,16 +9,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.FeatureTypeInfo;
+import org.geotools.api.feature.type.FeatureType;
+import org.geotools.api.feature.type.Name;
 import org.geotools.gml2.FeatureTypeCache;
 import org.geotools.util.logging.Logging;
-import org.opengis.feature.type.FeatureType;
-import org.opengis.feature.type.Name;
 
 /**
  * Custom FeatureTypeCache that looks up directly from GeoServer catalog.
  *
- * <p>This cache class is used by XML bindings during parsing to obtain feature type information.
- * This custom implementation allows for look up on demand, as opposed to pre-seeding the cache.
+ * <p>This cache class is used by XML bindings during parsing to obtain feature type information. This custom
+ * implementation allows for look up on demand, as opposed to pre-seeding the cache.
  */
 public class CatalogFeatureTypeCache extends FeatureTypeCache {
 
@@ -44,10 +44,7 @@ public class CatalogFeatureTypeCache extends FeatureTypeCache {
                     // throw into the cache
                     put(featureType);
                 } catch (Exception e) {
-                    LOGGER.log(
-                            Level.WARNING,
-                            "Could not load underlying feature type for type " + meta.getName(),
-                            e);
+                    LOGGER.log(Level.WARNING, "Could not load underlying feature type for type " + meta.getName(), e);
                 }
             }
         }

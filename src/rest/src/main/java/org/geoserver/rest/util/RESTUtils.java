@@ -36,6 +36,8 @@ import org.geoserver.platform.resource.Paths;
 import org.geoserver.platform.resource.Resource;
 import org.geoserver.platform.resource.Resources;
 import org.geoserver.rest.RestException;
+import org.geoserver.security.FileAccessManager;
+import org.geotools.data.ows.URLCheckerException;
 import org.geotools.util.URLs;
 import org.geotools.util.logging.Logging;
 import org.springframework.http.HttpStatus;
@@ -54,6 +56,7 @@ public class RESTUtils {
 
     public static final String ROOT_KEY = "root";
 
+    /** Key used to store the boolean in the {@link GeoServerInfo#getSettings() global settings} metadata map */
     public static final String QUIET_ON_NOT_FOUND_KEY = "quietOnNotFound";
 
     /**
@@ -97,10 +100,7 @@ public class RESTUtils {
         // Creation of a StringBuilder for the selected file
         StringBuilder itemPath = new StringBuilder(fileName);
         // Mediatype associated to the input file
-        MediaType mediaType =
-                request.getContentType() == null
-                        ? null
-                        : MediaType.valueOf(request.getContentType());
+        MediaType mediaType = request.getContentType() == null ? null : MediaType.valueOf(request.getContentType());
         // Only zip files are not remapped
         if (mediaType == null || !isZipMediaType(mediaType)) {
             String baseName = FilenameUtils.getBaseName(fileName);
@@ -132,29 +132,25 @@ public class RESTUtils {
     }
 
     /**
-     * Reads a url from the body of a request, reads the contents of the url and writes it to a
-     * file.
+     * Reads an url from the body of a request, reads the contents of the url and writes it to a file.
      *
      * @param fileName The name of the file to write.
      * @param directory The directory to write the new file to.
      * @param request The request.
      * @return The file object representing the newly written file.
      * @throws IOException Any I/O errors that occur.
-     *     <p>TODO: move this to IOUtils
+     * @throws URLCheckerException if the URL is not allowed for use.
      */
     public static org.geoserver.platform.resource.Resource handleURLUpload(
             String fileName,
             String workSpace,
             org.geoserver.platform.resource.Resource directory,
             HttpServletRequest request)
-            throws IOException {
+            throws IOException, URLCheckerException {
         // Initial remapping of the input file
         StringBuilder itemPath = new StringBuilder(fileName);
-        // Mediatype associated to the input file
-        MediaType mediaType =
-                request.getContentType() != null
-                        ? MediaType.valueOf(request.getContentType())
-                        : null;
+        // Media type associated to the input file
+        MediaType mediaType = request.getContentType() != null ? MediaType.valueOf(request.getContentType()) : null;
         // Only zip files are not remapped
         if (mediaType == null || !isZipMediaType(mediaType)) {
             String baseName = FilenameUtils.getBaseName(fileName);
@@ -175,22 +171,15 @@ public class RESTUtils {
         final String stringURL = IOUtils.getStringFromStream(inStream);
         final URL fileURL = new URL(stringURL);
 
-        ////
-        //
         // Now do the real upload
-        //
-        ////
-        try (InputStream inputStream = fileURL.openStream();
-                OutputStream outStream = newFile.out()) {
-            IOUtils.copyStream(inputStream, outStream, true, true);
-        }
+        IOUtils.upload(fileURL, newFile);
 
         return newFile;
     }
 
     /** Handles an upload using the EXTERNAL method. */
-    public static org.geoserver.platform.resource.Resource handleEXTERNALUpload(
-            HttpServletRequest request) throws IOException {
+    public static org.geoserver.platform.resource.Resource handleEXTERNALUpload(HttpServletRequest request)
+            throws IOException, URLCheckerException {
         // get the URL for this file to upload
         final String stringURL;
         File inputFile;
@@ -204,12 +193,10 @@ public class RESTUtils {
         }
 
         if (inputFile == null || !inputFile.exists()) {
-            throw new RestException(
-                    "Failed to locate the input file " + stringURL, HttpStatus.BAD_REQUEST);
+            throw new RestException("Failed to locate the input file " + stringURL, HttpStatus.BAD_REQUEST);
         } else if (!inputFile.canRead()) {
             throw new RestException(
-                    "Input file is not readable, check filesystem permissions: " + stringURL,
-                    HttpStatus.BAD_REQUEST);
+                    "Input file is not readable, check filesystem permissions: " + stringURL, HttpStatus.BAD_REQUEST);
         }
 
         return Files.asResource(inputFile);
@@ -242,8 +229,7 @@ public class RESTUtils {
      *     <p>TODO: move this to IOUtils
      */
     public static void unzipFile(
-            org.geoserver.platform.resource.Resource zipFile,
-            org.geoserver.platform.resource.Resource outputDirectory)
+            org.geoserver.platform.resource.Resource zipFile, org.geoserver.platform.resource.Resource outputDirectory)
             throws IOException {
         unzipFile(zipFile, outputDirectory, null, null, null, false);
     }
@@ -269,8 +255,7 @@ public class RESTUtils {
             outputDirectory = zipFile.parent();
         }
         try (ZipFile archive = new ZipFile(zipFile.file())) {
-            IOUtils.inflate(
-                    archive, outputDirectory, null, workspace, store, files, external, true);
+            IOUtils.inflate(archive, outputDirectory, null, workspace, store, files, external, true);
             zipFile.delete();
         }
     }
@@ -280,8 +265,7 @@ public class RESTUtils {
      *
      * @param request the Restlet Request object that might contain the attribute
      * @param name the name of the attribute to retrieve
-     * @return the attribute, URL-decoded, if it exists and is a valid URL-encoded string, or null
-     *     otherwise
+     * @return the attribute, URL-decoded, if it exists and is a valid URL-encoded string, or null otherwise
      */
     public static String getAttribute(HttpServletRequest request, String name) {
         Object o = request.getAttribute(name);
@@ -306,8 +290,7 @@ public class RESTUtils {
     }
 
     /** Method for searching an item inside the MetadataMap. */
-    public static String getItem(
-            String workspaceName, String storeName, Catalog catalog, String key) {
+    public static String getItem(String workspaceName, String storeName, Catalog catalog, String key) {
         // Initialization of a null String containing the root directory to use for the input store
         // config
 
@@ -391,7 +374,14 @@ public class RESTUtils {
     }
 
     public static String getRootDirectory(String workspaceName, String storeName, Catalog catalog) {
-        String rootDir = getItem(workspaceName, storeName, catalog, ROOT_KEY);
+        String rootDir;
+        FileAccessManager fam = FileAccessManager.lookupFileAccessManager();
+        if (fam.getSandbox() != null) {
+            File root = fam.getSandbox();
+            rootDir = root.getAbsolutePath();
+        } else {
+            rootDir = getItem(workspaceName, storeName, catalog, ROOT_KEY);
+        }
         if (rootDir != null) {
             // Check if it already exists
             File rootFile = new File(rootDir);
@@ -420,8 +410,7 @@ public class RESTUtils {
             Map<String, String> storeParams)
             throws IOException {
         // Selection of the available PathMapper
-        List<RESTUploadPathMapper> mappers =
-                GeoServerExtensions.extensions(RESTUploadPathMapper.class);
+        List<RESTUploadPathMapper> mappers = GeoServerExtensions.extensions(RESTUploadPathMapper.class);
         // Mapping the item path
         for (RESTUploadPathMapper mapper : mappers) {
             mapper.mapItemPath(workspace, store, storeParams, itemPath, initialFileName);
@@ -434,8 +423,7 @@ public class RESTUtils {
     }
 
     /** Creates a file upload root for the given workspace and store */
-    public static Resource createUploadRoot(
-            Catalog catalog, String workspaceName, String storeName, boolean isPost)
+    public static Resource createUploadRoot(Catalog catalog, String workspaceName, String storeName, boolean isPost)
             throws IOException {
         // Check if the Request is a POST request, in order to search for an existing coverage
         Resource directory = null;
@@ -443,8 +431,7 @@ public class RESTUtils {
             // Check if the coverage already exists
             CoverageStoreInfo coverage = catalog.getCoverageStoreByName(storeName);
             if (coverage != null) {
-                if (workspaceName == null
-                        || coverage.getWorkspace().getName().equalsIgnoreCase(workspaceName)) {
+                if (workspaceName == null || coverage.getWorkspace().getName().equalsIgnoreCase(workspaceName)) {
                     // If the coverage exists then the associated directory is defined by its URL
                     String url = coverage.getURL();
                     String path;
@@ -453,14 +440,14 @@ public class RESTUtils {
                     } else {
                         path = url;
                     }
-                    directory = Resources.fromPath(path, catalog.getResourceLoader().get(""));
+                    directory =
+                            Resources.fromPath(path, catalog.getResourceLoader().get(""));
                 }
             }
         }
         // If the directory has not been found then it is created directly
         if (directory == null) {
-            directory =
-                    catalog.getResourceLoader().get(Paths.path("data", workspaceName, storeName));
+            directory = catalog.getResourceLoader().get(Paths.path("data", workspaceName, storeName));
         }
 
         // Selection of the original ROOT directory path
@@ -468,8 +455,7 @@ public class RESTUtils {
         // StoreParams to use for the mapping.
         Map<String, String> storeParams = new HashMap<>();
         // Listing of the available pathMappers
-        List<RESTUploadPathMapper> mappers =
-                GeoServerExtensions.extensions(RESTUploadPathMapper.class);
+        List<RESTUploadPathMapper> mappers = GeoServerExtensions.extensions(RESTUploadPathMapper.class);
         // Mapping of the root directory
         for (RESTUploadPathMapper mapper : mappers) {
             mapper.mapStorePath(root, workspaceName, storeName, storeParams);

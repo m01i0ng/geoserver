@@ -33,19 +33,19 @@ import org.geoserver.importer.ImportTask;
 import org.geoserver.importer.Importer;
 import org.geoserver.importer.VectorFormat;
 import org.geoserver.importer.job.ProgressMonitor;
-import org.geotools.data.FeatureReader;
+import org.geotools.api.data.FeatureReader;
+import org.geotools.api.feature.Feature;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.type.AttributeDescriptor;
+import org.geotools.api.feature.type.FeatureType;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.data.geojson.GeoJSONReader;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
 import org.geotools.util.logging.Logging;
-import org.opengis.feature.Feature;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.AttributeDescriptor;
-import org.opengis.feature.type.FeatureType;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 public class GeoJSONFormat extends VectorFormat {
 
@@ -73,8 +73,7 @@ public class GeoJSONFormat extends VectorFormat {
             }
 
             @Override
-            public Feature next()
-                    throws IOException, IllegalArgumentException, NoSuchElementException {
+            public Feature next() throws IOException, IllegalArgumentException, NoSuchElementException {
                 return it.next();
             }
 
@@ -123,19 +122,16 @@ public class GeoJSONFormat extends VectorFormat {
     }
 
     @Override
-    public StoreInfo createStore(ImportData data, WorkspaceInfo workspace, Catalog catalog)
-            throws IOException {
+    public StoreInfo createStore(ImportData data, WorkspaceInfo workspace, Catalog catalog) throws IOException {
         // direct import not supported
         LOG.log(
                 Level.INFO,
-                "Direct import of GeoJSON is not supported.  "
-                        + "You mush select a supported target data store");
+                "Direct import of GeoJSON is not supported.  " + "You mush select a supported target data store");
         return null;
     }
 
     @Override
-    public List<ImportTask> list(ImportData data, Catalog catalog, ProgressMonitor monitor)
-            throws IOException {
+    public List<ImportTask> list(ImportData data, Catalog catalog, ProgressMonitor monitor) throws IOException {
 
         if (data instanceof Directory) {
             List<ImportTask> tasks = new ArrayList<>();
@@ -215,11 +211,9 @@ public class GeoJSONFormat extends VectorFormat {
 
     File file(ImportData data, final ImportTask item) {
         if (data instanceof Directory) {
-            return Iterables.find(
-                            ((Directory) data).getFiles(),
-                            input ->
-                                    FilenameUtils.getBaseName(input.getFile().getName())
-                                            .equals(item.getLayer().getName()))
+            return Iterables.find(((Directory) data).getFiles(), input -> FilenameUtils.getBaseName(
+                                    input.getFile().getName())
+                            .equals(item.getLayer().getName()))
                     .getFile();
         } else {
             return maybeFile(data).get();

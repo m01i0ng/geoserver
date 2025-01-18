@@ -17,15 +17,15 @@ import java.util.Date;
 import java.util.logging.Logger;
 import org.geoserver.kml.KmlEncodingContext;
 import org.geoserver.platform.ServiceException;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.type.AttributeDescriptor;
+import org.geotools.api.feature.type.AttributeType;
+import org.geotools.api.feature.type.GeometryDescriptor;
 import org.geotools.util.Converter;
 import org.geotools.util.Converters;
 import org.geotools.util.logging.Logging;
 import org.geotools.xml.XmlConverterFactory;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.AttributeDescriptor;
-import org.opengis.feature.type.AttributeType;
-import org.opengis.feature.type.GeometryDescriptor;
 
 /**
  * Adds schema and attributes to the KML output
@@ -35,8 +35,7 @@ import org.opengis.feature.type.GeometryDescriptor;
 public class ExtendedDataDecoratorFactory implements KmlDecoratorFactory {
 
     @Override
-    public KmlDecorator getDecorator(
-            Class<? extends Feature> featureClass, KmlEncodingContext context) {
+    public KmlDecorator getDecorator(Class<? extends Feature> featureClass, KmlEncodingContext context) {
 
         if (!context.isExtendedDataEnabled()) {
             return null;
@@ -119,10 +118,7 @@ public class ExtendedDataDecoratorFactory implements KmlDecoratorFactory {
             ExtendedData exd = pm.createAndSetExtendedData();
             SchemaData schemaData = exd.createAndAddSchemaData();
             schemaData.setSchemaUrl(
-                    "#"
-                            + context.getCurrentFeatureType().getTypeName()
-                            + "_"
-                            + context.getCurrentLayerIndex());
+                    "#" + context.getCurrentFeatureType().getTypeName() + "_" + context.getCurrentLayerIndex());
             for (AttributeDescriptor ad : sf.getFeatureType().getAttributeDescriptors()) {
                 // skip geometry attributes
                 if (ad instanceof GeometryDescriptor) {
@@ -141,9 +137,7 @@ public class ExtendedDataDecoratorFactory implements KmlDecoratorFactory {
                         kmlValue = DATE_CONVERTER.convert(value, String.class);
                     } catch (Exception e) {
                         throw new ServiceException(
-                                "Failed to convert date into string while "
-                                        + "generating extended data section",
-                                e);
+                                "Failed to convert date into string while " + "generating extended data section", e);
                     }
                 } else {
                     kmlValue = Converters.convert(value, String.class);

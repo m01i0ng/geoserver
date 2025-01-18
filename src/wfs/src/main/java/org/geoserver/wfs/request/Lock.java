@@ -8,7 +8,7 @@ package org.geoserver.wfs.request;
 import java.util.List;
 import javax.xml.namespace.QName;
 import org.eclipse.emf.ecore.EObject;
-import org.opengis.filter.Filter;
+import org.geotools.api.filter.Filter;
 
 /**
  * Lock in a LockFeature request.
@@ -59,8 +59,7 @@ public abstract class Lock extends RequestObject {
                 if (typeNames.size() == 1) {
                     return (QName) typeNames.get(0);
                 } else if (!typeNames.isEmpty()) {
-                    throw new IllegalArgumentException(
-                            "Multiple type names on single lock not supported");
+                    throw new IllegalArgumentException("Multiple type names on single lock not supported");
                 }
             }
             // no typenames found, happens with GetFeatureById stored query for example

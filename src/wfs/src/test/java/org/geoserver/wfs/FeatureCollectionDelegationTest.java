@@ -12,11 +12,15 @@ import org.geoserver.security.CatalogMode;
 import org.geoserver.security.WrapperPolicy;
 import org.geoserver.security.decorators.SecuredObjects;
 import org.geoserver.test.GeoServerSystemTestSupport;
+import org.geotools.api.data.Query;
+import org.geotools.api.data.SimpleFeatureSource;
+import org.geotools.api.feature.FeatureVisitor;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.util.ProgressListener;
 import org.geotools.data.DataUtilities;
-import org.geotools.data.Query;
 import org.geotools.data.collection.ListFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureCollection;
-import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.collection.FilteringSimpleFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
@@ -29,14 +33,9 @@ import org.junit.Test;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
-import org.opengis.feature.FeatureVisitor;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.filter.Filter;
-import org.opengis.util.ProgressListener;
 
 public class FeatureCollectionDelegationTest extends GeoServerSystemTestSupport {
-    private final WrapperPolicy policy =
-            WrapperPolicy.readOnlyHide(new AccessLimits(CatalogMode.HIDE));
+    private final WrapperPolicy policy = WrapperPolicy.readOnlyHide(new AccessLimits(CatalogMode.HIDE));
     private static final String FEATURE_TYPE_NAME = "testType";
     private FeatureVisitor lastVisitor = null;
 
@@ -62,43 +61,37 @@ public class FeatureCollectionDelegationTest extends GeoServerSystemTestSupport 
         SimpleFeatureBuilder b = new SimpleFeatureBuilder(ft);
         b.add(p);
 
-        ListFeatureCollection visitorCollection =
-                new ListFeatureCollection(ft) {
-                    @Override
-                    public void accepts(FeatureVisitor visitor, ProgressListener progress) {
-                        lastVisitor = visitor;
-                    };
+        ListFeatureCollection visitorCollection = new ListFeatureCollection(ft) {
+            @Override
+            public void accepts(FeatureVisitor visitor, ProgressListener progress) {
+                lastVisitor = visitor;
+            }
 
-                    @Override
-                    public SimpleFeatureCollection subCollection(Filter filter) {
-                        if (filter == Filter.INCLUDE) {
-                            return this;
-                        } else {
-                            return super.subCollection(filter);
-                        }
-                    }
-                };
+            @Override
+            public SimpleFeatureCollection subCollection(Filter filter) {
+                if (filter == Filter.INCLUDE) {
+                    return this;
+                } else {
+                    return super.subCollection(filter);
+                }
+            }
+        };
         SimpleFeatureSource featureSource = DataUtilities.source(visitorCollection);
 
-        maxVisitorCollections =
-                Arrays.asList(
-                        new FeatureSizeFeatureCollection(
-                                visitorCollection, featureSource, Query.ALL),
-                        new FilteringSimpleFeatureCollection(visitorCollection, Filter.INCLUDE));
-        countVisitorCollections =
-                Arrays.asList(
-                        new FeatureSizeFeatureCollection(
-                                visitorCollection, featureSource, Query.ALL),
-                        new FilteringSimpleFeatureCollection(visitorCollection, Filter.INCLUDE),
-                        new RetypingFeatureCollection(
-                                visitorCollection, visitorCollection.getSchema()),
-                        SecuredObjects.secure(visitorCollection, policy));
+        maxVisitorCollections = Arrays.asList(
+                new FeatureSizeFeatureCollection(visitorCollection, featureSource, Query.ALL),
+                new FilteringSimpleFeatureCollection(visitorCollection, Filter.INCLUDE));
+        countVisitorCollections = Arrays.asList(
+                new FeatureSizeFeatureCollection(visitorCollection, featureSource, Query.ALL),
+                new FilteringSimpleFeatureCollection(visitorCollection, Filter.INCLUDE),
+                new RetypingFeatureCollection(visitorCollection, visitorCollection.getSchema()),
+                SecuredObjects.secure(visitorCollection, policy));
     }
 
     @Test
     public void testMaxVisitorDelegation() {
         MaxVisitor visitor =
-                new MaxVisitor(CommonFactoryFinder.getFilterFactory2().property("value"));
+                new MaxVisitor(CommonFactoryFinder.getFilterFactory().property("value"));
         assertOptimalVisit(visitor, maxVisitorCollections);
     }
 
@@ -108,17 +101,15 @@ public class FeatureCollectionDelegationTest extends GeoServerSystemTestSupport 
         assertOptimalVisit(visitor, countVisitorCollections);
     }
 
-    private void assertOptimalVisit(
-            FeatureVisitor visitor, List<SimpleFeatureCollection> collections) {
-        collections.forEach(
-                simpleFeatureCollection -> {
-                    try {
-                        lastVisitor = null;
-                        simpleFeatureCollection.accepts(visitor, null);
-                    } catch (Exception e) {
-                        Assert.fail();
-                    }
-                    Assert.assertSame(lastVisitor, visitor);
-                });
+    private void assertOptimalVisit(FeatureVisitor visitor, List<SimpleFeatureCollection> collections) {
+        collections.forEach(simpleFeatureCollection -> {
+            try {
+                lastVisitor = null;
+                simpleFeatureCollection.accepts(visitor, null);
+            } catch (Exception e) {
+                Assert.fail();
+            }
+            Assert.assertSame(lastVisitor, visitor);
+        });
     }
 }

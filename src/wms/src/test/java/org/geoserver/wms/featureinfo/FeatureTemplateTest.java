@@ -17,11 +17,11 @@ import org.apache.commons.io.IOUtils;
 import org.geoserver.data.test.MockData;
 import org.geoserver.wms.WMSTestSupport;
 import org.geoserver.wms.featureinfo.dummy.Dummy;
+import org.geotools.api.data.SimpleFeatureSource;
+import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
-import org.geotools.data.simple.SimpleFeatureSource;
 import org.junit.Test;
-import org.opengis.feature.simple.SimpleFeature;
 
 public class FeatureTemplateTest extends WMSTestSupport {
 
@@ -105,17 +105,9 @@ public class FeatureTemplateTest extends WMSTestSupport {
         try (InputStream is = FeatureTemplate.class.getResourceAsStream("height.ftl")) {
             defaultHeightTemplate = IOUtils.toString(is, StandardCharsets.UTF_8);
         }
-        assertTrue(
-                template.isTemplateEmpty(
-                        source.getSchema(),
-                        "height.ftl",
-                        FeatureTemplate.class,
-                        defaultHeightTemplate));
-        assertTrue(
-                template.isTemplateEmpty(
-                        source.getSchema(), "time.ftl", FeatureTemplate.class, null));
-        assertFalse(
-                template.isTemplateEmpty(
-                        source.getSchema(), "title.ftl", FeatureTemplate.class, null));
+        assertTrue(template.isTemplateEmpty(
+                source.getSchema(), "height.ftl", FeatureTemplate.class, defaultHeightTemplate));
+        assertTrue(template.isTemplateEmpty(source.getSchema(), "time.ftl", FeatureTemplate.class, null));
+        assertFalse(template.isTemplateEmpty(source.getSchema(), "title.ftl", FeatureTemplate.class, null));
     }
 }

@@ -9,25 +9,24 @@ import org.geoserver.catalog.DimensionInfo;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.catalog.ResourceInfo;
 import org.geoserver.wms.dimension.AbstractFeatureAttributeVisitorSelectionStrategy;
+import org.geotools.api.filter.FilterFactory;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.visitor.CalcResult;
 import org.geotools.feature.visitor.FeatureCalc;
 import org.geotools.feature.visitor.NearestVisitor;
 import org.geotools.util.Converters;
-import org.opengis.filter.FilterFactory2;
 
 /**
- * Default implementation for selecting the default values for dimensions of feature (vector)
- * resources using the nearest-domain-value-to-the-reference-value strategy.
+ * Default implementation for selecting the default values for dimensions of feature (vector) resources using the
+ * nearest-domain-value-to-the-reference-value strategy.
  *
  * @author Ilkka Rinne / Spatineo Inc for the Finnish Meteorological Institute
  */
-public class FeatureNearestValueSelectionStrategyImpl
-        extends AbstractFeatureAttributeVisitorSelectionStrategy {
+public class FeatureNearestValueSelectionStrategyImpl extends AbstractFeatureAttributeVisitorSelectionStrategy {
 
     private Object toMatch;
     private String fixedCapabilitiesValue;
-    private FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
+    private FilterFactory ff = CommonFactoryFinder.getFilterFactory();
 
     /** Default constructor. */
     public FeatureNearestValueSelectionStrategyImpl(Object toMatch) {
@@ -40,10 +39,8 @@ public class FeatureNearestValueSelectionStrategyImpl
     }
 
     @Override
-    public Object getDefaultValue(
-            ResourceInfo resource, String dimensionName, DimensionInfo dimension, Class<?> clz) {
-        final FeatureCalc nearest =
-                new NearestVisitor(ff.property(dimension.getAttribute()), this.toMatch);
+    public Object getDefaultValue(ResourceInfo resource, String dimensionName, DimensionInfo dimension, Class<?> clz) {
+        final FeatureCalc nearest = new NearestVisitor(ff.property(dimension.getAttribute()), this.toMatch);
 
         CalcResult res = getCalculatedResult((FeatureTypeInfo) resource, dimension, nearest);
         if (res.equals(CalcResult.NULL_RESULT)) {

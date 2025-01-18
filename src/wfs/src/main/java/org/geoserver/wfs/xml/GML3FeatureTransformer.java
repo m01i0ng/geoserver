@@ -6,10 +6,10 @@
 package org.geoserver.wfs.xml;
 
 import java.util.Set;
+import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.gml.producer.FeatureTransformer;
 import org.geotools.gml.producer.GeometryTransformer.GeometryTranslator;
 import org.geotools.gml3.GML;
-import org.opengis.feature.simple.SimpleFeature;
 import org.xml.sax.Attributes;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.helpers.AttributesImpl;
@@ -22,8 +22,7 @@ public class GML3FeatureTransformer extends FeatureTransformer {
             String ns,
             FeatureTypeNamespaces featureTypeNamespaces,
             SchemaLocationSupport schemaLocationSupport) {
-        return new GML3FeatureTranslator(
-                handler, prefix, ns, featureTypeNamespaces, schemaLocationSupport);
+        return new GML3FeatureTranslator(handler, prefix, ns, featureTypeNamespaces, schemaLocationSupport);
     }
 
     @Override
@@ -49,12 +48,8 @@ public class GML3FeatureTransformer extends FeatureTransformer {
 
         @Override
         protected GeometryTranslator createGeometryTranslator(
-                ContentHandler handler,
-                int numDecimals,
-                boolean padWithZeros,
-                boolean forceDecimalEncoding) {
-            return new GML3GeometryTranslator(
-                    handler, numDecimals, padWithZeros, forceDecimalEncoding);
+                ContentHandler handler, int numDecimals, boolean padWithZeros, boolean forceDecimalEncoding) {
+            return new GML3GeometryTranslator(handler, numDecimals, padWithZeros, forceDecimalEncoding);
         }
 
         @Override
@@ -64,8 +59,7 @@ public class GML3FeatureTransformer extends FeatureTransformer {
                 boolean padWithZeros,
                 boolean forceDecimalEncoding,
                 boolean useDummyZ) {
-            return new GML3GeometryTranslator(
-                    handler, numDecimals, padWithZeros, forceDecimalEncoding, useDummyZ);
+            return new GML3GeometryTranslator(handler, numDecimals, padWithZeros, forceDecimalEncoding, useDummyZ);
         }
 
         protected Attributes encodeFeatureId(SimpleFeature f) {

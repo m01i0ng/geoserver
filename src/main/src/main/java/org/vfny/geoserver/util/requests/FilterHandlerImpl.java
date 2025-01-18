@@ -6,8 +6,8 @@
 package org.vfny.geoserver.util.requests;
 
 import java.util.logging.Logger;
+import org.geotools.api.filter.Filter;
 import org.geotools.filter.FilterHandler;
-import org.opengis.filter.Filter;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.helpers.XMLFilterImpl;
 
@@ -19,8 +19,7 @@ import org.xml.sax.helpers.XMLFilterImpl;
  */
 public class FilterHandlerImpl extends XMLFilterImpl implements ContentHandler, FilterHandler {
     /** Class logger */
-    private static Logger LOGGER =
-            org.geotools.util.logging.Logging.getLogger("org.vfny.geoserver.requests");
+    private static Logger LOGGER = org.geotools.util.logging.Logging.getLogger("org.vfny.geoserver.requests");
 
     /** Tracks current filter */
     private Filter currentFilter = null;

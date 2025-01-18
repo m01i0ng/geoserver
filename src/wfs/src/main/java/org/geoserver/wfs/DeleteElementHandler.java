@@ -19,23 +19,23 @@ import org.geoserver.wfs.request.Delete;
 import org.geoserver.wfs.request.TransactionElement;
 import org.geoserver.wfs.request.TransactionRequest;
 import org.geoserver.wfs.request.TransactionResponse;
-import org.geotools.data.DataStore;
+import org.geotools.api.data.DataStore;
+import org.geotools.api.data.FeatureLockException;
+import org.geotools.api.data.FeatureLocking;
+import org.geotools.api.data.FeatureStore;
+import org.geotools.api.data.FeatureWriter;
+import org.geotools.api.data.Query;
+import org.geotools.api.data.SimpleFeatureLocking;
+import org.geotools.api.data.SimpleFeatureStore;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.filter.FilterFactory;
+import org.geotools.api.filter.identity.FeatureId;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.data.DataUtilities;
-import org.geotools.data.FeatureLockException;
-import org.geotools.data.FeatureLocking;
-import org.geotools.data.FeatureStore;
-import org.geotools.data.FeatureWriter;
-import org.geotools.data.Query;
-import org.geotools.data.simple.SimpleFeatureLocking;
-import org.geotools.data.simple.SimpleFeatureStore;
 import org.geotools.factory.CommonFactoryFinder;
 import org.locationtech.jts.geom.Envelope;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory;
-import org.opengis.filter.identity.FeatureId;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
  * Processes standard Delete elements
@@ -46,10 +46,11 @@ public class DeleteElementHandler extends AbstractTransactionElementHandler {
     /** logger */
     static Logger LOGGER = org.geotools.util.logging.Logging.getLogger("org.geoserver.wfs");
 
-    FilterFactory factory = CommonFactoryFinder.getFilterFactory(null);
+    FilterFactory filterFactory;
 
     public DeleteElementHandler(GeoServer gs) {
         super(gs);
+        filterFactory = CommonFactoryFinder.getFilterFactory(null);
     }
 
     @Override
@@ -57,18 +58,14 @@ public class DeleteElementHandler extends AbstractTransactionElementHandler {
         return Delete.class;
     }
 
-    /**
-     * @see org.geoserver.wfs.TransactionElementHandler#getTypeNames(org.eclipse.emf.ecore.EObject)
-     */
+    /** @see org.geoserver.wfs.TransactionElementHandler#getTypeNames(org.eclipse.emf.ecore.EObject) */
     @Override
-    public QName[] getTypeNames(TransactionRequest request, TransactionElement element)
-            throws WFSTransactionException {
+    public QName[] getTypeNames(TransactionRequest request, TransactionElement element) throws WFSTransactionException {
         return new QName[] {element.getTypeName()};
     }
 
     @Override
-    public void checkValidity(TransactionElement delete, Map featureTypeInfos)
-            throws WFSTransactionException {
+    public void checkValidity(TransactionElement delete, Map featureTypeInfos) throws WFSTransactionException {
         if (!getInfo().getServiceLevel().getOps().contains(WFSInfo.Operation.TRANSACTION_DELETE)) {
             throw new WFSException(delete, "Transaction Delete support is not enabled");
         }
@@ -76,8 +73,7 @@ public class DeleteElementHandler extends AbstractTransactionElementHandler {
         Filter f = delete.getFilter();
 
         if ((f == null) || Filter.INCLUDE.equals(f)) {
-            throw new WFSTransactionException(
-                    "Must specify filter for delete", "MissingParameterValue");
+            throw new WFSTransactionException("Must specify filter for delete", "MissingParameterValue");
         }
     }
 
@@ -103,15 +99,12 @@ public class DeleteElementHandler extends AbstractTransactionElementHandler {
                     LOGGER.finer("\t" + key.toString());
                 }
             }
-            throw new WFSTransactionException(
-                    msg, ServiceException.INVALID_PARAMETER_VALUE, handle);
+            throw new WFSTransactionException(msg, ServiceException.INVALID_PARAMETER_VALUE, handle);
         }
-        SimpleFeatureStore store =
-                DataUtilities.simple((FeatureStore) featureStores.get(elementName));
+        SimpleFeatureStore store = DataUtilities.simple((FeatureStore) featureStores.get(elementName));
 
         if (store == null) {
-            throw new WFSTransactionException(
-                    msg, ServiceException.INVALID_PARAMETER_VALUE, handle);
+            throw new WFSTransactionException(msg, ServiceException.INVALID_PARAMETER_VALUE, handle);
         }
 
         String typeName = store.getSchema().getTypeName();
@@ -127,12 +120,8 @@ public class DeleteElementHandler extends AbstractTransactionElementHandler {
             filter = WFSReprojectionUtil.normalizeFilterCRS(filter, store.getSchema(), declaredCRS);
 
             // notify listeners
-            TransactionEvent event =
-                    new TransactionEvent(
-                            TransactionEventType.PRE_DELETE,
-                            request,
-                            elementName,
-                            store.getFeatures(filter));
+            TransactionEvent event = new TransactionEvent(
+                    TransactionEventType.PRE_DELETE, request, elementName, store.getFeatures(filter));
             event.setSource(Delete.WFS11.unadapt((Delete) delete));
             listener.dataStoreChange(event);
 
@@ -143,9 +132,7 @@ public class DeleteElementHandler extends AbstractTransactionElementHandler {
                 damaged = store.getFeatures(filter).getBounds();
             }
 
-            if ((request.getLockId() != null)
-                    && store instanceof FeatureLocking
-                    && (request.isReleaseActionSome())) {
+            if ((request.getLockId() != null) && store instanceof FeatureLocking && (request.isReleaseActionSome())) {
                 SimpleFeatureLocking locking = (SimpleFeatureLocking) store;
 
                 // TODO: Revisit Lock/Delete interaction in gt2
@@ -166,8 +153,8 @@ public class DeleteElementHandler extends AbstractTransactionElementHandler {
                     while (writer.hasNext()) {
                         String fid = writer.next().getID();
                         Set<FeatureId> featureIds = new HashSet<>();
-                        featureIds.add(factory.featureId(fid));
-                        locking.unLockFeatures(factory.id(featureIds));
+                        featureIds.add(filterFactory.featureId(fid));
+                        locking.unLockFeatures(filterFactory.id(featureIds));
                         writer.remove();
                         deleted++;
                     }
@@ -181,7 +168,6 @@ public class DeleteElementHandler extends AbstractTransactionElementHandler {
                 store.removeFeatures(filter);
             }
         } catch (IOException e) {
-            String message = e.getMessage();
             String eHandle = delete.getHandle();
             String code = null;
 
@@ -190,7 +176,8 @@ public class DeleteElementHandler extends AbstractTransactionElementHandler {
             if (e instanceof FeatureLockException) {
                 code = "MissingParameterValue";
             }
-            throw new WFSTransactionException(message, e, code, eHandle, handle);
+            throw exceptionFactory.newWFSTransactionException(
+                    "Delete error: " + e.getMessage(), e, code, eHandle, handle);
         }
 
         // update deletion count

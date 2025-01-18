@@ -16,7 +16,7 @@ import org.geoserver.catalog.StoreInfo;
 import org.geoserver.catalog.WorkspaceInfo;
 import org.geoserver.catalog.util.CloseableIterator;
 import org.geoserver.web.GeoServerApplication;
-import org.opengis.filter.Filter;
+import org.geotools.api.filter.Filter;
 
 /** @author Alessio Fabiani, Geo-Solutions S.A.S. */
 public class BackupRestoreStoresIndexModel extends LoadableDetachableModel<List<StoreInfo>> {
@@ -27,8 +27,7 @@ public class BackupRestoreStoresIndexModel extends LoadableDetachableModel<List<
 
     private ResourceFilePanel resourceFilePanel;
 
-    public BackupRestoreStoresIndexModel(
-            WorkspaceModel<WorkspaceInfo> workspace, ResourceFilePanel resourceFilePanel) {
+    public BackupRestoreStoresIndexModel(WorkspaceModel<WorkspaceInfo> workspace, ResourceFilePanel resourceFilePanel) {
         super();
         this.workspace = workspace;
         this.resourceFilePanel = resourceFilePanel;

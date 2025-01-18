@@ -12,28 +12,25 @@ import java.util.Collections;
 import java.util.List;
 import org.geoserver.kml.KmlEncodingContext;
 import org.geoserver.kml.decorator.PlacemarkStyleDecoratorFactory.PlacemarkStyleDecorator;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.style.TextSymbolizer;
 import org.geotools.data.DataUtilities;
 import org.geotools.data.simple.SimpleFeatureCollection;
-import org.geotools.styling.TextSymbolizer;
 import org.junit.Test;
-import org.opengis.feature.simple.SimpleFeatureType;
 
 public class PlacemarkStyleDecoratorTest extends org.geoserver.wms.icons.IconTestSupport {
 
     /**
      * Test partial style transformation.
      *
-     * <p>The YSLD parser is not supplying the same defaults as the SLD parser, producing styles
-     * that violate some of the (perfectly sensible SLD 1.0) assumptions made by
-     * PlacemarkStyleDecorator.
+     * <p>The YSLD parser is not supplying the same defaults as the SLD parser, producing styles that violate some of
+     * the (perfectly sensible SLD 1.0) assumptions made by PlacemarkStyleDecorator.
      */
     @Test
     public void testYSLDTextSymbolizerEncoding() {
-        TextSymbolizer text =
-                text("text", "NAME", font("Arial Black", null, "bold", 8), fill(Color.white, null));
+        TextSymbolizer text = text("text", "NAME", font("Arial Black", null, "bold", 8), fill(Color.white, null));
 
-        PlacemarkStyleDecoratorFactory.PlacemarkStyleDecorator decorator =
-                new PlacemarkStyleDecorator();
+        PlacemarkStyleDecoratorFactory.PlacemarkStyleDecorator decorator = new PlacemarkStyleDecorator();
 
         KmlEncodingContext context = new FakeKmlEncodingContext(featureType);
         SimpleFeatureCollection collection = DataUtilities.collection(fieldIs1);

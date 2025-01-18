@@ -17,10 +17,10 @@ import org.geoserver.catalog.DataStoreInfo;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.catalog.LayerInfo;
 import org.geoserver.data.test.SystemTestData;
+import org.geotools.api.feature.type.Name;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
 import org.junit.Before;
 import org.junit.Test;
-import org.opengis.feature.type.Name;
 import org.w3c.dom.Document;
 
 public class MultiDimensionTest extends WFS20TestSupport {
@@ -33,27 +33,20 @@ public class MultiDimensionTest extends WFS20TestSupport {
 
     @Override
     protected void setUpInternal(SystemTestData data) throws Exception {
-        DataStoreInfo storeInfo =
-                createShapefileDataStore(getCatalog(), "tasmania_roads", "tasmania_roads.shp");
+        DataStoreInfo storeInfo = createShapefileDataStore(getCatalog(), "tasmania_roads", "tasmania_roads.shp");
 
         createShapeLayer(getCatalog(), storeInfo);
     }
 
     @Test
     public void testGetZDimension() throws Exception {
-        Document dom =
-                getAsDOM(
-                        "wfs?request=GetFeature&typenames=gs:tasmania_roads&version=2.0.0&service=wfs");
+        Document dom = getAsDOM("wfs?request=GetFeature&typenames=gs:tasmania_roads&version=2.0.0&service=wfs");
         print(dom);
         assertEquals("tasmania_roads.1", xpath.evaluate("//gs:tasmania_roads/@gml:id", dom));
-        assertEquals(
-                "3",
-                xpath.evaluate(
-                        "//gs:tasmania_roads/gs:the_geom/gml:MultiCurve/@srsDimension", dom));
+        assertEquals("3", xpath.evaluate("//gs:tasmania_roads/gs:the_geom/gml:MultiCurve/@srsDimension", dom));
     }
 
-    private static DataStoreInfo createShapefileDataStore(
-            Catalog catalog, String name, String file) {
+    private static DataStoreInfo createShapefileDataStore(Catalog catalog, String name, String file) {
         // get the file
         URL url = MultiDimensionTest.class.getResource(file);
         assertThat(url, notNullValue());
@@ -70,11 +63,10 @@ public class MultiDimensionTest extends WFS20TestSupport {
     }
 
     /**
-     * Helper method that creates a layer in GeoServer catalog from a WFS remote store, the provided
-     * layer name should match an entry on the remote WFS server.
+     * Helper method that creates a layer in GeoServer catalog from a WFS remote store, the provided layer name should
+     * match an entry on the remote WFS server.
      */
-    private static LayerInfo createShapeLayer(Catalog catalog, DataStoreInfo storeInfo)
-            throws Exception {
+    private static LayerInfo createShapeLayer(Catalog catalog, DataStoreInfo storeInfo) throws Exception {
         // let's create the feature type based on the remote layer capabilities
         // description
         CatalogBuilder catalogBuilder = new CatalogBuilder(catalog);

@@ -25,28 +25,28 @@ import org.geoserver.catalog.ResourceInfo;
 import org.geoserver.catalog.StyleInfo;
 import org.geoserver.catalog.util.CloseableIterator;
 import org.geoserver.ogcapi.Link;
-import org.geotools.styling.LineSymbolizer;
-import org.geotools.styling.NamedLayer;
-import org.geotools.styling.PointSymbolizer;
-import org.geotools.styling.PolygonSymbolizer;
-import org.geotools.styling.RasterSymbolizer;
-import org.geotools.styling.StyleVisitor;
-import org.geotools.styling.StyledLayer;
-import org.geotools.styling.UserLayer;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.type.FeatureType;
+import org.geotools.api.feature.type.GeometryDescriptor;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.filter.MultiValuedFilter;
+import org.geotools.api.filter.expression.PropertyName;
+import org.geotools.api.style.LineSymbolizer;
+import org.geotools.api.style.NamedLayer;
+import org.geotools.api.style.PointSymbolizer;
+import org.geotools.api.style.PolygonSymbolizer;
+import org.geotools.api.style.RasterSymbolizer;
+import org.geotools.api.style.StyleVisitor;
+import org.geotools.api.style.StyledLayer;
+import org.geotools.api.style.Symbolizer;
+import org.geotools.api.style.UserLayer;
 import org.geotools.util.logging.Logging;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.MultiLineString;
 import org.locationtech.jts.geom.MultiPoint;
 import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Point;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.FeatureType;
-import org.opengis.feature.type.GeometryDescriptor;
-import org.opengis.filter.Filter;
-import org.opengis.filter.MultiValuedFilter;
-import org.opengis.filter.expression.PropertyName;
-import org.opengis.geometry.coordinate.Polygon;
-import org.opengis.style.Symbolizer;
+import org.locationtech.jts.geom.Polygon;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class StyleLayer {
@@ -59,7 +59,7 @@ public class StyleLayer {
         polygon,
         geometry,
         raster
-    };
+    }
 
     String id;
     LayerType type;
@@ -85,9 +85,7 @@ public class StyleLayer {
                 if (source.getName().contains(":")) {
                     layer = catalog.getLayerByName(source.getName());
                 } else {
-                    layer =
-                            catalog.getLayerByName(
-                                    si.getWorkspace().getName() + ":" + source.getName());
+                    layer = catalog.getLayerByName(si.getWorkspace().getName() + ":" + source.getName());
                 }
             }
             if (layer != null) {
@@ -95,10 +93,9 @@ public class StyleLayer {
             }
         } else {
             // common style case, look for layer associations
-            Filter layerFilter =
-                    Predicates.or(
-                            Predicates.equal("defaultStyle", si),
-                            Predicates.equal("styles", si, MultiValuedFilter.MatchAction.ANY));
+            Filter layerFilter = Predicates.or(
+                    Predicates.equal("defaultStyle", si),
+                    Predicates.equal("styles", si, MultiValuedFilter.MatchAction.ANY));
             try (CloseableIterator<LayerInfo> layers = catalog.list(LayerInfo.class, layerFilter)) {
                 while (layers.hasNext()) {
                     LayerInfo layer = layers.next();
@@ -116,8 +113,7 @@ public class StyleLayer {
         }
     }
 
-    public void addLayerInfo(
-            StyledLayer source, SampleDataSupport sampleDataSupport, LayerInfo layer) {
+    public void addLayerInfo(StyledLayer source, SampleDataSupport sampleDataSupport, LayerInfo layer) {
         // determine type from first usable match
         if (type == null) {
             try {
@@ -163,8 +159,7 @@ public class StyleLayer {
         }
     }
 
-    private boolean containsSymbolizer(
-            Set<Class<? extends Symbolizer>> types, Class<? extends Symbolizer> target) {
+    private boolean containsSymbolizer(Set<Class<? extends Symbolizer>> types, Class<? extends Symbolizer> target) {
         return types.stream().anyMatch(symbolizerClass -> target.isAssignableFrom(symbolizerClass));
     }
 
@@ -173,11 +168,9 @@ public class StyleLayer {
         Class<?> binding = gd.getType().getBinding();
         if (Point.class.isAssignableFrom(binding) || MultiPoint.class.isAssignableFrom(binding)) {
             return LayerType.point;
-        } else if (LineString.class.isAssignableFrom(binding)
-                || MultiLineString.class.isAssignableFrom(binding)) {
+        } else if (LineString.class.isAssignableFrom(binding) || MultiLineString.class.isAssignableFrom(binding)) {
             return LayerType.line;
-        } else if (Polygon.class.isAssignableFrom(binding)
-                || MultiPolygon.class.isAssignableFrom(binding)) {
+        } else if (Polygon.class.isAssignableFrom(binding) || MultiPolygon.class.isAssignableFrom(binding)) {
             return LayerType.polygon;
         } else {
             return LayerType.geometry;
@@ -193,21 +186,19 @@ public class StyleLayer {
     }
 
     private List<StyleAttribute> getAttributes(StyledLayer source, FeatureType featureType) {
-        StyleAttributeExtractor extractor =
-                featureType instanceof SimpleFeatureType
-                        ? new StyleAttributeExtractor((SimpleFeatureType) featureType)
-                        : new StyleAttributeExtractor();
+        StyleAttributeExtractor extractor = featureType instanceof SimpleFeatureType
+                ? new StyleAttributeExtractor((SimpleFeatureType) featureType)
+                : new StyleAttributeExtractor();
         acceptvisitor(source, extractor);
         Map<PropertyName, Class<?>> propertyTypes = extractor.getPropertyTypes();
 
         return propertyTypes.entrySet().stream()
-                .map(
-                        e -> {
-                            StyleAttribute sa = new StyleAttribute();
-                            sa.setId(e.getKey().getPropertyName());
-                            sa.setType(getAttributeType(e.getValue()));
-                            return sa;
-                        })
+                .map(e -> {
+                    StyleAttribute sa = new StyleAttribute();
+                    sa.setId(e.getKey().getPropertyName());
+                    sa.setType(getAttributeType(e.getValue()));
+                    return sa;
+                })
                 .collect(Collectors.toList());
     }
 

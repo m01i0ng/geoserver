@@ -24,14 +24,14 @@ import org.geoserver.data.test.MockData;
 import org.geoserver.data.test.SystemTestData;
 import org.geoserver.wms.WMS;
 import org.geoserver.wms.WMSTestSupport;
+import org.geotools.api.data.SimpleFeatureStore;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
 import org.geotools.data.DataUtilities;
 import org.geotools.data.memory.MemoryFeatureCollection;
-import org.geotools.data.simple.SimpleFeatureStore;
 import org.geotools.util.Range;
 import org.junit.Before;
 import org.junit.Test;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
 
 /**
  * Tests the WMS default value support for ELEVATION dimension for both vector and raster layers.
@@ -206,8 +206,7 @@ public class VectorElevationDimensionDefaultValueTest extends WMSTestSupport {
         Double e = (Double) wms.getDefaultElevation(elevationWithStartEnd);
         assertNotNull("Default elevation is null", e);
         assertTrue(
-                "Default elevation should be the nearest one to "
-                        + referenceElevation.doubleValue(),
+                "Default elevation should be the nearest one to " + referenceElevation.doubleValue(),
                 Math.abs(e.doubleValue() - expected.doubleValue()) < 0.00001);
 
         expected = Double.valueOf(1.8d);
@@ -215,16 +214,14 @@ public class VectorElevationDimensionDefaultValueTest extends WMSTestSupport {
         e = (Double) wms.getDefaultElevation(elevationWithStartEnd);
         assertNotNull("Default elevation is null", e);
         assertTrue(
-                "Default elevation should be the nearest one to "
-                        + referenceElevation.doubleValue(),
+                "Default elevation should be the nearest one to " + referenceElevation.doubleValue(),
                 Math.abs(e.doubleValue() - expected.doubleValue()) < 0.00001);
 
         addFeatureWithElevation(fid++, 1.3d);
         e = (Double) wms.getDefaultElevation(elevationWithStartEnd);
         assertNotNull("Default elevation is null", e);
         assertTrue(
-                "Default elevation should be the nearest one to "
-                        + referenceElevation.doubleValue(),
+                "Default elevation should be the nearest one to " + referenceElevation.doubleValue(),
                 Math.abs(e.doubleValue() - expected.doubleValue()) < 0.00001);
     }
 
@@ -245,8 +242,7 @@ public class VectorElevationDimensionDefaultValueTest extends WMSTestSupport {
     }
 
     protected void setupFeatureElevationDimension(DimensionDefaultValueSetting defaultValue) {
-        FeatureTypeInfo info =
-                getCatalog().getFeatureTypeByName(ELEVATION_WITH_START_END.getLocalPart());
+        FeatureTypeInfo info = getCatalog().getFeatureTypeByName(ELEVATION_WITH_START_END.getLocalPart());
         DimensionInfo di = new DimensionInfoImpl();
         di.setEnabled(true);
         di.setAttribute("startElevation");
@@ -258,8 +254,7 @@ public class VectorElevationDimensionDefaultValueTest extends WMSTestSupport {
     }
 
     protected void addFeature(int id, Date time, Double elevation) throws IOException {
-        FeatureTypeInfo timeWithStartEnd =
-                getCatalog().getFeatureTypeByName(ELEVATION_WITH_START_END.getLocalPart());
+        FeatureTypeInfo timeWithStartEnd = getCatalog().getFeatureTypeByName(ELEVATION_WITH_START_END.getLocalPart());
         SimpleFeatureStore fs = (SimpleFeatureStore) timeWithStartEnd.getFeatureSource(null, null);
         SimpleFeatureType type = (SimpleFeatureType) timeWithStartEnd.getFeatureType();
         MemoryFeatureCollection coll = new MemoryFeatureCollection(type);
@@ -273,7 +268,7 @@ public class VectorElevationDimensionDefaultValueTest extends WMSTestSupport {
 
         SimpleFeature f = DataUtilities.createFeature(type, content.toString());
         coll.add(f);
-        try (org.geotools.data.Transaction tx = fs.getTransaction()) {
+        try (org.geotools.api.data.Transaction tx = fs.getTransaction()) {
             fs.addFeatures(coll);
             tx.commit();
         }

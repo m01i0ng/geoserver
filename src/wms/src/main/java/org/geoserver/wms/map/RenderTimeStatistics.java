@@ -10,9 +10,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.map.Layer;
 import org.geotools.renderer.RenderListener;
-import org.opengis.feature.simple.SimpleFeature;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
@@ -76,10 +76,9 @@ public class RenderTimeStatistics implements RenderListener {
                 renderingLayersTimes.put(idx, endingTime != null ? endingTime - startingTime : 0L);
             }
         }
-        renderingLabelsTimes =
-                startRenderingLabelsTimes != null && endRenderingLabelsTimes != null
-                        ? endRenderingLabelsTimes - startRenderingLabelsTimes
-                        : 0L;
+        renderingLabelsTimes = startRenderingLabelsTimes != null && endRenderingLabelsTimes != null
+                ? endRenderingLabelsTimes - startRenderingLabelsTimes
+                : 0L;
         addSelfAsRequestAttribute();
     }
 
@@ -139,8 +138,7 @@ public class RenderTimeStatistics implements RenderListener {
     private void addSelfAsRequestAttribute() {
         RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
         if (requestAttributes != null) {
-            requestAttributes.setAttribute(
-                    RenderTimeStatistics.ID, this, RequestAttributes.SCOPE_REQUEST);
+            requestAttributes.setAttribute(RenderTimeStatistics.ID, this, RequestAttributes.SCOPE_REQUEST);
         }
     }
 }

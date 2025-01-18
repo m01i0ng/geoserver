@@ -28,31 +28,29 @@ public abstract class LayerGroupListPanel extends GeoServerTablePanel<LayerGroup
     static Property<LayerGroupInfo> WORKSPACE = new BeanProperty<>("workspace", "workspace.name");
 
     public LayerGroupListPanel(String id, WorkspaceInfo workspace) {
-        super(
-                id,
-                new GeoServerDataProvider<LayerGroupInfo>() {
+        super(id, new GeoServerDataProvider<>() {
 
-                    private static final long serialVersionUID = 6471805356307807737L;
+            private static final long serialVersionUID = 6471805356307807737L;
 
-                    @Override
-                    protected List<LayerGroupInfo> getItems() {
-                        if (workspace == null) {
-                            return getCatalog().getLayerGroups();
-                        } else {
-                            return getCatalog().getLayerGroupsByWorkspace(workspace);
-                        }
-                    }
+            @Override
+            protected List<LayerGroupInfo> getItems() {
+                if (workspace == null) {
+                    return getCatalog().getLayerGroups();
+                } else {
+                    return getCatalog().getLayerGroupsByWorkspace(workspace);
+                }
+            }
 
-                    @Override
-                    protected List<Property<LayerGroupInfo>> getProperties() {
-                        return Arrays.asList(NAME, WORKSPACE);
-                    }
+            @Override
+            protected List<Property<LayerGroupInfo>> getProperties() {
+                return Arrays.asList(NAME, WORKSPACE);
+            }
 
-                    @Override
-                    public IModel<LayerGroupInfo> newModel(LayerGroupInfo object) {
-                        return new LayerGroupDetachableModel(object);
-                    }
-                });
+            @Override
+            public IModel<LayerGroupInfo> newModel(LayerGroupInfo object) {
+                return new LayerGroupDetachableModel(object);
+            }
+        });
         getTopPager().setVisible(false);
     }
 
@@ -62,7 +60,7 @@ public abstract class LayerGroupListPanel extends GeoServerTablePanel<LayerGroup
             String id, final IModel<LayerGroupInfo> itemModel, Property<LayerGroupInfo> property) {
         IModel<?> model = property.getModel(itemModel);
         if (NAME == property) {
-            return new SimpleAjaxLink<String>(id, (IModel<String>) model) {
+            return new SimpleAjaxLink<>(id, (IModel<String>) model) {
                 private static final long serialVersionUID = -5189072047640596694L;
 
                 @Override

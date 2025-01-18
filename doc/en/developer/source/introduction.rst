@@ -6,40 +6,34 @@ Introduction
 Welcome to GeoServer development. The project makes use of a number of resources:
 
 * https://github.com/geoserver/geoserver.github.io/wiki Wiki used for Proposals
-* https://github.com/geoserver/geoserver Github source code
+* https://github.com/geoserver/geoserver GitHub source code
 * https://osgeo-org.atlassian.net/projects/GEOS Jira issue tracker
 * `GeoServer User Manual <http://docs.geoserver.org/latest/en/user/>`_
 * `GeoServer Developer Manual <http://docs.geoserver.org/latest/en/developer/>`_
 
 Communication channels:
 
-* http://blog.geoserver.org/
-* `geoserver-devel <http://lists.sourceforge.net/mailman/listinfo/geoserver-devel>`_ email list
-* `geoserver-users <http://lists.sourceforge.net/mailman/listinfo/geoserver-users>`_ email list
-* https://gitter.im/geoserver/geoserver
+* Announcements are made on https://blog.geoserver.org/
+* `geoserver-users <https://discourse.osgeo.org/c/geoserver/users>`_ Discourse group
+* `geoserver-devel <https://lists.sourceforge.net/mailman/listinfo/geoserver-devel>`_ email list
+* Developer colaboration on https://gitter.im/geoserver/geoserver
 
 We have a number of build servers employed to assist with day to day activities:
 
 * https://build.geoserver.org/view/geoserver/ (main build server)
-* http://office.geo-solutions.it/jenkins/ (windows build server)
-
-Notification email lists:
-
-* https://groups.google.com/forum/#!forum/geoserver-commits
-* https://groups.google.com/forum/#!forum/geoserver-extra-builds
 
 Question and answer:
 
-* http://gis.stackexchange.com/questions/tagged/geoserver
-* http://stackoverflow.com/questions/tagged/geoserver
+* https://gis.stackexchange.com/questions/tagged/geoserver
+* https://stackoverflow.com/questions/tagged/geoserver
 
 License
 -------
 
-For complete license information review :download:`LICENSE.txt </../../../../LICENSE.txt>`.
+For complete notice of license information :download:`LICENSE </../../../../licenses/NOTICE.md>`.
 
 * GeoServer is free software and is licensed under the :download:`GNU General Public License </../../../../licenses/GPL.md>`::
-  
+
     GeoServer, open geospatial information server
     Copyright (C) 2014 - Open Source Geospatial Foundation
     Copyright (C) 2001 - 2014 OpenPlans

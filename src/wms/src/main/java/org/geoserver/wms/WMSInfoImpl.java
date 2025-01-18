@@ -14,8 +14,8 @@ import org.geoserver.catalog.DimensionInfo;
 import org.geoserver.catalog.LayerIdentifierInfo;
 import org.geoserver.config.impl.ServiceInfoImpl;
 import org.geoserver.util.InternationalStringUtils;
+import org.geotools.api.util.InternationalString;
 import org.geotools.util.GrowableInternationalString;
-import org.opengis.util.InternationalString;
 
 public class WMSInfoImpl extends ServiceInfoImpl implements WMSInfo {
 
@@ -44,16 +44,16 @@ public class WMSInfoImpl extends ServiceInfoImpl implements WMSInfo {
     private boolean featuresReprojectionDisabled = false;
 
     /**
-     * This property is transient in 2.1.x series and stored under the metadata map with key
-     * "authorityURLs", and a not transient in the 2.2.x series.
+     * This property is transient in 2.1.x series and stored under the metadata map with key "authorityURLs", and a not
+     * transient in the 2.2.x series.
      *
      * @since 2.1.3
      */
     protected List<AuthorityURLInfo> authorityURLs = new ArrayList<>(2);
 
     /**
-     * This property is transient in 2.1.x series and stored under the metadata map with key
-     * "identifiers", and a not transient in the 2.2.x series.
+     * This property is transient in 2.1.x series and stored under the metadata map with key "identifiers", and a not
+     * transient in the 2.2.x series.
      *
      * @since 2.1.3
      */
@@ -84,7 +84,11 @@ public class WMSInfoImpl extends ServiceInfoImpl implements WMSInfo {
 
     private Boolean defaultGroupStyleEnabled;
 
+    private boolean transformFeatureInfoDisabled;
+
     private boolean autoEscapeTemplateValues;
+
+    private Boolean exceptionOnInvalidDimension;
 
     public WMSInfoImpl() {
         authorityURLs = new ArrayList<>(2);
@@ -223,8 +227,7 @@ public class WMSInfoImpl extends ServiceInfoImpl implements WMSInfo {
     }
 
     @Override
-    public void setGetFeatureInfoMimeTypeCheckingEnabled(
-            boolean getFeatureInfoMimeTypeCheckingEnabled) {
+    public void setGetFeatureInfoMimeTypeCheckingEnabled(boolean getFeatureInfoMimeTypeCheckingEnabled) {
         this.getFeatureInfoMimeTypeCheckingEnabled = getFeatureInfoMimeTypeCheckingEnabled;
     }
 
@@ -250,8 +253,7 @@ public class WMSInfoImpl extends ServiceInfoImpl implements WMSInfo {
 
     @Override
     public String getRootLayerAbstract() {
-        return InternationalStringUtils.getOrDefault(
-                rootLayerAbstract, internationalRootLayerAbstract);
+        return InternationalStringUtils.getOrDefault(rootLayerAbstract, internationalRootLayerAbstract);
     }
 
     @Override
@@ -308,9 +310,7 @@ public class WMSInfoImpl extends ServiceInfoImpl implements WMSInfo {
 
     @Override
     public int getRemoteStyleMaxRequestTime() {
-        return remoteStyleMaxRequestTime != null
-                ? remoteStyleMaxRequestTime
-                : DEFAULT_REMOTE_STYLE_MAX_REQUEST_TIME;
+        return remoteStyleMaxRequestTime != null ? remoteStyleMaxRequestTime : DEFAULT_REMOTE_STYLE_MAX_REQUEST_TIME;
     }
 
     @Override
@@ -372,6 +372,16 @@ public class WMSInfoImpl extends ServiceInfoImpl implements WMSInfo {
     }
 
     @Override
+    public boolean isTransformFeatureInfoDisabled() {
+        return transformFeatureInfoDisabled;
+    }
+
+    @Override
+    public void setTransformFeatureInfoDisabled(boolean transformFeatureInfoDisabled) {
+        this.transformFeatureInfoDisabled = transformFeatureInfoDisabled;
+    }
+
+    @Override
     public boolean isAutoEscapeTemplateValues() {
         return autoEscapeTemplateValues;
     }
@@ -379,5 +389,15 @@ public class WMSInfoImpl extends ServiceInfoImpl implements WMSInfo {
     @Override
     public void setAutoEscapeTemplateValues(boolean autoEscapeTemplateValues) {
         this.autoEscapeTemplateValues = autoEscapeTemplateValues;
+    }
+
+    @Override
+    public Boolean isExceptionOnInvalidDimension() {
+        return exceptionOnInvalidDimension;
+    }
+
+    @Override
+    public void setExceptionOnInvalidDimension(Boolean exceptionOnInvalidDimension) {
+        this.exceptionOnInvalidDimension = exceptionOnInvalidDimension;
     }
 }

@@ -9,9 +9,9 @@ import java.util.HashSet;
 import java.util.Set;
 import org.geoserver.wps.DeprecatedProcessFactory;
 import org.geoserver.wps.DisabledProcessesSelector;
+import org.geotools.api.feature.type.Name;
 import org.geotools.process.ProcessFactory;
 import org.geotools.process.vector.VectorProcessFactory;
-import org.opengis.feature.type.Name;
 
 /**
  * Simple filter, excludes all the processes in the {@link FeatureGSProcessFactory}
@@ -24,8 +24,7 @@ public class FeatureGSExclusion implements ProcessFilter {
     public ProcessFactory filterFactory(ProcessFactory pf) {
         if (pf instanceof VectorProcessFactory
                 || (pf instanceof DelegatingProcessFactory
-                        && ((DelegatingProcessFactory) pf).getInnermostDelegate()
-                                instanceof VectorProcessFactory)) {
+                        && ((DelegatingProcessFactory) pf).getInnermostDelegate() instanceof VectorProcessFactory)) {
             return null;
         }
         if (pf instanceof DeprecatedProcessFactory) {

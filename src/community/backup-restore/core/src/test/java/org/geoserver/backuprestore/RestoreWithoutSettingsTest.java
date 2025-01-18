@@ -1,8 +1,8 @@
 package org.geoserver.backuprestore;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,14 +47,13 @@ public class RestoreWithoutSettingsTest extends BackupRestoreTestSupport {
         assertNotNull(getCatalog().getWorkspaceByName("shouldNotBeDeleted"));
 
         RestoreExecutionAdapter restoreExecution =
-                backupFacade.runRestoreAsync(
-                        file("settings-modified-restore.zip"), null, null, null, params);
+                backupFacade.runRestoreAsync(file("settings-modified-restore.zip"), null, null, null, params);
 
         // Wait a bit
         Thread.sleep(100);
 
         assertNotNull(backupFacade.getRestoreExecutions());
-        assertTrue(!backupFacade.getRestoreExecutions().isEmpty());
+        assertFalse(backupFacade.getRestoreExecutions().isEmpty());
 
         assertNotNull(restoreExecution);
 
@@ -64,9 +63,7 @@ public class RestoreWithoutSettingsTest extends BackupRestoreTestSupport {
         assertNotNull(restoreCatalog);
 
         int cnt = 0;
-        while (cnt < 100
-                && (restoreExecution.getStatus() != BatchStatus.COMPLETED
-                        || !restoreExecution.isRunning())) {
+        while (cnt < 100 && (restoreExecution.getStatus() != BatchStatus.COMPLETED || !restoreExecution.isRunning())) {
             Thread.sleep(100);
             cnt++;
 
@@ -75,15 +72,13 @@ public class RestoreWithoutSettingsTest extends BackupRestoreTestSupport {
                     || restoreExecution.getStatus() == BatchStatus.UNKNOWN) {
 
                 for (Throwable exception : restoreExecution.getAllFailureExceptions()) {
-                    LOGGER.log(
-                            Level.WARNING, "ERROR: " + exception.getLocalizedMessage(), exception);
+                    LOGGER.log(Level.WARNING, "ERROR: " + exception.getLocalizedMessage(), exception);
                 }
                 break;
             }
         }
 
-        if (restoreExecution.getStatus() != BatchStatus.COMPLETED
-                && !restoreExecution.isRunning()) {
+        if (restoreExecution.getStatus() != BatchStatus.COMPLETED && !restoreExecution.isRunning()) {
             backupFacade.stopExecution(restoreExecution.getId());
         }
 

@@ -8,8 +8,8 @@ package org.geoserver.catalog;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
-import org.opengis.feature.type.AttributeDescriptor;
-import org.opengis.util.InternationalString;
+import org.geotools.api.feature.type.AttributeDescriptor;
+import org.geotools.api.util.InternationalString;
 
 /**
  * An attribute exposed by a {@link FeatureTypeInfo}.
@@ -51,9 +51,8 @@ public interface AttributeTypeInfo extends Serializable {
     /**
      * A persistent map of metadata.
      *
-     * <p>Data in this map is intended to be persisted. Common case of use is to have services
-     * associate various bits of data with a particular attribute. An example might be its
-     * associated xml or gml type.
+     * <p>Data in this map is intended to be persisted. Common case of use is to have services associate various bits of
+     * data with a particular attribute. An example might be its associated xml or gml type.
      */
     Map<String, Serializable> getMetadata();
 
@@ -74,24 +73,22 @@ public interface AttributeTypeInfo extends Serializable {
     /** Sets the binding for this attribute */
     void setBinding(Class<?> type);
 
-    /**
-     * Returns the length of this attribute. It's usually non null only for string and numeric types
-     */
+    /** Returns the length of this attribute. It's usually non null only for string and numeric types */
     Integer getLength();
 
     /** Sets the attribute length */
     void setLength(Integer length);
 
-    /**
-     * The same as {@link #equals(Object)}, except doesn't compare {@link FeatureTypeInfo}s, to
-     * avoid recursion.
-     */
+    /** The same as {@link #equals(Object)}, except doesn't compare {@link FeatureTypeInfo}s, to avoid recursion. */
     boolean equalsIngnoreFeatureType(Object obj);
 
     /**
-     * Source expression (a valid CQL expression). If not set, it will default to the attribute name
-     * (no renaming)
+     * Returns the actual value of source, eventually null if not set yet (unlike #getsSource(), which returns the
+     * attribute name, if the source field is null)
      */
+    String getRawSource();
+
+    /** Source expression (a valid CQL expression). If not set, it will default to the attribute name (no renaming) */
     String getSource();
 
     /**

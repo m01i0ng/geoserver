@@ -19,12 +19,12 @@ import org.geoserver.wms.WMSMapContent;
 import org.geoserver.wms.map.RawMap;
 import org.geoserver.wms.vector.DeferredFileOutputStreamWebMap;
 import org.geoserver.wms.vector.VectorTileBuilder;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.PrecisionModel;
 import org.locationtech.jts.precision.CoordinatePrecisionReducerFilter;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import si.uom.SI;
 
 public class GeoJsonWMSBuilder implements VectorTileBuilder {
@@ -40,7 +40,11 @@ public class GeoJsonWMSBuilder implements VectorTileBuilder {
     public GeoJsonWMSBuilder(Rectangle mapSize, ReferencedEnvelope mapArea) {
 
         final int memotyBufferThreshold = 8096;
-        out = new DeferredFileOutputStream(memotyBufferThreshold, "geojson", ".geojson", null);
+        out = DeferredFileOutputStream.builder()
+                .setThreshold(memotyBufferThreshold)
+                .setPrefix("geojson")
+                .setSuffix(".geojson")
+                .get();
         writer = new OutputStreamWriter(out, Charsets.UTF_8);
         jsonWriter = new org.geoserver.wfs.json.GeoJSONBuilder(writer);
         jsonWriter.object(); // start root object
@@ -68,11 +72,7 @@ public class GeoJsonWMSBuilder implements VectorTileBuilder {
 
     @Override
     public void addFeature(
-            String layerName,
-            String featureId,
-            String geometryName,
-            Geometry aGeom,
-            Map<String, Object> properties) {
+            String layerName, String featureId, String geometryName, Geometry aGeom, Map<String, Object> properties) {
 
         if (precisionReducerFilter != null) {
             aGeom.apply(precisionReducerFilter);

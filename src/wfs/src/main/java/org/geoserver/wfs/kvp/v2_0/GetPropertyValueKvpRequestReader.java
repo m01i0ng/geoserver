@@ -12,7 +12,7 @@ import net.opengis.wfs20.Wfs20Factory;
 import org.geoserver.config.GeoServer;
 import org.geoserver.ows.kvp.EMFKvpRequestReader;
 import org.geoserver.wfs.WFSException;
-import org.opengis.filter.FilterFactory;
+import org.geotools.api.filter.FilterFactory;
 
 public class GetPropertyValueKvpRequestReader extends EMFKvpRequestReader {
 
@@ -24,8 +24,7 @@ public class GetPropertyValueKvpRequestReader extends EMFKvpRequestReader {
     }
 
     @Override
-    public Object read(Object request, Map<String, Object> kvp, Map<String, Object> rawKvp)
-            throws Exception {
+    public Object read(Object request, Map<String, Object> kvp, Map<String, Object> rawKvp) throws Exception {
         GetPropertyValueType gpv = (GetPropertyValueType) super.read(request, kvp, rawKvp);
 
         // parse a GetFeature and copy the query

@@ -7,17 +7,16 @@ package org.geoserver.importer.transform;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.geoserver.importer.ImportTask;
-import org.geotools.data.DataStore;
+import org.geotools.api.data.DataStore;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.type.GeometryDescriptor;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.GeometryDescriptor;
 
-public class AttributesToPointGeometryTransform extends AbstractTransform
-        implements InlineVectorTransform {
+public class AttributesToPointGeometryTransform extends AbstractTransform implements InlineVectorTransform {
 
     /** serialVersionUID */
     private static final long serialVersionUID = 1L;
@@ -38,8 +37,7 @@ public class AttributesToPointGeometryTransform extends AbstractTransform
         this(latField, lngField, AttributesToPointGeometryTransform.POINT_NAME);
     }
 
-    public AttributesToPointGeometryTransform(
-            String latField, String lngField, String pointFieldName) {
+    public AttributesToPointGeometryTransform(String latField, String lngField, String pointFieldName) {
         this(latField, lngField, pointFieldName, false);
     }
 
@@ -47,31 +45,28 @@ public class AttributesToPointGeometryTransform extends AbstractTransform
             String latField, String lngField, String pointFieldName, Boolean preserveGeometry) {
         this.latField = latField;
         this.lngField = lngField;
-        this.pointFieldName =
-                ObjectUtils.defaultIfNull(
-                        pointFieldName, AttributesToPointGeometryTransform.POINT_NAME);
+        this.pointFieldName = ObjectUtils.defaultIfNull(pointFieldName, AttributesToPointGeometryTransform.POINT_NAME);
         this.preserveGeometry = preserveGeometry;
     }
 
     @Override
-    public SimpleFeatureType apply(
-            ImportTask task, DataStore dataStore, SimpleFeatureType featureType) throws Exception {
+    public SimpleFeatureType apply(ImportTask task, DataStore dataStore, SimpleFeatureType featureType)
+            throws Exception {
         SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
         builder.init(featureType);
 
         int latIndex = featureType.indexOf(latField);
         int lngIndex = featureType.indexOf(lngField);
         if (latIndex < 0 || lngIndex < 0) {
-            throw new Exception(
-                    "FeatureType "
-                            + featureType.getName()
-                            + " does not have lat lng fields named '"
-                            + latField
-                            + "'"
-                            + " and "
-                            + "'"
-                            + lngField
-                            + "'");
+            throw new Exception("FeatureType "
+                    + featureType.getName()
+                    + " does not have lat lng fields named '"
+                    + latField
+                    + "'"
+                    + " and "
+                    + "'"
+                    + lngField
+                    + "'");
         }
 
         GeometryDescriptor geometryDescriptor = featureType.getGeometryDescriptor();
@@ -88,8 +83,7 @@ public class AttributesToPointGeometryTransform extends AbstractTransform
     }
 
     @Override
-    public SimpleFeature apply(
-            ImportTask task, DataStore dataStore, SimpleFeature oldFeature, SimpleFeature feature)
+    public SimpleFeature apply(ImportTask task, DataStore dataStore, SimpleFeature oldFeature, SimpleFeature feature)
             throws Exception {
         Object latObject = oldFeature.getAttribute(latField);
         Object lngObject = oldFeature.getAttribute(lngField);

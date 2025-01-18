@@ -8,20 +8,20 @@ package org.geoserver.wfs.xml.v1_1_0;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
+import org.geotools.api.feature.Association;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.type.Name;
 import org.geotools.xlink.XLINK;
 import org.geotools.xsd.AbstractComplexBinding;
 import org.geotools.xsd.ElementInstance;
 import org.geotools.xsd.Encoder;
 import org.geotools.xsd.Node;
-import org.opengis.feature.Association;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.type.Name;
 
 /**
  * Binding object for the type http://cite.opengeospatial.org/gmlsf:FeatureReferenceType.
  *
- * <p>This is a special binding for wfs 1.1 cite tests. Its is a type defined in the application
- * schema for the test suite.
+ * <p>This is a special binding for wfs 1.1 cite tests. Its is a type defined in the application schema for the test
+ * suite.
  *
  * <p>
  *

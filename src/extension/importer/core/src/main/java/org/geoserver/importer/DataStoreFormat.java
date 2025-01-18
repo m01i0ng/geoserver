@@ -24,19 +24,19 @@ import org.geoserver.catalog.LayerInfo;
 import org.geoserver.catalog.ResourceInfo;
 import org.geoserver.catalog.WorkspaceInfo;
 import org.geoserver.importer.job.ProgressMonitor;
-import org.geotools.data.DataStore;
-import org.geotools.data.DataStoreFactorySpi;
-import org.geotools.data.FeatureReader;
-import org.geotools.data.FeatureSource;
-import org.geotools.data.FileDataStoreFactorySpi;
-import org.geotools.data.Query;
-import org.geotools.data.Transaction;
-import org.geotools.data.simple.SimpleFeatureSource;
+import org.geotools.api.data.DataStore;
+import org.geotools.api.data.DataStoreFactorySpi;
+import org.geotools.api.data.FeatureReader;
+import org.geotools.api.data.FeatureSource;
+import org.geotools.api.data.FileDataStoreFactorySpi;
+import org.geotools.api.data.Query;
+import org.geotools.api.data.SimpleFeatureSource;
+import org.geotools.api.data.Transaction;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.type.AttributeDescriptor;
 import org.geotools.jdbc.JDBCDataStoreFactory;
 import org.geotools.util.URLs;
 import org.geotools.util.logging.Logging;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.AttributeDescriptor;
 
 /**
  * Base for formats that have a DataStore implementation.
@@ -79,8 +79,7 @@ public class DataStoreFormat extends VectorFormat {
     }
 
     @Override
-    public DataStoreInfo createStore(ImportData data, WorkspaceInfo workspace, Catalog catalog)
-            throws IOException {
+    public DataStoreInfo createStore(ImportData data, WorkspaceInfo workspace, Catalog catalog) throws IOException {
         Map<String, Serializable> params = createConnectionParameters(data, catalog);
         if (params == null) {
             return null;
@@ -99,8 +98,7 @@ public class DataStoreFormat extends VectorFormat {
     }
 
     @Override
-    public List<ImportTask> list(ImportData data, Catalog catalog, ProgressMonitor monitor)
-            throws IOException {
+    public List<ImportTask> list(ImportData data, Catalog catalog, ProgressMonitor monitor) throws IOException {
         DataStore dataStore = createDataStore(data);
         try {
             CatalogBuilder cb = new CatalogBuilder(catalog);
@@ -118,8 +116,7 @@ public class DataStoreFormat extends VectorFormat {
 
                 // warning - this will log a scary exception if SRS cannot be found
                 try {
-                    FeatureTypeInfo featureType =
-                            cb.buildFeatureType(dataStore.getFeatureSource(typeName));
+                    FeatureTypeInfo featureType = cb.buildFeatureType(dataStore.getFeatureSource(typeName));
                     featureType.setStore(null);
                     featureType.setNamespace(null);
 
@@ -176,10 +173,8 @@ public class DataStoreFormat extends VectorFormat {
 
     @Override
     public FeatureReader read(ImportData data, ImportTask task) throws IOException {
-        FeatureReader reader =
-                getDataStore(data, task)
-                        .getFeatureReader(
-                                new Query(task.getOriginalLayerName()), Transaction.AUTO_COMMIT);
+        FeatureReader reader = getDataStore(data, task)
+                .getFeatureReader(new Query(task.getOriginalLayerName()), Transaction.AUTO_COMMIT);
         return reader;
     }
 
@@ -196,8 +191,7 @@ public class DataStoreFormat extends VectorFormat {
 
     @Override
     public int getFeatureCount(ImportData data, ImportTask task) throws IOException {
-        SimpleFeatureSource featureSource =
-                getDataStore(data, task).getFeatureSource(task.getOriginalLayerName());
+        SimpleFeatureSource featureSource = getDataStore(data, task).getFeatureSource(task.getOriginalLayerName());
         return featureSource.getCount(Query.ALL);
     }
 
@@ -215,8 +209,7 @@ public class DataStoreFormat extends VectorFormat {
         return null;
     }
 
-    public Map<String, Serializable> createConnectionParameters(ImportData data, Catalog catalog)
-            throws IOException {
+    public Map<String, Serializable> createConnectionParameters(ImportData data, Catalog catalog) throws IOException {
         // try file based
         if (dataStoreFactory instanceof FileDataStoreFactorySpi) {
             File f = null;
@@ -277,9 +270,7 @@ public class DataStoreFormat extends VectorFormat {
                                 dataStoreFactoryClass.getDeclaredConstructor().newInstance();
                     } catch (Exception e) {
                         throw new RuntimeException(
-                                "Unable to create instance of: "
-                                        + dataStoreFactoryClass.getSimpleName(),
-                                e);
+                                "Unable to create instance of: " + dataStoreFactoryClass.getSimpleName(), e);
                     }
                 }
             }
@@ -291,9 +282,7 @@ public class DataStoreFormat extends VectorFormat {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result =
-                prime * result
-                        + ((dataStoreFactoryClass == null) ? 0 : dataStoreFactoryClass.hashCode());
+        result = prime * result + ((dataStoreFactoryClass == null) ? 0 : dataStoreFactoryClass.hashCode());
         return result;
     }
 

@@ -8,7 +8,7 @@
     <!-- Meaning of the different values :
          
          PARTIAL-BUFFER2
-         - Partially buffers the first xKb to disk. Once that has buffered, the the 
+         - Partially buffers the first xKb to disk. Once that has buffered, the 
            result is streamed to the user. This will allow for most errors to be caught
            early. 
            
@@ -94,7 +94,7 @@
               If a mime type matches any of the regular expressions then it will be compressed.
               -->
          <param-name>compressed-types</param-name>
-         <param-value>text/.*,.*xml.*,application/json,application/x-javascript</param-value>
+         <param-value>text/.*,.*xml.*,application/json,application/javascript</param-value>
      </init-param>
    </filter>
 

@@ -15,7 +15,7 @@ import org.geotools.xsd.ElementInstance;
 import org.geotools.xsd.Node;
 
 /**
- * Binding object for the type http://www.opengis.net/wfs:PropertyType.
+ * Binding object for the type {@code http://www.opengis.net/wfs:PropertyType}.
  *
  * <p>
  *
@@ -115,10 +115,7 @@ public class PropertyTypeBinding extends AbstractComplexBinding {
         return property;
     }
 
-    /**
-     * This method does nothing, its functionality is implemented by {@link
-     * PropertyTypePropertyExtractor}.
-     */
+    /** This method does nothing, its functionality is implemented by {@link PropertyTypePropertyExtractor}. */
     @Override
     public Object getProperty(Object object, QName name) throws Exception {
         return null;

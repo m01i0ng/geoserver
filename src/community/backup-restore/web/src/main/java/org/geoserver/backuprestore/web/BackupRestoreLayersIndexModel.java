@@ -16,7 +16,7 @@ import org.geoserver.catalog.LayerInfo;
 import org.geoserver.catalog.StoreInfo;
 import org.geoserver.catalog.util.CloseableIterator;
 import org.geoserver.web.GeoServerApplication;
-import org.opengis.filter.Filter;
+import org.geotools.api.filter.Filter;
 
 /** Simple detachable model listing all the layers in a specific store. */
 public class BackupRestoreLayersIndexModel extends LoadableDetachableModel<List<LayerInfo>> {
@@ -27,8 +27,7 @@ public class BackupRestoreLayersIndexModel extends LoadableDetachableModel<List<
 
     private ResourceFilePanel resourceFilePanel;
 
-    public BackupRestoreLayersIndexModel(
-            StoreModel<StoreInfo> storeModel, ResourceFilePanel resourceFilePanel) {
+    public BackupRestoreLayersIndexModel(StoreModel<StoreInfo> storeModel, ResourceFilePanel resourceFilePanel) {
         super();
         this.storeInfo = storeModel;
         this.resourceFilePanel = resourceFilePanel;

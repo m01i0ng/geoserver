@@ -8,7 +8,6 @@ import java.util.List;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.event.Broadcast;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -19,6 +18,7 @@ import org.geoserver.catalog.ResourceInfo;
  *
  * @author Fernando Mino - Geosolutions
  */
+// TODO WICKET8 - Verify this page works OK
 public class VectorCustomDimensionEditor extends DimensionEditorBase<VectorCustomDimensionEntry> {
 
     private TextField<String> nameInput;
@@ -33,10 +33,7 @@ public class VectorCustomDimensionEditor extends DimensionEditorBase<VectorCusto
     }
 
     public VectorCustomDimensionEditor(
-            String id,
-            IModel<VectorCustomDimensionEntry> model,
-            ResourceInfo resource,
-            Class<?> type) {
+            String id, IModel<VectorCustomDimensionEntry> model, ResourceInfo resource, Class<?> type) {
         super(id, model, resource, type);
     }
 
@@ -49,18 +46,16 @@ public class VectorCustomDimensionEditor extends DimensionEditorBase<VectorCusto
         add(nameInput);
 
         // ajax button for removing
-        final AjaxSubmitLink removeButton =
-                new AjaxSubmitLink("removeButton") {
-                    @Override
-                    protected void onAfterSubmit(AjaxRequestTarget target, Form<?> form) {
-                        super.onAfterSubmit(target, form);
-                        send(
-                                getWebPage(),
-                                Broadcast.BREADTH,
-                                new RemoveEvent(
-                                        target, VectorCustomDimensionEditor.this.getModelObject()));
-                    }
-                };
+        final AjaxSubmitLink removeButton = new AjaxSubmitLink("removeButton") {
+            @Override
+            protected void onAfterSubmit(AjaxRequestTarget target) {
+                super.onAfterSubmit(target);
+                send(
+                        getWebPage(),
+                        Broadcast.BREADTH,
+                        new RemoveEvent(target, VectorCustomDimensionEditor.this.getModelObject()));
+            }
+        };
         removeButton.setDefaultFormProcessing(false);
         add(removeButton);
     }

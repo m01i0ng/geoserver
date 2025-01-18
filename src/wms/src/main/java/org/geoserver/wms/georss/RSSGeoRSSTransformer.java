@@ -10,12 +10,12 @@ import java.util.List;
 import java.util.logging.Level;
 import org.geoserver.wms.WMS;
 import org.geoserver.wms.WMSMapContent;
+import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.xml.transform.Translator;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryCollection;
-import org.opengis.feature.simple.SimpleFeature;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.helpers.AttributesImpl;
 
@@ -129,13 +129,11 @@ public class RSSGeoRSSTransformer extends GeoRSSTransformerBase {
             cdata(AtomUtils.getFeatureDescription(feature));
             end("description");
 
-            GeometryCollection col =
-                    feature.getDefaultGeometry() instanceof GeometryCollection
-                            ? (GeometryCollection) feature.getDefaultGeometry()
-                            : null;
+            GeometryCollection col = feature.getDefaultGeometry() instanceof GeometryCollection
+                    ? (GeometryCollection) feature.getDefaultGeometry()
+                    : null;
 
-            if (geometryEncoding == GeometryEncoding.LATLONG
-                    || (col == null && feature.getDefaultGeometry() != null)) {
+            if (geometryEncoding == GeometryEncoding.LATLONG || (col == null && feature.getDefaultGeometry() != null)) {
                 geometryEncoding.encode((Geometry) feature.getDefaultGeometry(), this);
                 end("item");
             } else if (col == null) {

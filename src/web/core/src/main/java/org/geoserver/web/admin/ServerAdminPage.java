@@ -22,7 +22,7 @@ public abstract class ServerAdminPage extends GeoServerSecuredPage {
     private static final long serialVersionUID = 4712657652337914993L;
 
     public IModel<GeoServer> getGeoServerModel() {
-        return new LoadableDetachableModel<GeoServer>() {
+        return new LoadableDetachableModel<>() {
             @Override
             public GeoServer load() {
                 return getGeoServerApplication().getGeoServer();
@@ -46,7 +46,8 @@ public abstract class ServerAdminPage extends GeoServerSecuredPage {
         // is actually setting the same object reference, and hence the
         // modificationproxy does not count it as a change.
 
-        JAIInfo currJaiInfo = getGeoServerApplication().getGeoServer().getGlobal().getJAI().clone();
+        JAIInfo currJaiInfo =
+                getGeoServerApplication().getGeoServer().getGlobal().getJAI().clone();
         return new Model<>(currJaiInfo);
     }
 
@@ -62,13 +63,16 @@ public abstract class ServerAdminPage extends GeoServerSecuredPage {
         // is actually setting the same object reference, and hence the
         // modificationProxy does not count it as a change.
 
-        CoverageAccessInfo currCoverageAccessInfo =
-                getGeoServerApplication().getGeoServer().getGlobal().getCoverageAccess().clone();
+        CoverageAccessInfo currCoverageAccessInfo = getGeoServerApplication()
+                .getGeoServer()
+                .getGlobal()
+                .getCoverageAccess()
+                .clone();
         return new Model<>(currCoverageAccessInfo);
     }
 
     public IModel<ContactInfo> getContactInfoModel() {
-        return new LoadableDetachableModel<ContactInfo>() {
+        return new LoadableDetachableModel<>() {
             @Override
             public ContactInfo load() {
                 return getGeoServerApplication()
@@ -81,7 +85,7 @@ public abstract class ServerAdminPage extends GeoServerSecuredPage {
     }
 
     public IModel<LoggingInfo> getLoggingInfoModel() {
-        return new LoadableDetachableModel<LoggingInfo>() {
+        return new LoadableDetachableModel<>() {
             @Override
             protected LoggingInfo load() {
                 return getGeoServer().getLogging();

@@ -10,6 +10,8 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.head.CssHeaderItem;
+import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -23,18 +25,17 @@ import org.apache.wicket.model.PropertyModel;
 import org.geoserver.security.config.SecurityNamedServiceConfig;
 
 /**
- * Panel that lists out all secuirty services, providing a toggle to collapse/expand each one
- * showing/hiding its contents.
+ * Panel that lists out all secuirty services, providing a toggle to collapse/expand each one showing/hiding its
+ * contents.
  *
  * @author Justin Deoliveira, OpenGeo
  */
-public abstract class SecurityNamedServicesTogglePanel<T extends SecurityNamedServiceConfig>
-        extends Panel {
+public abstract class SecurityNamedServicesTogglePanel<T extends SecurityNamedServiceConfig> extends Panel {
 
     public SecurityNamedServicesTogglePanel(String id, IModel<List<T>> model) {
         super(id);
 
-        Form form = new Form("form");
+        Form form = new Form<>("form");
         add(form);
 
         form.add(new ServicesListView(model));
@@ -44,20 +45,30 @@ public abstract class SecurityNamedServicesTogglePanel<T extends SecurityNamedSe
 
     protected static class ContentPanel<T> extends Panel {
 
+        @Override
+        public void renderHead(IHeaderResponse response) {
+            super.renderHead(response);
+            // Content-Security-Policy: inline styles must be nonce=...
+            String css = " #edit {\n"
+                    + "   margin-top: -20px; \n"
+                    + "   padding-bottom: 0.5em; \n"
+                    + "   padding-right:1em;\n"
+                    + " }";
+            response.render(CssHeaderItem.forCSS(css, "org-geoserver-security-web-data-DataSecurityPage-1"));
+        }
+
         public ContentPanel(String id, final IModel<T> model) {
             super(id);
 
-            add(
-                    new Link("edit") {
-                        @Override
-                        @SuppressWarnings("unchecked")
-                        public void onClick() {
-                            SecurityNamedServiceEditPage editPage =
-                                    new SecurityNamedServiceEditPage(model);
-                            editPage.setReturnPage(getPage());
-                            setResponsePage(editPage);
-                        }
-                    });
+            add(new Link<>("edit") {
+                @Override
+                @SuppressWarnings("unchecked")
+                public void onClick() {
+                    SecurityNamedServiceEditPage editPage = new SecurityNamedServiceEditPage(model);
+                    editPage.setReturnPage(getPage());
+                    setResponsePage(editPage);
+                }
+            });
         }
     }
 
@@ -70,12 +81,10 @@ public abstract class SecurityNamedServicesTogglePanel<T extends SecurityNamedSe
         protected void populateItem(final ListItem<T> item) {
             IModel<T> model = item.getModel();
             AjaxLink toggle = buildToggleLink(item, model);
-            toggle.add(new Label("name", new PropertyModel(model, "name")));
+            toggle.add(new Label("name", new PropertyModel<>(model, "name")));
 
             boolean first = item.getIndex() == 0;
-            toggle.add(
-                    new AttributeAppender(
-                            "class", new Model<>(first ? "expanded" : "collapsed"), " "));
+            toggle.add(new AttributeAppender("class", new Model<>(first ? "expanded" : "collapsed"), " "));
             item.add(toggle);
 
             item.add(first ? createPanel("panel", model) : new WebMarkupContainer("panel"));
@@ -84,14 +93,13 @@ public abstract class SecurityNamedServicesTogglePanel<T extends SecurityNamedSe
     }
 
     private AjaxLink<T> buildToggleLink(ListItem<T> item, IModel<T> model) {
-        return new AjaxLink<T>("toggle", model) {
+        return new AjaxLink<>("toggle", model) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 if (item.get("panel") instanceof ContentPanel) {
                     // toggle off
                     item.addOrReplace(new WebMarkupContainer("panel"));
-                    item.get("toggle")
-                            .add(new AttributeModifier("class", new Model<>("collapsed")));
+                    item.get("toggle").add(new AttributeModifier("class", new Model<>("collapsed")));
                 } else {
                     // toggle on
                     item.addOrReplace(createPanel("panel", item.getModel()));

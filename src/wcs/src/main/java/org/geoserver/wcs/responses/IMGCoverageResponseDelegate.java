@@ -14,12 +14,12 @@ import java.util.Map;
 import org.geoserver.config.GeoServer;
 import org.geoserver.platform.ServiceException;
 import org.geoserver.util.IOUtils;
+import org.geotools.api.coverage.grid.Format;
+import org.geotools.api.parameter.GeneralParameterValue;
+import org.geotools.api.parameter.ParameterValue;
+import org.geotools.api.parameter.ParameterValueGroup;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.gce.image.WorldImageWriter;
-import org.opengis.coverage.grid.Format;
-import org.opengis.parameter.GeneralParameterValue;
-import org.opengis.parameter.ParameterValue;
-import org.opengis.parameter.ParameterValueGroup;
 
 /**
  * Encodes coverages in "world image" formats, png, jpeg and gif.
@@ -29,8 +29,7 @@ import org.opengis.parameter.ParameterValueGroup;
  * @author $Author: Alessio Fabiani (alessio.fabiani@gmail.com) $ (last modification)
  * @author $Author: Simone Giannecchini (simboss1@gmail.com) $ (last modification)
  */
-public class IMGCoverageResponseDelegate extends BaseCoverageResponseDelegate
-        implements CoverageResponseDelegate {
+public class IMGCoverageResponseDelegate extends BaseCoverageResponseDelegate implements CoverageResponseDelegate {
 
     public IMGCoverageResponseDelegate(GeoServer geoserver) {
         super(
@@ -61,8 +60,7 @@ public class IMGCoverageResponseDelegate extends BaseCoverageResponseDelegate
             OutputStream output)
             throws ServiceException, IOException {
         if (sourceCoverage == null) {
-            throw new IllegalStateException(
-                    "It seems prepare() has not been called or has not succeed");
+            throw new IllegalStateException("It seems prepare() has not been called or has not succeed");
         }
 
         final WorldImageWriter writer = new WorldImageWriter(output);

@@ -43,25 +43,25 @@ public class SettingsClientIT {
 
         String proxyBaseUrl = "${X-Forwarded-Proto}://${X-Forwarded-Host}${X-Forwarded-Path}";
         GeoServerInfo update = new GeoServerInfo();
-        update.setUseHeadersProxyURL(true);
         SettingsInfo newSettings = new SettingsInfo();
         newSettings.setProxyBaseUrl(proxyBaseUrl);
+        newSettings.setUseHeadersProxyURL(true);
         update.setSettings(newSettings);
 
         GeoServerInfo updated = settingsClient.updateGlobalConfig(update);
         assertNotNull(updated);
         assertNotSame(update, updated);
-        assertTrue(updated.getUseHeadersProxyURL());
         assertNotNull(updated.getSettings());
+        assertTrue(updated.getSettings().getUseHeadersProxyURL());
         assertEquals(proxyBaseUrl, updated.getSettings().getProxyBaseUrl());
 
-        update.setUseHeadersProxyURL(false);
-        update.setSettings(null);
+        update.getSettings().setUseHeadersProxyURL(false);
+        update.getSettings().setProxyBaseUrl(null);
 
         updated = settingsClient.updateGlobalConfig(update);
         assertNotNull(updated);
         assertNotSame(update, updated);
-        assertFalse(updated.getUseHeadersProxyURL());
+        assertFalse(updated.getSettings().getUseHeadersProxyURL());
         assertNotNull(updated.getSettings());
         assertNull(updated.getSettings().getProxyBaseUrl());
     }
@@ -80,13 +80,12 @@ public class SettingsClientIT {
         assertNotNull(settings.getContact());
         assertNull(settings.getContact().getAddress());
 
-        ContactInfo contact =
-                new ContactInfo()
-                        .address("address")
-                        .addressCity("addressCity")
-                        .addressCountry("addressCountry")
-                        .addressType("addressType")
-                        .contactEmail("contact@example.com");
+        ContactInfo contact = new ContactInfo()
+                .address("address")
+                .addressCity("addressCity")
+                .addressCountry("addressCountry")
+                .addressType("addressType")
+                .contactEmail("contact@example.com");
 
         SettingsInfo request = new SettingsInfo();
         request.charset("ISO-8859-1")

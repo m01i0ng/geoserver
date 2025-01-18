@@ -10,17 +10,17 @@ import static org.junit.Assert.assertNull;
 
 import java.awt.Color;
 import java.util.List;
-import org.geotools.styling.ExternalGraphic;
-import org.geotools.styling.FeatureTypeStyle;
-import org.geotools.styling.Graphic;
-import org.geotools.styling.LineSymbolizer;
-import org.geotools.styling.Mark;
-import org.geotools.styling.PolygonSymbolizer;
-import org.geotools.styling.Rule;
-import org.geotools.styling.Stroke;
-import org.geotools.styling.Style;
+import org.geotools.api.style.ExternalGraphic;
+import org.geotools.api.style.FeatureTypeStyle;
+import org.geotools.api.style.Graphic;
+import org.geotools.api.style.LineSymbolizer;
+import org.geotools.api.style.Mark;
+import org.geotools.api.style.PolygonSymbolizer;
+import org.geotools.api.style.Rule;
+import org.geotools.api.style.Stroke;
+import org.geotools.api.style.Style;
+import org.geotools.api.style.Symbolizer;
 import org.geotools.styling.StyleBuilder;
-import org.geotools.styling.Symbolizer;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -121,8 +121,7 @@ public class DynamicSizeStyleExtractorTest {
 
     @Test
     public void testDynamicSymbolizerStrokeLineSymbolizer() {
-        ExternalGraphic dynamicSymbolizer =
-                sb.createExternalGraphic("file://./${myAttribute}.jpeg", "image/jpeg");
+        ExternalGraphic dynamicSymbolizer = sb.createExternalGraphic("file://./${myAttribute}.jpeg", "image/jpeg");
         Graphic graphic = sb.createGraphic(dynamicSymbolizer, null, null);
         LineSymbolizer ls = sb.createLineSymbolizer();
         ls.getStroke().setGraphicStroke(graphic);
@@ -134,8 +133,7 @@ public class DynamicSizeStyleExtractorTest {
 
     @Test
     public void testStaticGraphicLineSymbolizer() {
-        ExternalGraphic dynamicSymbolizer =
-                sb.createExternalGraphic("file://./hello.jpeg", "image/jpeg");
+        ExternalGraphic dynamicSymbolizer = sb.createExternalGraphic("file://./hello.jpeg", "image/jpeg");
         Graphic graphic = sb.createGraphic(dynamicSymbolizer, null, null);
         LineSymbolizer ls = sb.createLineSymbolizer();
         ls.getStroke().setGraphicStroke(graphic);

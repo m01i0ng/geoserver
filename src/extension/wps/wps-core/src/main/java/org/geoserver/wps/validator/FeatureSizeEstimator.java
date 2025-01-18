@@ -5,16 +5,16 @@
 package org.geoserver.wps.validator;
 
 import java.util.Date;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.type.AttributeDescriptor;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.AttributeDescriptor;
 
 /**
- * Estimates the size of a feature collection by guessing how bit an average feature will be by
- * checking its feature type
+ * Estimates the size of a feature collection by guessing how bit an average feature will be by checking its feature
+ * type
  *
  * @author Andrea Aime - GeoSolutions
  */
@@ -50,16 +50,14 @@ public class FeatureSizeEstimator implements ObjectSizeEstimator {
             } else if (Number.class.isAssignableFrom(type)) {
                 if (Double.class.isAssignableFrom(type) || Float.class.isAssignableFrom(type)) {
                     bytes += 8;
-                } else if (Float.class.isAssignableFrom(type)
-                        || Integer.class.isAssignableFrom(type)) {
+                } else if (Float.class.isAssignableFrom(type) || Integer.class.isAssignableFrom(type)) {
                     bytes += 4;
                 } else if (Short.class.isAssignableFrom(type)) {
                     bytes += 2;
                 } else if (Byte.class.isAssignableFrom(type)) {
                     bytes += 1;
                 }
-            } else if (Character.class.isAssignableFrom(type)
-                    || Boolean.class.isAssignableFrom(type)) {
+            } else if (Character.class.isAssignableFrom(type) || Boolean.class.isAssignableFrom(type)) {
                 bytes += 1;
             } else if (Date.class.isAssignableFrom(type)) {
                 bytes += 8;

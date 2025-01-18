@@ -16,8 +16,9 @@ import javax.xml.namespace.QName;
 import org.apache.commons.io.IOUtils;
 import org.custommonkey.xmlunit.exceptions.XpathException;
 import org.geoserver.catalog.FeatureTypeInfo;
+import org.geotools.api.data.SimpleFeatureSource;
+import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.data.DataUtilities;
-import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.filter.text.cql2.CQLException;
 import org.geotools.filter.text.ecql.ECQL;
 import org.geotools.geometry.jts.CircularArc;
@@ -32,12 +33,11 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.MultiLineString;
 import org.locationtech.jts.geom.Polygon;
-import org.opengis.feature.simple.SimpleFeature;
 import org.w3c.dom.Document;
 
 /**
- * Base class for WFS-T curve test, it expects to find the test requests in the same package as its
- * implementing subclasses
+ * Base class for WFS-T curve test, it expects to find the test requests in the same package as its implementing
+ * subclasses
  *
  * @author Andrea Aime - GeoSolutions
  */
@@ -63,8 +63,7 @@ public abstract class AbstractTransactionCurveTest extends WFSCurvesTestSupport 
 
     @Test
     public void testUpdateCompoundCurve() throws Exception {
-        String xml =
-                IOUtils.toString(getClass().getResourceAsStream("updateCompoundCurve.xml"), UTF_8);
+        String xml = IOUtils.toString(getClass().getResourceAsStream("updateCompoundCurve.xml"), UTF_8);
         Document dom = postAsDOM("wfs", xml);
 
         // print(dom);
@@ -85,8 +84,7 @@ public abstract class AbstractTransactionCurveTest extends WFSCurvesTestSupport 
         assertEquals(new Coordinate(20, 45), ls1.getCoordinateN(1));
 
         CircularString cs = (CircularString) components.get(1);
-        assertArrayEquals(
-                new double[] {20.0, 45.0, 23.0, 48.0, 20.0, 51.0}, cs.getControlPoints(), 0d);
+        assertArrayEquals(new double[] {20.0, 45.0, 23.0, 48.0, 20.0, 51.0}, cs.getControlPoints(), 0d);
 
         LineString ls2 = components.get(2);
         assertEquals(2, ls2.getNumPoints());
@@ -96,8 +94,7 @@ public abstract class AbstractTransactionCurveTest extends WFSCurvesTestSupport 
 
     @Test
     public void testInsertCurvePolygon() throws Exception {
-        String xml =
-                IOUtils.toString(getClass().getResourceAsStream("insertCurvePolygon.xml"), UTF_8);
+        String xml = IOUtils.toString(getClass().getResourceAsStream("insertCurvePolygon.xml"), UTF_8);
         Document dom = postAsDOM("wfs", xml);
 
         // print(dom);
@@ -121,8 +118,7 @@ public abstract class AbstractTransactionCurveTest extends WFSCurvesTestSupport 
 
     @Test
     public void testInsertMultiCurve() throws Exception {
-        String xml =
-                IOUtils.toString(getClass().getResourceAsStream("insertMultiCurve.xml"), UTF_8);
+        String xml = IOUtils.toString(getClass().getResourceAsStream("insertMultiCurve.xml"), UTF_8);
         Document dom = postAsDOM("wfs", xml);
 
         // print(dom);
@@ -144,12 +140,10 @@ public abstract class AbstractTransactionCurveTest extends WFSCurvesTestSupport 
         assertArrayEquals(new double[] {4, 0, 4, 4, 8, 4}, cs.getControlPoints(), 0d);
     }
 
-    private SimpleFeature getSingleFeature(QName typeName, String featureName)
-            throws IOException, CQLException {
+    private SimpleFeature getSingleFeature(QName typeName, String featureName) throws IOException, CQLException {
         FeatureTypeInfo ft = getCatalog().getFeatureTypeByName(getLayerId(typeName));
         SimpleFeatureSource fs = (SimpleFeatureSource) ft.getFeatureSource(null, null);
-        SimpleFeature first =
-                DataUtilities.first(fs.getFeatures(ECQL.toFilter("name = '" + featureName + "'")));
+        SimpleFeature first = DataUtilities.first(fs.getFeatures(ECQL.toFilter("name = '" + featureName + "'")));
         assertNotNull(first);
         return first;
     }
@@ -158,16 +152,13 @@ public abstract class AbstractTransactionCurveTest extends WFSCurvesTestSupport 
             throws XpathException {
         assertEquals(
                 String.valueOf(inserted),
-                xpath.evaluate(
-                        "/wfs:TransactionResponse/wfs:TransactionSummary/wfs:totalInserted", dom));
+                xpath.evaluate("/wfs:TransactionResponse/wfs:TransactionSummary/wfs:totalInserted", dom));
         assertEquals(
                 String.valueOf(updated),
-                xpath.evaluate(
-                        "/wfs:TransactionResponse/wfs:TransactionSummary/wfs:totalUpdated", dom));
+                xpath.evaluate("/wfs:TransactionResponse/wfs:TransactionSummary/wfs:totalUpdated", dom));
         assertEquals(
                 String.valueOf(deleted),
-                xpath.evaluate(
-                        "/wfs:TransactionResponse/wfs:TransactionSummary/wfs:totalDeleted", dom));
+                xpath.evaluate("/wfs:TransactionResponse/wfs:TransactionSummary/wfs:totalDeleted", dom));
         return xpath.evaluate("//ogc:FeatureId/@fid", dom);
     }
 }

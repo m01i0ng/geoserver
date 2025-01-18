@@ -9,6 +9,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.geoserver.wps.WPSTestSupport;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.filter.FilterFactory;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.factory.CommonFactoryFinder;
@@ -22,8 +24,6 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LinearRing;
 import org.locationtech.jts.geom.impl.CoordinateArraySequence;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.filter.FilterFactory;
 
 public class BufferFeatureCollectionTest extends WPSTestSupport {
 
@@ -122,8 +122,7 @@ public class BufferFeatureCollectionTest extends WPSTestSupport {
                 j++;
             }
             array[3] = new Coordinate(numFeatures, numFeatures);
-            LinearRing shell =
-                    new LinearRing(new CoordinateArraySequence(array), new GeometryFactory());
+            LinearRing shell = new LinearRing(new CoordinateArraySequence(array), new GeometryFactory());
             b.add(gf.createPolygon(shell, null));
             b.add(0);
             features.add(b.buildFeature(numFeatures + ""));
@@ -141,8 +140,7 @@ public class BufferFeatureCollectionTest extends WPSTestSupport {
                     j++;
                 }
                 array[3] = new Coordinate(numFeatures, numFeatures);
-                LinearRing shell =
-                        new LinearRing(new CoordinateArraySequence(array), new GeometryFactory());
+                LinearRing shell = new LinearRing(new CoordinateArraySequence(array), new GeometryFactory());
                 Geometry expected = gf.createPolygon(shell, null).buffer(distance);
 
                 SimpleFeature sf = iterator.next();
@@ -172,8 +170,7 @@ public class BufferFeatureCollectionTest extends WPSTestSupport {
                 j++;
             }
             array[3] = new Coordinate(numFeatures, numFeatures);
-            LinearRing shell =
-                    new LinearRing(new CoordinateArraySequence(array), new GeometryFactory());
+            LinearRing shell = new LinearRing(new CoordinateArraySequence(array), new GeometryFactory());
             b.add(gf.createPolygon(shell, null));
             b.add(0);
             b.add(500);
@@ -192,8 +189,7 @@ public class BufferFeatureCollectionTest extends WPSTestSupport {
                     j++;
                 }
                 array[3] = new Coordinate(numFeatures, numFeatures);
-                LinearRing shell =
-                        new LinearRing(new CoordinateArraySequence(array), new GeometryFactory());
+                LinearRing shell = new LinearRing(new CoordinateArraySequence(array), new GeometryFactory());
                 Geometry expected = gf.createPolygon(shell, null).buffer(500);
 
                 SimpleFeature sf = iterator.next();

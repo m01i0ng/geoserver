@@ -26,17 +26,17 @@ import org.geoserver.security.CoverageAccessLimits;
 import org.geoserver.security.ResourceAccessManager;
 import org.geoserver.security.SecurityUtils;
 import org.geoserver.security.TestResourceAccessManager;
+import org.geotools.api.coverage.grid.GridCoverage;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.geometry.Position;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.io.AbstractGridFormat;
-import org.geotools.geometry.DirectPosition2D;
+import org.geotools.geometry.Position2D;
 import org.geotools.referencing.CRS;
 import org.junit.Test;
 import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.io.WKTReader;
-import org.opengis.coverage.grid.GridCoverage;
-import org.opengis.filter.Filter;
-import org.opengis.geometry.DirectPosition;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.vfny.geoserver.wcs.WcsException;
 
 /**
@@ -55,8 +55,7 @@ public class ResourceAccessManagerWCSTest extends AbstractGetCoverageTest {
     /** Enable the Spring Security auth filters */
     @Override
     protected List<javax.servlet.Filter> getFilters() {
-        return Collections.singletonList(
-                (javax.servlet.Filter) GeoServerExtensions.bean("filterChainProxy"));
+        return Collections.singletonList((javax.servlet.Filter) GeoServerExtensions.bean("filterChainProxy"));
     }
 
     /** Add the users */
@@ -85,15 +84,11 @@ public class ResourceAccessManagerWCSTest extends AbstractGetCoverageTest {
                 (TestResourceAccessManager) applicationContext.getBean("testResourceAccessManager");
         Catalog catalog = getCatalog();
         CoverageInfo world = catalog.getCoverageByName(getLayerId(MockData.WORLD));
-        world.getParameters()
-                .put(AbstractGridFormat.USE_JAI_IMAGEREAD.getName().getCode(), Boolean.FALSE);
+        world.getParameters().put(AbstractGridFormat.USE_JAI_IMAGEREAD.getName().getCode(), Boolean.FALSE);
         catalog.save(world);
 
         // limits for mr cite_noworld: can't access the world layer
-        tam.putLimits(
-                "cite_noworld",
-                world,
-                new CoverageAccessLimits(CatalogMode.HIDE, Filter.EXCLUDE, null, null));
+        tam.putLimits("cite_noworld", world, new CoverageAccessLimits(CatalogMode.HIDE, Filter.EXCLUDE, null, null));
 
         // limits for mr cite_noworld: can't access the world layer
         tam.putLimits(
@@ -103,14 +98,8 @@ public class ResourceAccessManagerWCSTest extends AbstractGetCoverageTest {
 
         // limits the area to north america
         MultiPolygon rasterFilter =
-                (MultiPolygon)
-                        new WKTReader()
-                                .read(
-                                        "MULTIPOLYGON(((-120 30, -120 60, -60 60, -60 30, -120 30)))");
-        tam.putLimits(
-                "cite_usa",
-                world,
-                new CoverageAccessLimits(CatalogMode.HIDE, null, rasterFilter, null));
+                (MultiPolygon) new WKTReader().read("MULTIPOLYGON(((-120 30, -120 60, -60 60, -60 30, -120 30)))");
+        tam.putLimits("cite_usa", world, new CoverageAccessLimits(CatalogMode.HIDE, null, rasterFilter, null));
     }
 
     Map<String, Object> getWorld() {
@@ -145,13 +134,13 @@ public class ResourceAccessManagerWCSTest extends AbstractGetCoverageTest {
         int[] value = new int[3];
 
         // some point in USA
-        coverage.evaluate((DirectPosition) new DirectPosition2D(wgs84Flipped, 40, -90), value);
+        coverage.evaluate((Position) new Position2D(wgs84Flipped, 40, -90), value);
         assertTrue(value[0] > 0);
         assertTrue(value[1] > 0);
         assertTrue(value[2] > 0);
 
         // some point in Europe
-        coverage.evaluate((DirectPosition) new DirectPosition2D(wgs84Flipped, 45, 12), value);
+        coverage.evaluate((Position) new Position2D(wgs84Flipped, 45, 12), value);
         assertTrue(value[0] > 0);
         assertTrue(value[1] > 0);
         assertTrue(value[2] > 0);
@@ -221,13 +210,13 @@ public class ResourceAccessManagerWCSTest extends AbstractGetCoverageTest {
         int[] value = new int[3];
 
         // some point in USA
-        coverage.evaluate((DirectPosition) new DirectPosition2D(wgs84Flipped, 40, -90), value);
+        coverage.evaluate((Position) new Position2D(wgs84Flipped, 40, -90), value);
         assertTrue(value[0] > 0);
         assertTrue(value[1] > 0);
         assertTrue(value[2] > 0);
 
         // some point in Europe (should have been cropped, we should get the bkg value)
-        coverage.evaluate((DirectPosition) new DirectPosition2D(wgs84Flipped, 45, 12), value);
+        coverage.evaluate((Position) new Position2D(wgs84Flipped, 45, 12), value);
         assertEquals(0, value[0]);
         assertEquals(0, value[1]);
         assertEquals(0, value[2]);

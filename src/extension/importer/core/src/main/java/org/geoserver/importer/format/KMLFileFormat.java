@@ -34,13 +34,13 @@ import org.geoserver.importer.Importer;
 import org.geoserver.importer.VectorFormat;
 import org.geoserver.importer.job.ProgressMonitor;
 import org.geoserver.importer.transform.KMLPlacemarkTransform;
-import org.geotools.data.FeatureReader;
+import org.geotools.api.data.FeatureReader;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.type.AttributeDescriptor;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.referencing.CRS;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.AttributeDescriptor;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 public class KMLFileFormat extends VectorFormat {
 
@@ -84,8 +84,7 @@ public class KMLFileFormat extends VectorFormat {
         return read(ft, file);
     }
 
-    public FeatureReader<SimpleFeatureType, SimpleFeature> read(
-            SimpleFeatureType featureType, File file) {
+    public FeatureReader<SimpleFeatureType, SimpleFeature> read(SimpleFeatureType featureType, File file) {
         try {
             return new KMLTransformingFeatureReader(featureType, new FileInputStream(file));
         } catch (Exception e) {
@@ -122,14 +121,12 @@ public class KMLFileFormat extends VectorFormat {
     }
 
     @Override
-    public StoreInfo createStore(ImportData data, WorkspaceInfo workspace, Catalog catalog)
-            throws IOException {
+    public StoreInfo createStore(ImportData data, WorkspaceInfo workspace, Catalog catalog) throws IOException {
         // null means no direct store imports can be performed
         return null;
     }
 
-    public Collection<SimpleFeatureType> parseFeatureTypes(String typeName, File file)
-            throws IOException {
+    public Collection<SimpleFeatureType> parseFeatureTypes(String typeName, File file) throws IOException {
         try (InputStream inputStream = new FileInputStream(file)) {
             return parseFeatureTypes(typeName, inputStream);
         }
@@ -174,10 +171,8 @@ public class KMLFileFormat extends VectorFormat {
         return ftb.buildFeatureType();
     }
 
-    public List<SimpleFeatureType> parseFeatureTypes(String typeName, InputStream inputStream)
-            throws IOException {
-        KMLRawReader reader =
-                new KMLRawReader(inputStream, KMLRawReader.ReadType.SCHEMA_AND_FEATURES);
+    public List<SimpleFeatureType> parseFeatureTypes(String typeName, InputStream inputStream) throws IOException {
+        KMLRawReader reader = new KMLRawReader(inputStream, KMLRawReader.ReadType.SCHEMA_AND_FEATURES);
         Set<String> untypedAttributes = new HashSet<>();
         List<String> schemaNames = new ArrayList<>();
         List<SimpleFeatureType> schemas = new ArrayList<>();
@@ -189,8 +184,7 @@ public class KMLFileFormat extends VectorFormat {
                 aggregateFeatureType = unionFeatureTypes(aggregateFeatureType, ft);
                 Map<Object, Object> userData = feature.getUserData();
                 @SuppressWarnings("unchecked")
-                Map<String, Object> untypedData =
-                        (Map<String, Object>) userData.get("UntypedExtendedData");
+                Map<String, Object> untypedData = (Map<String, Object>) userData.get("UntypedExtendedData");
                 if (untypedData != null) {
                     untypedAttributes.addAll(untypedData.keySet());
                 }
@@ -216,8 +210,7 @@ public class KMLFileFormat extends VectorFormat {
     }
 
     @Override
-    public List<ImportTask> list(ImportData data, Catalog catalog, ProgressMonitor monitor)
-            throws IOException {
+    public List<ImportTask> list(ImportData data, Catalog catalog, ProgressMonitor monitor) throws IOException {
         File file = getFileFromData(data);
         CatalogBuilder cb = new CatalogBuilder(catalog);
         String baseName = typeNameFromFile(file);

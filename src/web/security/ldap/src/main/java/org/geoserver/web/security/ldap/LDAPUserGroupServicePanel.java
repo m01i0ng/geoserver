@@ -30,7 +30,7 @@ public class LDAPUserGroupServicePanel extends UserGroupServicePanel<LDAPUserGro
 
         public LDAPAuthenticationPanel(String id) {
             super(id);
-            add(new TextField<String>("user"));
+            add(new TextField<>("user"));
 
             PasswordTextField pwdField = new PasswordTextField("password");
             // avoid reseting the password which results in an
@@ -48,40 +48,38 @@ public class LDAPUserGroupServicePanel extends UserGroupServicePanel<LDAPUserGro
     public LDAPUserGroupServicePanel(String id, IModel<LDAPUserGroupServiceConfig> model) {
         super(id, model);
         /** LDAP server parameters */
-        add(new TextField<String>("serverURL").setRequired(true));
+        add(new TextField<>("serverURL").setRequired(true));
         add(new CheckBox("useTLS"));
         /** group options */
-        add(new TextField<String>("groupSearchBase").setRequired(true));
-        add(new TextField<String>("groupNameAttribute"));
-        add(new TextField<String>("groupFilter"));
-        add(new TextField<String>("allGroupsSearchFilter"));
+        add(new TextField<>("groupSearchBase").setRequired(true));
+        add(new TextField<>("groupNameAttribute"));
+        add(new TextField<>("groupFilter"));
+        add(new TextField<>("allGroupsSearchFilter"));
         /** membership options */
-        add(new TextField<String>("groupSearchFilter"));
-        add(new TextField<String>("groupMembershipAttribute"));
+        add(new TextField<>("groupSearchFilter"));
+        add(new TextField<>("groupMembershipAttribute"));
         /** user options */
-        add(new TextField<String>("userSearchBase").setRequired(true));
-        add(new TextField<String>("userNameAttribute"));
-        add(new TextField<String>("userFilter"));
-        add(new TextField<String>("allUsersSearchFilter"));
-        add(new TextField<String>("populatedAttributes"));
+        add(new TextField<>("userSearchBase").setRequired(true));
+        add(new TextField<>("userNameAttribute"));
+        add(new TextField<>("userFilter"));
+        add(new TextField<>("allUsersSearchFilter"));
+        add(new TextField<>("populatedAttributes"));
         hierarchicalGroupsInit();
 
         /** privileged account for querying the LDAP server (if needed) */
-        add(
-                new AjaxCheckBox("bindBeforeGroupSearch") {
-                    private static final long serialVersionUID = -6388847010436939988L;
+        add(new AjaxCheckBox("bindBeforeGroupSearch") {
+            private static final long serialVersionUID = -6388847010436939988L;
 
-                    @Override
-                    protected void onUpdate(AjaxRequestTarget target) {
-                        // reset any values that were set
-                        LDAPAuthenticationPanel ldapAuthenticationPanel =
-                                (LDAPAuthenticationPanel)
-                                        LDAPUserGroupServicePanel.this.get("authenticationPanel");
-                        ldapAuthenticationPanel.resetModel();
-                        ldapAuthenticationPanel.setVisible(getModelObject().booleanValue());
-                        target.add(ldapAuthenticationPanel);
-                    }
-                });
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                // reset any values that were set
+                LDAPAuthenticationPanel ldapAuthenticationPanel =
+                        (LDAPAuthenticationPanel) LDAPUserGroupServicePanel.this.get("authenticationPanel");
+                ldapAuthenticationPanel.resetModel();
+                ldapAuthenticationPanel.setVisible(getModelObject().booleanValue());
+                target.add(ldapAuthenticationPanel);
+            }
+        });
         LDAPAuthenticationPanel authPanel = new LDAPAuthenticationPanel("authenticationPanel");
         authPanel.setVisible(model.getObject().isBindBeforeGroupSearch());
         authPanel.setOutputMarkupPlaceholderTag(true);
@@ -91,35 +89,31 @@ public class LDAPUserGroupServicePanel extends UserGroupServicePanel<LDAPUserGro
     private void hierarchicalGroupsInit() {
         // hierarchical groups configurations
         // create fields objects
-        final WebMarkupContainer nestedSearchFieldsContainer =
-                new WebMarkupContainer(NESTED_SEARCH_FIELDS_CONTAINER);
+        final WebMarkupContainer nestedSearchFieldsContainer = new WebMarkupContainer(NESTED_SEARCH_FIELDS_CONTAINER);
         nestedSearchFieldsContainer.setOutputMarkupPlaceholderTag(true);
         nestedSearchFieldsContainer.setOutputMarkupId(true);
         add(nestedSearchFieldsContainer);
         Optional<LDAPUserGroupServiceConfig> useNestedOpt =
                 Optional.of(this).map(x -> x.configModel).map(IModel::getObject);
         // get initial value for use_nested checkbox
-        boolean useNestedActivated =
-                useNestedOpt.map(LDAPUserGroupServiceConfig::isUseNestedParentGroups).orElse(false);
+        boolean useNestedActivated = useNestedOpt
+                .map(LDAPUserGroupServiceConfig::isUseNestedParentGroups)
+                .orElse(false);
         nestedSearchFieldsContainer.setVisible(useNestedActivated);
 
-        final AjaxCheckBox useNestedCheckbox =
-                new AjaxCheckBox(USE_NESTED_PARENT_GROUPS) {
-                    private static final long serialVersionUID = 1L;
+        final AjaxCheckBox useNestedCheckbox = new AjaxCheckBox(USE_NESTED_PARENT_GROUPS) {
+            private static final long serialVersionUID = 1L;
 
-                    @Override
-                    protected void onUpdate(AjaxRequestTarget target) {
-                        AjaxCheckBox cb =
-                                (AjaxCheckBox)
-                                        LDAPUserGroupServicePanel.this.get(
-                                                USE_NESTED_PARENT_GROUPS);
-                        boolean value = cb.getModelObject();
-                        nestedSearchFieldsContainer.setVisible(value);
-                        target.add(nestedSearchFieldsContainer);
-                    }
-                };
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                AjaxCheckBox cb = (AjaxCheckBox) LDAPUserGroupServicePanel.this.get(USE_NESTED_PARENT_GROUPS);
+                boolean value = cb.getModelObject();
+                nestedSearchFieldsContainer.setVisible(value);
+                target.add(nestedSearchFieldsContainer);
+            }
+        };
         add(useNestedCheckbox);
-        nestedSearchFieldsContainer.add(new TextField<String>(MAX_GROUP_SEARCH_LEVEL));
-        nestedSearchFieldsContainer.add(new TextField<String>(NESTED_GROUP_SEARCH_FILTER));
+        nestedSearchFieldsContainer.add(new TextField<>(MAX_GROUP_SEARCH_LEVEL));
+        nestedSearchFieldsContainer.add(new TextField<>(NESTED_GROUP_SEARCH_FILTER));
     }
 }

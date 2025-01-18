@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.geoserver.config.GeoServer;
 import org.geoserver.ogcapi.APIRequestInfo;
-import org.geoserver.ogcapi.AbstractHTMLMessageConverter;
+import org.geoserver.ogcapi.AbstractServiceHTMLMessageConverter;
 import org.geoserver.ogcapi.FreemarkerTemplateSupport;
 import org.geoserver.opensearch.eo.OSEOInfo;
 import org.springframework.http.HttpOutputMessage;
@@ -19,7 +19,7 @@ import org.springframework.http.converter.HttpMessageNotWritableException;
 
 /** Renders a list of items in HTML. */
 public abstract class AbstractItemsHTMLMessageConverter<T extends AbstractItemsResponse>
-        extends AbstractHTMLMessageConverter<T> {
+        extends AbstractServiceHTMLMessageConverter<T> {
 
     public AbstractItemsHTMLMessageConverter(
             Class<T> clazz, FreemarkerTemplateSupport templateSupport, GeoServer geoServer) {
@@ -41,8 +41,7 @@ public abstract class AbstractItemsHTMLMessageConverter<T extends AbstractItemsR
         }
         addLinkFunctions(APIRequestInfo.get().getBaseURL(), model);
 
-        try (OutputStreamWriter osw =
-                new OutputStreamWriter(outputMessage.getBody(), getDefaultCharset())) {
+        try (OutputStreamWriter osw = new OutputStreamWriter(outputMessage.getBody(), getDefaultCharset())) {
             templateSupport.processTemplate(header, model, osw, getDefaultCharset());
 
             // process content template for all feature collections found

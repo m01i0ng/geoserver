@@ -5,8 +5,8 @@
  */
 package org.geoserver.security;
 
+import org.geotools.api.filter.Filter;
 import org.locationtech.jts.geom.MultiPolygon;
-import org.opengis.filter.Filter;
 
 /**
  * Describes access limits on a cascaded WMS layer
@@ -25,12 +25,11 @@ public class WMSAccessLimits extends DataAccessLimits {
     /**
      * Builds a WMS limits
      *
-     * @param filter Used as a CQL filter on servers supporting it and on cascaded feature info
-     *     requests, and also to slice away feature info results
+     * @param filter Used as a CQL filter on servers supporting it and on cascaded feature info requests, and also to
+     *     slice away feature info results
      * @param rasterFilter Used as a ROI on the returned data
      */
-    public WMSAccessLimits(
-            CatalogMode mode, Filter filter, MultiPolygon rasterFilter, boolean allowFeatureInfo) {
+    public WMSAccessLimits(CatalogMode mode, Filter filter, MultiPolygon rasterFilter, boolean allowFeatureInfo) {
         super(mode, filter);
         this.rasterFilter = rasterFilter;
         this.allowFeatureInfo = allowFeatureInfo;

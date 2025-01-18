@@ -13,7 +13,18 @@ As a community module, the package needs to be downloaded from the `nightly buil
 picking the community folder of the corresponding GeoServer series (e.g. if working on the GeoServer main development branch nightly
 builds, pick the zip file form ``main/community-latest``).
 
-To install the module, unpack the zip file contents into the GeoServer ``WEB-INF/lib`` directory and restart GeoServer.
+The module is provided as four different packages, depending on the connection type:
+
+* ``cog-http`` for HTTP connections without a particular cloud target
+* ``cog-s3`` for AWS S3 connections
+* ``cog-google`` for Google Cloud Storage connections
+* ``cog-azure`` for Azure Blob Storage connections
+
+To install the module, download the package you need, unpack the zip file contents into the GeoServer ``WEB-INF/lib`` directory and restart GeoServer.
+
+.. warning::
+  
+   The dependencies of the various cloud providers might interfere with each other, so please never install together the AWS, Google and Azure modules.
 
 COG GeoTIFF Configuration Panel
 -------------------------------
@@ -123,13 +134,13 @@ HTTP client configuration (based on `OkHttp client <https://square.github.io/okh
 
    * - Environment Variable
      - Description
-   * - IIO_HTTP_MAX_REQUESTS
+   * - `IIO_HTTP_MAX_REQUESTS`
      - The maximum number of requests to execute concurrently. Above this requests queue in memory, waiting for the running calls to complete. (Default 128)
-   * - IIO_HTTP_MAX_REQUESTS_PER_HOST
+   * - `IIO_HTTP_MAX_REQUESTS_PER_HOST`
      - The maximum number of requests for each host to execute concurrently. (Default 5)
-   * - IIO_HTTP_MAX_IDLE_CONNECTIONS
+   * - `IIO_HTTP_MAX_IDLE_CONNECTIONS`
      - The maximum number of idle connections. (Default 5)
-   * - IIO_HTTP_KEEP_ALIVE_TIME
+   * - `IIO_HTTP_KEEP_ALIVE_TIME`
      - The Keep alive time (in seconds), representing maximum time that excess idle threads will wait for new tasks before terminating. (Default 60)
 
 AWS S3 Client configuration
@@ -145,19 +156,19 @@ On the table below, replace the "$ALIAS$" template with HTTP or HTTPS or S3 if y
 
    * - Environment Variable
      - Description
-   * - IIO_$ALIAS$_AWS_CORE_POOL_SIZE
+   * - `IIO_$ALIAS$_AWS_CORE_POOL_SIZE`
      - The core pool size for the S3 Client (Default 50)
-   * - IIO_$ALIAS$_AWS_MAX_POOL_SIZE
+   * - `IIO_$ALIAS$_AWS_MAX_POOL_SIZE`
      - The maximum number of thread to allow in the pool for the S3 Client (Default 128)
-   * - IIO_$ALIAS$_AWS_KEEP_ALIVE_TIME
+   * - `IIO_$ALIAS$_AWS_KEEP_ALIVE_TIME`
      - The Keep alive time (in seconds), representing maximum time that excess idle threads will wait for new tasks before terminating. (Default 10)
-   * - IIO_$ALIAS$_AWS_USER
+   * - `IIO_$ALIAS$_AWS_USER`
      - Default user (access key ID) for AWS basic authentication credentials
-   * - IIO_$ALIAS$_AWS_PASSWORD
+   * - `IIO_$ALIAS$_AWS_PASSWORD`
      - Default password (secret access key) for AWS basic authentication credentials
-   * - IIO_$ALIAS$_AWS_REGION
+   * - `IIO_$ALIAS$_AWS_REGION`
      - Default AWS region
-   * - IIO_$ALIAS$_AWS_ENDPOINT
+   * - `IIO_$ALIAS$_AWS_ENDPOINT`
      - Endpoint to Amazon service or any other S3-compatible service run by a third-party 
 
 Google Cloud storage configuration

@@ -14,6 +14,7 @@ import org.geoserver.kml.decorator.KmlDecoratorFactory.KmlDecorator;
 import org.geoserver.kml.utils.KMLFeatureAccessor;
 import org.geoserver.ows.HttpErrorCodeException;
 import org.geoserver.platform.ServiceException;
+import org.geoserver.wms.MapLayerInfo;
 import org.geoserver.wms.WMSMapContent;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.map.FeatureLayer;
@@ -50,20 +51,23 @@ public abstract class AbstractFolderIteratorFactory implements IteratorFactory<F
 
                 // setup the folder and let it be decorated
                 Folder folder = new Folder();
-                folder.setName(layer.getTitle());
+                int index = context.getMapContent().layers().indexOf(layer);
+                MapLayerInfo layerInfo =
+                        context.getMapContent().getRequest().getLayers().get(index);
+                folder.setName(layerInfo.getLabel());
+                if (layerInfo.getDescription() != null
+                        && !layerInfo.getDescription().isEmpty()) {
+                    folder.setDescription(layerInfo.getDescription());
+                }
 
                 // if it's a feature layer, setup the feature collection for it (some decorators use
                 // it)
                 if (layer instanceof FeatureLayer) {
                     try {
                         WMSMapContent mapContent = context.getMapContent();
-                        SimpleFeatureCollection fc =
-                                new KMLFeatureAccessor()
-                                        .loadFeatureCollection(
-                                                layer,
-                                                mapContent,
-                                                context.getWms(),
-                                                mapContent.getScaleDenominator());
+                        SimpleFeatureCollection fc = new KMLFeatureAccessor()
+                                .loadFeatureCollection(
+                                        layer, mapContent, context.getWms(), mapContent.getScaleDenominator());
                         context.setCurrentFeatureCollection(fc);
                     } catch (Exception e) {
                         if (e instanceof ServiceException) {
@@ -71,8 +75,7 @@ public abstract class AbstractFolderIteratorFactory implements IteratorFactory<F
                         } else if (e instanceof HttpErrorCodeException) {
                             throw (HttpErrorCodeException) e;
                         } else {
-                            throw new ServiceException(
-                                    "Failed to load vector data during KML generation", e);
+                            throw new ServiceException("Failed to load vector data during KML generation", e);
                         }
                     }
                 }

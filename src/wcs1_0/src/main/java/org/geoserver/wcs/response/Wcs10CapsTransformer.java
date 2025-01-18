@@ -32,6 +32,7 @@ import org.geoserver.config.ContactInfo;
 import org.geoserver.config.GeoServer;
 import org.geoserver.config.ResourceErrorHandling;
 import org.geoserver.config.SettingsInfo;
+import org.geoserver.ows.ClientStreamAbortedException;
 import org.geoserver.ows.URLMangler.URLType;
 import org.geoserver.wcs.WCSInfo;
 import org.geotools.coverage.grid.io.GridCoverage2DReader;
@@ -49,8 +50,8 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
 
 /**
- * Based on the <code>org.geotools.xml.transform</code> framework, does the job of encoding a WCS
- * 1.0.0 Capabilities document.
+ * Based on the <code>org.geotools.xml.transform</code> framework, does the job of encoding a WCS 1.0.0 Capabilities
+ * document.
  *
  * @author Alessio Fabiani (alessio.fabiani@gmail.com)
  * @author Simone Giannecchini (simboss1@gmail.com)
@@ -80,9 +81,8 @@ public class Wcs10CapsTransformer extends TransformerBase {
         this.wcs = geoServer.getService(WCSInfo.class);
         this.catalog = geoServer.getCatalog();
         setNamespaceDeclarationEnabled(false);
-        this.skipMisconfigured =
-                ResourceErrorHandling.SKIP_MISCONFIGURED_LAYERS.equals(
-                        geoServer.getGlobal().getResourceErrorHandling());
+        this.skipMisconfigured = ResourceErrorHandling.SKIP_MISCONFIGURED_LAYERS.equals(
+                geoServer.getGlobal().getResourceErrorHandling());
     }
 
     @Override
@@ -110,8 +110,9 @@ public class Wcs10CapsTransformer extends TransformerBase {
         @Override
         public void encode(Object o) throws IllegalArgumentException {
             if (!(o instanceof GetCapabilitiesType)) {
-                throw new IllegalArgumentException(
-                        new StringBuffer("Not a GetCapabilitiesType: ").append(o).toString());
+                throw new IllegalArgumentException(new StringBuffer("Not a GetCapabilitiesType: ")
+                        .append(o)
+                        .toString());
             }
 
             this.request = (GetCapabilitiesType) o;
@@ -123,7 +124,7 @@ public class Wcs10CapsTransformer extends TransformerBase {
                 try {
                     requestedUpdateSequence = Long.parseLong(request.getUpdateSequence());
                 } catch (NumberFormatException e) {
-                    if (request.getUpdateSequence().length() == 0) requestedUpdateSequence = 0;
+                    if (request.getUpdateSequence().isEmpty()) requestedUpdateSequence = 0;
                     else
                         throw new WcsException(
                                 "Invalid update sequence number format, " + "should be an integer",
@@ -132,18 +133,14 @@ public class Wcs10CapsTransformer extends TransformerBase {
                 }
                 if (requestedUpdateSequence > updateSequence) {
                     throw new WcsException(
-                            "Invalid update sequence value, it's higher "
-                                    + "than the current value, "
-                                    + updateSequence,
+                            "Invalid update sequence value, it's higher " + "than the current value, " + updateSequence,
                             WcsExceptionCode.InvalidUpdateSequence,
                             "updateSequence");
                 }
 
                 if (requestedUpdateSequence == updateSequence) {
                     throw new WcsException(
-                            "WCS capabilities document is current (updateSequence = "
-                                    + updateSequence
-                                    + ")",
+                            "WCS capabilities document is current (updateSequence = " + updateSequence + ")",
                             WcsExceptionCode.CurrentUpdateSequence,
                             "");
                 }
@@ -153,14 +150,13 @@ public class Wcs10CapsTransformer extends TransformerBase {
             attributes.addAttribute("", "version", "version", "", CUR_VERSION);
             attributes.addAttribute("", "xmlns:wcs", "xmlns:wcs", "", WCS_URI);
 
-            attributes.addAttribute(
-                    "", "xmlns:xlink", "xmlns:xlink", "", "http://www.w3.org/1999/xlink");
+            attributes.addAttribute("", "xmlns:xlink", "xmlns:xlink", "", "http://www.w3.org/1999/xlink");
             attributes.addAttribute("", "xmlns:ogc", "xmlns:ogc", "", "http://www.opengis.net/ogc");
-            attributes.addAttribute(
-                    "", "xmlns:ows", "xmlns:ows", "", "http://www.opengis.net/ows/1.1");
+            attributes.addAttribute("", "xmlns:ows", "xmlns:ows", "", "http://www.opengis.net/ows/1.1");
             attributes.addAttribute("", "xmlns:gml", "xmlns:gml", "", "http://www.opengis.net/gml");
 
-            final String prefixDef = new StringBuffer("xmlns:").append(XSI_PREFIX).toString();
+            final String prefixDef =
+                    new StringBuffer("xmlns:").append(XSI_PREFIX).toString();
             attributes.addAttribute("", prefixDef, prefixDef, "", XSI_URI);
 
             final String locationAtt =
@@ -170,18 +166,16 @@ public class Wcs10CapsTransformer extends TransformerBase {
             // .getGeoServer().getProxyBaseUrl());
             // final String locationDef = WCS_URI + " " + proxifiedBaseUrl +
             // "schemas/wcs/1.0.0/wcsCapabilities.xsd";
-            final String locationDef =
-                    WCS_URI
-                            + " "
-                            + buildURL(
-                                    request.getBaseUrl(),
-                                    appendPath(SCHEMAS, "wcs/1.0.0/wcsCapabilities.xsd"),
-                                    null,
-                                    URLType.RESOURCE);
+            final String locationDef = WCS_URI
+                    + " "
+                    + buildURL(
+                            request.getBaseUrl(),
+                            appendPath(SCHEMAS, "wcs/1.0.0/wcsCapabilities.xsd"),
+                            null,
+                            URLType.RESOURCE);
 
             attributes.addAttribute("", locationAtt, locationAtt, "", locationDef);
-            attributes.addAttribute(
-                    "", "updateSequence", "updateSequence", "", String.valueOf(updateSequence));
+            attributes.addAttribute("", "updateSequence", "updateSequence", "", String.valueOf(updateSequence));
             start("wcs:WCS_Capabilities", attributes);
 
             // handle the sections directive
@@ -194,37 +188,27 @@ public class Wcs10CapsTransformer extends TransformerBase {
                 section = request.getSection();
                 allSections = (section.get("/").equals(section));
             }
-            final Set<String> knownSections =
-                    new HashSet<>(
-                            Arrays.asList(
-                                    "/",
-                                    "/WCS_Capabilities/Service",
-                                    "/WCS_Capabilities/Capability",
-                                    "/WCS_Capabilities/ContentMetadata"));
+            final Set<String> knownSections = new HashSet<>(Arrays.asList(
+                    "/",
+                    "/WCS_Capabilities/Service",
+                    "/WCS_Capabilities/Capability",
+                    "/WCS_Capabilities/ContentMetadata"));
 
             if (!knownSections.contains(section.getLiteral()))
                 throw new WcsException(
-                        "Unknown section " + section,
-                        WcsExceptionCode.InvalidParameterValue,
-                        "Sections");
+                        "Unknown section " + section, WcsExceptionCode.InvalidParameterValue, "Sections");
 
             // encode the actual capabilities contents taking into consideration
             // the sections
             if (requestedUpdateSequence < updateSequence) {
-                if (allSections
-                        || section.equals(
-                                CapabilitiesSectionType.WCS_CAPABILITIES_SERVICE_LITERAL)) {
+                if (allSections || section.equals(CapabilitiesSectionType.WCS_CAPABILITIES_SERVICE_LITERAL)) {
                     handleService(allSections);
                 }
 
-                if (allSections
-                        || section.equals(
-                                CapabilitiesSectionType.WCS_CAPABILITIES_CAPABILITY_LITERAL))
+                if (allSections || section.equals(CapabilitiesSectionType.WCS_CAPABILITIES_CAPABILITY_LITERAL))
                     handleCapabilities(allSections);
 
-                if (allSections
-                        || section.equals(
-                                CapabilitiesSectionType.WCS_CAPABILITIES_CONTENT_METADATA_LITERAL))
+                if (allSections || section.equals(CapabilitiesSectionType.WCS_CAPABILITIES_CONTENT_METADATA_LITERAL))
                     handleContentMetadata(allSections);
             }
 
@@ -281,8 +265,7 @@ public class Wcs10CapsTransformer extends TransformerBase {
             }
 
             if (StringUtils.isNotBlank(mdl.getMetadataType())) {
-                attributes.addAttribute(
-                        "", "metadataType", "metadataType", "", mdl.getMetadataType());
+                attributes.addAttribute("", "metadataType", "metadataType", "", mdl.getMetadataType());
             }
 
             if (StringUtils.isNotBlank(mdl.getContent())) {
@@ -438,10 +421,7 @@ public class Wcs10CapsTransformer extends TransformerBase {
             end("wcs:Capability");
         }
 
-        /**
-         * Handles the request portion of the document, printing out the capabilities and where to
-         * bind to them.
-         */
+        /** Handles the request portion of the document, printing out the capabilities and where to bind to them. */
         private void handleRequest() {
             start("wcs:Request");
             handleCapability("wcs:GetCapabilities");
@@ -484,10 +464,7 @@ public class Wcs10CapsTransformer extends TransformerBase {
             end(capabilityName);
         }
 
-        /**
-         * Makes sure the URL can simply be used by appending to it, without checking if it ends by
-         * ?, & or nothing
-         */
+        /** Makes sure the URL can simply be used by appending to it, without checking if it ends by ?, & or nothing */
         private String makeURLAppendable(String url) {
             if (url.endsWith("?") || url.endsWith("&")) {
                 return url;
@@ -499,8 +476,8 @@ public class Wcs10CapsTransformer extends TransformerBase {
         }
 
         /**
-         * Handles the printing of the exceptions information, prints the formats that GeoServer can
-         * return exceptions in.
+         * Handles the printing of the exceptions information, prints the formats that GeoServer can return exceptions
+         * in.
          */
         private void handleExceptions() {
             start("wcs:Exception");
@@ -521,27 +498,18 @@ public class Wcs10CapsTransformer extends TransformerBase {
         private void handleVendorSpecifics() {}
 
         private void handleEnvelope(
-                ReferencedEnvelope referencedEnvelope,
-                DimensionInfo timeInfo,
-                ReaderDimensionsAccessor dimensions)
+                ReferencedEnvelope referencedEnvelope, DimensionInfo timeInfo, ReaderDimensionsAccessor dimensions)
                 throws IOException {
             AttributesImpl attributes = new AttributesImpl();
 
-            attributes.addAttribute(
-                    "",
-                    "srsName",
-                    "srsName",
-                    "", /* "WGS84(DD)" */
-                    "urn:ogc:def:crs:OGC:1.3:CRS84");
+            attributes.addAttribute("", "srsName", "srsName", "", /* "WGS84(DD)" */ "urn:ogc:def:crs:OGC:1.3:CRS84");
             start("wcs:lonLatEnvelope", attributes);
-            final StringBuffer minCP =
-                    new StringBuffer(Double.toString(referencedEnvelope.getMinX()))
-                            .append(" ")
-                            .append(referencedEnvelope.getMinY());
-            final StringBuffer maxCP =
-                    new StringBuffer(Double.toString(referencedEnvelope.getMaxX()))
-                            .append(" ")
-                            .append(referencedEnvelope.getMaxY());
+            final StringBuffer minCP = new StringBuffer(Double.toString(referencedEnvelope.getMinX()))
+                    .append(" ")
+                    .append(referencedEnvelope.getMinY());
+            final StringBuffer maxCP = new StringBuffer(Double.toString(referencedEnvelope.getMaxX()))
+                    .append(" ")
+                    .append(referencedEnvelope.getMaxY());
 
             element("gml:pos", minCP.toString());
             element("gml:pos", maxCP.toString());
@@ -573,6 +541,8 @@ public class Wcs10CapsTransformer extends TransformerBase {
                     handleCoverageOfferingBrief(cvInfo);
                     commit();
                 } catch (Exception e) {
+                    // abort processing if the user closed the connection
+                    ClientStreamAbortedException.rethrowUncheked(e);
                     if (skipMisconfigured) {
                         reset();
                         LOGGER.log(
@@ -583,9 +553,7 @@ public class Wcs10CapsTransformer extends TransformerBase {
                                 e);
                     } else {
                         throw new RuntimeException(
-                                "Capabilities document generation failed on coverage "
-                                        + cvInfo.prefixedName(),
-                                e);
+                                "Capabilities document generation failed on coverage " + cvInfo.prefixedName(), e);
                     }
                 }
             }
@@ -598,8 +566,7 @@ public class Wcs10CapsTransformer extends TransformerBase {
             if (cv.isEnabled()) {
                 start("wcs:CoverageOfferingBrief");
 
-                for (MetadataLinkInfo mdl : cv.getMetadataLinks())
-                    handleMetadataLink(mdl, "simple");
+                for (MetadataLinkInfo mdl : cv.getMetadataLinks()) handleMetadataLink(mdl, "simple");
 
                 String tmp = cv.getDescription();
 
@@ -622,29 +589,22 @@ public class Wcs10CapsTransformer extends TransformerBase {
                 CoverageStoreInfo csinfo = cv.getStore();
 
                 if (csinfo == null) {
-                    throw new WcsException(
-                            "Unable to acquire coverage store resource for coverage: "
-                                    + cv.getName());
+                    throw new WcsException("Unable to acquire coverage store resource for coverage: " + cv.getName());
                 }
 
                 GridCoverage2DReader reader = null;
                 try {
-                    reader =
-                            (GridCoverage2DReader)
-                                    cv.getGridCoverageReader(null, GeoTools.getDefaultHints());
+                    reader = (GridCoverage2DReader) cv.getGridCoverageReader(null, GeoTools.getDefaultHints());
                 } catch (IOException e) {
-                    LOGGER.severe(
-                            "Unable to acquire a reader for this coverage with format: "
-                                    + csinfo.getFormat().getName());
+                    LOGGER.severe("Unable to acquire a reader for this coverage with format: "
+                            + csinfo.getFormat().getName());
                 }
 
                 if (reader == null)
-                    throw new WcsException(
-                            "Unable to acquire a reader for this coverage with format: "
-                                    + csinfo.getFormat().getName());
+                    throw new WcsException("Unable to acquire a reader for this coverage with format: "
+                            + csinfo.getFormat().getName());
 
-                DimensionInfo timeInfo =
-                        cv.getMetadata().get(ResourceInfo.TIME, DimensionInfo.class);
+                DimensionInfo timeInfo = cv.getMetadata().get(ResourceInfo.TIME, DimensionInfo.class);
                 ReaderDimensionsAccessor dimensions = new ReaderDimensionsAccessor(reader);
                 handleEnvelope(cv.getLatLonBoundingBox(), timeInfo, dimensions);
                 handleKeywords(cv.getKeywords());

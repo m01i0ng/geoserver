@@ -5,15 +5,15 @@
  */
 package org.geoserver.wfs.kvp;
 
+import org.geotools.api.geometry.MismatchedDimensionException;
+import org.geotools.api.referencing.FactoryException;
+import org.geotools.api.referencing.NoSuchAuthorityCodeException;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
-import org.opengis.geometry.MismatchedDimensionException;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.NoSuchAuthorityCodeException;
 
 /**
- * A {@link ReferencedEnvelope} subclass that keeps the original SRS after the KVP parse, to ensure
- * we are true to the original SRS when building a BBOX filter
+ * A {@link ReferencedEnvelope} subclass that keeps the original SRS after the KVP parse, to ensure we are true to the
+ * original SRS when building a BBOX filter
  *
  * @author Andrea Aime - GeoSolutions
  */

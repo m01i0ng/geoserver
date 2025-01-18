@@ -9,15 +9,15 @@ import java.io.IOException;
 import java.util.List;
 import org.geoserver.catalog.CoverageInfo;
 import org.geoserver.security.decorators.DecoratingCoverageInfo;
+import org.geotools.api.coverage.grid.GridCoverageReader;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.util.ProgressListener;
 import org.geotools.coverage.grid.io.DimensionDescriptor;
 import org.geotools.coverage.grid.io.GridCoverage2DReader;
 import org.geotools.coverage.grid.io.StructuredGridCoverage2DReader;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.util.factory.Hints;
-import org.opengis.coverage.grid.GridCoverageReader;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.util.ProgressListener;
 
 /**
  * Builds a view of the coverage that contains only the specified coverage
@@ -30,17 +30,14 @@ public class GranuleCoverageInfo extends DecoratingCoverageInfo {
     private List<DimensionDescriptor> dimensionDescriptors;
 
     public GranuleCoverageInfo(
-            CoverageInfo delegate,
-            SimpleFeature feature,
-            List<DimensionDescriptor> dimensionDescriptors) {
+            CoverageInfo delegate, SimpleFeature feature, List<DimensionDescriptor> dimensionDescriptors) {
         super(delegate);
         this.feature = feature;
         this.dimensionDescriptors = dimensionDescriptors;
     }
 
     @Override
-    public GridCoverageReader getGridCoverageReader(ProgressListener listener, Hints hints)
-            throws IOException {
+    public GridCoverageReader getGridCoverageReader(ProgressListener listener, Hints hints) throws IOException {
         StructuredGridCoverage2DReader reader =
                 (StructuredGridCoverage2DReader) super.getGridCoverageReader(listener, hints);
         return new SingleGranuleGridCoverageReader(reader, feature, dimensionDescriptors);
@@ -49,8 +46,7 @@ public class GranuleCoverageInfo extends DecoratingCoverageInfo {
     @Override
     public CoordinateReferenceSystem getCRS() {
         try {
-            return ((GridCoverage2DReader) getGridCoverageReader(null, null))
-                    .getCoordinateReferenceSystem();
+            return ((GridCoverage2DReader) getGridCoverageReader(null, null)).getCoordinateReferenceSystem();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

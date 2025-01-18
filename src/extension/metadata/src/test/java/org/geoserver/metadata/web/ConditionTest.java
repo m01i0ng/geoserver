@@ -24,26 +24,24 @@ public class ConditionTest extends AbstractWicketMetadataTest {
     }
 
     @After
-    public void after() throws Exception {
+    @Override
+    public void stop() throws Exception {
         restoreLayers();
+        super.stop();
     }
 
     @Test
     public void testNoFeatureCatalogueForRasters() {
         login();
-        LayerInfo raster =
-                geoServer.getCatalog().getLayerByName(MockData.USA_WORLDIMG.getLocalPart());
+        LayerInfo raster = geoServer.getCatalog().getLayerByName(MockData.USA_WORLDIMG.getLocalPart());
         ResourceConfigurationPage page = new ResourceConfigurationPage(raster, false);
         tester.startPage(page);
-        ((TabbedPanel<?>) tester.getComponentFromLastRenderedPage("publishedinfo:tabs"))
-                .setSelectedTab(4);
+        ((TabbedPanel<?>) tester.getComponentFromLastRenderedPage("publishedinfo:tabs")).setSelectedTab(4);
 
-        MarkupContainer c =
-                (MarkupContainer)
-                        tester.getComponentFromLastRenderedPage(
-                                "publishedinfo:tabs:panel:metadataPanel:attributesPanel:attributesTablePanel:listContainer:items");
+        MarkupContainer c = (MarkupContainer) tester.getComponentFromLastRenderedPage(
+                "publishedinfo:tabs:panel:metadataPanel:attributesPanel:attributesTablePanel:listContainer:items");
         tester.submitForm("publishedinfo");
-        assertEquals(13, c.size());
+        assertEquals(14, c.size());
         logout();
     }
 }

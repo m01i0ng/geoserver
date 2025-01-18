@@ -18,9 +18,9 @@ import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.geoserver.test.GeoServerSystemTestSupport;
+import org.geotools.api.filter.expression.Expression;
 import org.geotools.util.URLs;
 import org.junit.Test;
-import org.opengis.filter.expression.Expression;
 
 public class WatermarkDecorationTest extends GeoServerSystemTestSupport {
 
@@ -31,9 +31,8 @@ public class WatermarkDecorationTest extends GeoServerSystemTestSupport {
         File file = new File("src/test/resources/org/geoserver/wms/world.png");
         options.put(
                 "url",
-                FF.literal(
-                        URLs.fileToUrl(file.getAbsoluteFile().getCanonicalFile())
-                                .toExternalForm()));
+                FF.literal(URLs.fileToUrl(file.getAbsoluteFile().getCanonicalFile())
+                        .toExternalForm()));
         d.loadOptions(options);
         BufferedImage logo = d.getLogo();
 

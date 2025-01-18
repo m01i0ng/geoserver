@@ -18,7 +18,7 @@ package org.geotools.dggs;
 
 import java.io.IOException;
 import java.util.Map;
-import org.geotools.data.Parameter;
+import org.geotools.api.data.Parameter;
 
 /** Factory creating DGGS intances */
 public interface DGGSFactory {
@@ -46,8 +46,8 @@ public interface DGGSFactory {
     DGGSInstance createInstance(Map<String, ?> params) throws IOException;
 
     /**
-     * Test to see if the implementation is available for use. This method ensures all the
-     * appropriate libraries to construct the {@link DGGSInstance} are available.
+     * Test to see if the implementation is available for use. This method ensures all the appropriate libraries to
+     * construct the {@link DGGSInstance} are available.
      */
     boolean isAvailable();
 }

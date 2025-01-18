@@ -29,13 +29,13 @@ import org.geoserver.data.test.SystemTestData;
 import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.wps.WPSTestSupport;
 import org.geoserver.wps.resource.WPSResourceManager;
+import org.geotools.api.filter.Filter;
 import org.geotools.data.DataUtilities;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.filter.text.cql2.CQL;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.opengis.filter.Filter;
 
 /** @author ian */
 public class CSVPPIOTest extends WPSTestSupport {
@@ -67,8 +67,7 @@ public class CSVPPIOTest extends WPSTestSupport {
     /** Test method for {@link org.geoserver.wps.ppio.WFSPPIO#decode(java.io.InputStream)}. */
     @Test
     public void testDecodeInputStream() throws Exception {
-        SimpleFeatureCollection states =
-                (SimpleFeatureCollection) new CSVPPIO(resourceManager).decode(is);
+        SimpleFeatureCollection states = (SimpleFeatureCollection) new CSVPPIO(resourceManager).decode(is);
 
         assertEquals("Wrong number of states", 51, states.size());
         assertEquals("Wrong number of columns", 9, states.getSchema().getAttributeCount());
@@ -83,8 +82,7 @@ public class CSVPPIOTest extends WPSTestSupport {
     @Test
     public void testEncodeOutputStream() throws Exception {
 
-        SimpleFeatureCollection states =
-                (SimpleFeatureCollection) new CSVPPIO(resourceManager).decode(is);
+        SimpleFeatureCollection states = (SimpleFeatureCollection) new CSVPPIO(resourceManager).decode(is);
 
         assertEquals("Wrong number of states", 51, states.size());
 

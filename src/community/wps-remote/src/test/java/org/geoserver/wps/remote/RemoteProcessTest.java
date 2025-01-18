@@ -4,7 +4,7 @@
  */
 package org.geoserver.wps.remote;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -41,6 +41,7 @@ import org.geoserver.wps.remote.plugin.XMPPLoadAverageMessage;
 import org.geoserver.wps.remote.plugin.XMPPMessage;
 import org.geoserver.wps.remote.plugin.XMPPRegisterMessage;
 import org.geoserver.wps.remote.plugin.server.XMPPServerEmbedded;
+import org.geotools.api.feature.type.Name;
 import org.geotools.feature.NameImpl;
 import org.geotools.process.ProcessFactory;
 import org.geotools.util.factory.FactoryIteratorProvider;
@@ -49,7 +50,6 @@ import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.Presence.Type;
 import org.junit.Test;
-import org.opengis.feature.type.Name;
 
 /**
  * This class tests checks if the RemoteProcess class behaves correctly.
@@ -58,8 +58,7 @@ import org.opengis.feature.type.Name;
  */
 public class RemoteProcessTest extends WPSTestSupport {
 
-    private static final boolean DISABLE =
-            "false".equalsIgnoreCase(System.getProperty("disableTest", "true"));
+    private static final boolean DISABLE = "false".equalsIgnoreCase(System.getProperty("disableTest", "true"));
 
     private RemoteProcessFactory factory;
 
@@ -79,9 +78,7 @@ public class RemoteProcessTest extends WPSTestSupport {
         super.setUpTestData(testData);
         // add limits properties file
         testData.copyTo(
-                RemoteProcessTest.class
-                        .getClassLoader()
-                        .getResourceAsStream("remote-process/remoteProcess.properties"),
+                RemoteProcessTest.class.getClassLoader().getResourceAsStream("remote-process/remoteProcess.properties"),
                 "remoteProcess.properties");
     }
 
@@ -92,16 +89,15 @@ public class RemoteProcessTest extends WPSTestSupport {
         assertNotNull(factory);
         Set<Name> names = factory.getNames();
         assertNotNull(names);
-        assertTrue(names.size() == 0);
+        assertEquals(0, names.size());
 
         final NameImpl name = new NameImpl("default", "Service");
-        factory.registerProcess(
-                new RemoteServiceDescriptor(name, "Service", "A test service", null, null, null));
-        assertTrue(names.size() == 1);
+        factory.registerProcess(new RemoteServiceDescriptor(name, "Service", "A test service", null, null, null));
+        assertEquals(1, names.size());
         assertTrue(names.contains(name));
 
         factory.deregisterProcess(name);
-        assertTrue(names.size() == 0);
+        assertEquals(0, names.size());
     }
 
     @Test
@@ -115,12 +111,12 @@ public class RemoteProcessTest extends WPSTestSupport {
 
         Set<Name> names = factory.getNames();
         assertNotNull(names);
-        assertTrue(names.size() == 0);
+        assertEquals(0, names.size());
 
         final NameImpl name = new NameImpl("default", "Service");
         try {
             remoteClient.execute(name, null, null, null);
-            assertTrue(names.size() == 1);
+            assertEquals(1, names.size());
             assertTrue(names.contains(name));
 
             factory.deregisterProcess(name);
@@ -128,7 +124,7 @@ public class RemoteProcessTest extends WPSTestSupport {
             LOGGER.log(Level.WARNING, "", e);
             fail(e.getLocalizedMessage());
         } finally {
-            assertTrue(names.size() == 0);
+            assertEquals(0, names.size());
         }
     }
 
@@ -148,7 +144,8 @@ public class RemoteProcessTest extends WPSTestSupport {
                     factory.getRemoteClient().getConfiguration();
             final String xmppDomain = configuration.get("xmpp_domain");
             final String xmppUserName = configuration.get("xmpp_manager_username");
-            final String[] serviceChannels = configuration.get("xmpp_service_channels").split(",");
+            final String[] serviceChannels =
+                    configuration.get("xmpp_service_channels").split(",");
 
             final Entity adminJID = EntityImpl.parseUnchecked(xmppUserName + "@" + xmppDomain);
 
@@ -169,30 +166,27 @@ public class RemoteProcessTest extends WPSTestSupport {
             assertNotNull(presence);
 
             assertTrue(presence.isAvailable());
-            assertTrue("Orchestrator Active".equals(presence.getStatus()));
+            assertEquals("Orchestrator Active", presence.getStatus());
 
-            List<RemoteMachineDescriptor> remoteMachines =
-                    xmppRemoteClient.getRegisteredProcessingMachines();
+            List<RemoteMachineDescriptor> remoteMachines = xmppRemoteClient.getRegisteredProcessingMachines();
             assertNotNull(remoteMachines);
             assertTrue(remoteMachines.size() > 0);
 
             for (RemoteMachineDescriptor machine : remoteMachines) {
                 if (!"test".equals(machine.getServiceName().getNamespaceURI())) {
-                    assertTrue(xmppUserName.equals(machine.getServiceName().getLocalPart()));
-                    assertTrue(
-                            Arrays.asList(serviceChannels)
-                                    .contains(machine.getServiceName().getNamespaceURI()));
+                    assertEquals(xmppUserName, machine.getServiceName().getLocalPart());
+                    assertTrue(Arrays.asList(serviceChannels)
+                            .contains(machine.getServiceName().getNamespaceURI()));
 
-                    assertTrue(
-                            machine.getNodeJID()
-                                    .equals(
-                                            machine.getServiceName().getNamespaceURI()
-                                                    + "@"
-                                                    + configuration.get("xmpp_bus")
-                                                    + "."
-                                                    + xmppDomain
-                                                    + "/"
-                                                    + xmppUserName));
+                    assertEquals(
+                            machine.getNodeJID(),
+                            machine.getServiceName().getNamespaceURI()
+                                    + "@"
+                                    + configuration.get("xmpp_bus")
+                                    + "."
+                                    + xmppDomain
+                                    + "/"
+                                    + xmppUserName);
                 }
             }
         } catch (Exception e) {
@@ -234,15 +228,13 @@ public class RemoteProcessTest extends WPSTestSupport {
         }
     }
 
-    private PresenceStanza presenceStanza(Entity userJID, Presence presence, Entity to)
-            throws XMLSemanticError {
+    private PresenceStanza presenceStanza(Entity userJID, Presence presence, Entity to) throws XMLSemanticError {
         Entity from = userJID;
         String lang = null;
         String show = "ONLINE";
         String status = presence.getStatus();
         Type presenceType = presence.getType();
-        PresenceStanzaType type =
-                presenceType == Type.unavailable ? PresenceStanzaType.UNAVAILABLE : null;
+        PresenceStanzaType type = presenceType == Type.unavailable ? PresenceStanzaType.UNAVAILABLE : null;
         StanzaBuilder b = StanzaBuilder.createPresenceStanza(from, to, lang, type, show, status);
         return new PresenceStanza(b.build());
     }
@@ -256,8 +248,7 @@ public class RemoteProcessTest extends WPSTestSupport {
     @Test
     public void testRegisterMessage() {
         // /
-        XMPPClient xmppRemoteClient =
-                (XMPPClient) applicationContext.getBean("xmppRemoteProcessClient");
+        XMPPClient xmppRemoteClient = (XMPPClient) applicationContext.getBean("xmppRemoteProcessClient");
         assertNotNull(xmppRemoteClient);
 
         XMPPMessage msg = new XMPPRegisterMessage();
@@ -269,48 +260,43 @@ public class RemoteProcessTest extends WPSTestSupport {
         /**
          * JSON URL Encoded Body
          *
-         * <p>{ "title": "test.Service", "description": "This is a test Service!", "input": [
-         * ["simpleType", "{\"type\": \"string\", \"description\": \"A simple string parameter\",
-         * \"max\": 1}"], ["complexType", "{\"type\": \"complex\", \"description\": \"A complex
-         * parameter\", \"min\": 1, \"max\": 10}"] ] }
+         * <p>{ "title": "test.Service", "description": "This is a test Service!", "input": [ ["simpleType", "{\"type\":
+         * \"string\", \"description\": \"A simple string parameter\", \"max\": 1}"], ["complexType", "{\"type\":
+         * \"complex\", \"description\": \"A complex parameter\", \"min\": 1, \"max\": 10}"] ] }
          */
         signalArgs.put(
                 "message",
                 "%7B%0A%20%20%22title%22%3A%20%22test.Service%22%2C%0A%20%20%22description%22%3A%20%22This%20is%20a%20test%20Service!%22%2C%0A%20%20%22input%22%3A%20%5B%0A%20%20%20%20%5B%22simpleType%22%2C%20%22%7B%5C%22type%5C%22%3A%20%5C%22string%5C%22%2C%20%5C%22description%5C%22%3A%20%5C%22A%20simple%20string%20parameter%5C%22%2C%20%5C%22max%5C%22%3A%201%7D%22%5D%2C%0A%20%20%20%20%5B%22complexType%22%2C%20%22%7B%5C%22type%5C%22%3A%20%5C%22complex%5C%22%2C%20%5C%22description%5C%22%3A%20%5C%22A%20complex%20parameter%5C%22%2C%20%5C%22min%5C%22%3A%201%2C%20%5C%22max%5C%22%3A%2010%7D%22%5D%0A%20%20%5D%0A%7D");
 
         // handle signal
-        Packet packet =
-                new Packet() {
+        Packet packet = new Packet() {
 
-                    @Override
-                    public String getFrom() {
-                        return "test@geoserver.org";
-                    }
+            @Override
+            public String getFrom() {
+                return "test@geoserver.org";
+            }
 
-                    @Override
-                    public CharSequence toXML() {
-                        return null;
-                    }
-                };
+            @Override
+            public CharSequence toXML() {
+                return null;
+            }
+        };
         try {
             msg.handleSignal(xmppRemoteClient, packet, null, signalArgs);
         } catch (IOException e) {
-            assertFalse(e.getLocalizedMessage(), true);
+            fail(e.getLocalizedMessage());
         }
     }
 
     @Test
     public void testLoadAverageMessage() {
         // /
-        XMPPClient xmppRemoteClient =
-                (XMPPClient) applicationContext.getBean("xmppRemoteProcessClient");
+        XMPPClient xmppRemoteClient = (XMPPClient) applicationContext.getBean("xmppRemoteProcessClient");
         assertNotNull(xmppRemoteClient);
 
-        List<RemoteMachineDescriptor> registeredProcessingMachines =
-                new ArrayList<RemoteMachineDescriptor>();
+        List<RemoteMachineDescriptor> registeredProcessingMachines = new ArrayList<RemoteMachineDescriptor>();
         registeredProcessingMachines.add(
-                new RemoteMachineDescriptor(
-                        "test@geoserver.org", new NameImpl("test", "Service"), true, 90.0, 90.0));
+                new RemoteMachineDescriptor("test@geoserver.org", new NameImpl("test", "Service"), true, 90.0, 90.0));
         xmppRemoteClient.setRegisteredProcessingMachines(registeredProcessingMachines);
 
         XMPPMessage msg = new XMPPLoadAverageMessage();
@@ -325,10 +311,9 @@ public class RemoteProcessTest extends WPSTestSupport {
         /**
          * JSON URL Encoded Body
          *
-         * <p>{ "title": "test.Service", "description": "This is a test Service!", "input": [
-         * ["simpleType", "{\"type\": \"string\", \"description\": \"A simple string parameter\",
-         * \"max\": 1}"], ["complexType", "{\"type\": \"complex\", \"description\": \"A complex
-         * parameter\", \"min\": 1, \"max\": 10}"] ] }
+         * <p>{ "title": "test.Service", "description": "This is a test Service!", "input": [ ["simpleType", "{\"type\":
+         * \"string\", \"description\": \"A simple string parameter\", \"max\": 1}"], ["complexType", "{\"type\":
+         * \"complex\", \"description\": \"A complex parameter\", \"min\": 1, \"max\": 10}"] ] }
          */
         signalArgs.put(
                 "result_vmem",
@@ -338,31 +323,34 @@ public class RemoteProcessTest extends WPSTestSupport {
                 "%7B%22loadavg_description%22%3A%20%22Average%20Load%20on%20CPUs%20during%20the%20last%2015%20minutes.%22%2C%20%22loadavg_value%22%3A%2014.6%7D");
 
         // handle signal
-        Packet packet =
-                new Packet() {
+        Packet packet = new Packet() {
 
-                    @Override
-                    public String getFrom() {
-                        return "test@geoserver.org";
-                    }
+            @Override
+            public String getFrom() {
+                return "test@geoserver.org";
+            }
 
-                    @Override
-                    public CharSequence toXML() {
-                        return null;
-                    }
-                };
+            @Override
+            public CharSequence toXML() {
+                return null;
+            }
+        };
         try {
             msg.handleSignal(xmppRemoteClient, packet, null, signalArgs);
         } catch (IOException e) {
-            assertFalse(e.getLocalizedMessage(), true);
+            fail(e.getLocalizedMessage());
         }
 
-        assertTrue(
+        assertEquals(
                 "LoadAverage does not match!",
-                registeredProcessingMachines.get(0).getLoadAverage().equals(14.6));
-        assertTrue(
+                14.6,
+                registeredProcessingMachines.get(0).getLoadAverage(),
+                0.0);
+        assertEquals(
                 "MemoryPerc does not match!",
-                registeredProcessingMachines.get(0).getMemPercUsed().equals(89.3));
+                89.3,
+                registeredProcessingMachines.get(0).getMemPercUsed(),
+                0.0);
     }
 
     /** */
@@ -372,18 +360,17 @@ public class RemoteProcessTest extends WPSTestSupport {
 
             // check SPI will see the factory if we register it using an iterator
             // provider
-            GeoTools.addFactoryIteratorProvider(
-                    new FactoryIteratorProvider() {
+            GeoTools.addFactoryIteratorProvider(new FactoryIteratorProvider() {
 
-                        @Override
-                        public <T> Iterator<T> iterator(Class<T> category) {
-                            if (ProcessFactory.class.isAssignableFrom(category)) {
-                                return (Iterator<T>) Collections.singletonList(factory).iterator();
-                            } else {
-                                return null;
-                            }
-                        }
-                    });
+                @Override
+                public <T> Iterator<T> iterator(Class<T> category) {
+                    if (ProcessFactory.class.isAssignableFrom(category)) {
+                        return (Iterator<T>) Collections.singletonList(factory).iterator();
+                    } else {
+                        return null;
+                    }
+                }
+            });
         }
     }
 

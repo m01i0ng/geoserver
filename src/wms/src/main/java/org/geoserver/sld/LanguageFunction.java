@@ -11,9 +11,9 @@ import org.geoserver.ows.Dispatcher;
 import org.geoserver.ows.Request;
 import org.geoserver.ows.util.RequestUtils;
 import org.geoserver.util.GeoServerDefaultLocale;
+import org.geotools.api.filter.capability.FunctionName;
 import org.geotools.filter.FunctionExpressionImpl;
 import org.geotools.filter.capability.FunctionNameImpl;
-import org.opengis.filter.capability.FunctionName;
 
 /**
  * This function return the language found in the request query param Language attribute or the
@@ -23,8 +23,7 @@ public class LanguageFunction extends FunctionExpressionImpl {
 
     private static final String LANGUAGE = "LANGUAGE";
 
-    public static FunctionName NAME =
-            new FunctionNameImpl("language", parameter("result", String.class));
+    public static FunctionName NAME = new FunctionNameImpl("language", parameter("result", String.class));
 
     public LanguageFunction() {
         super(NAME);

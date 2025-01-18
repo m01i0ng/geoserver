@@ -7,13 +7,13 @@ package org.geoserver.wms.icons;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.geotools.styling.FeatureTypeStyle;
-import org.geotools.styling.Graphic;
-import org.geotools.styling.Rule;
-import org.geotools.styling.Style;
-import org.geotools.styling.StyleFactory;
-import org.geotools.styling.Symbolizer;
-import org.opengis.filter.Filter;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.style.FeatureTypeStyle;
+import org.geotools.api.style.Graphic;
+import org.geotools.api.style.Rule;
+import org.geotools.api.style.Style;
+import org.geotools.api.style.StyleFactory;
+import org.geotools.api.style.Symbolizer;
 
 /**
  * A simplified model of an SLD rule used for internal manipulation.
@@ -43,15 +43,13 @@ public class MiniRule {
             for (Rule rule : ftStyle.rules()) {
                 List<Symbolizer> graphicSymbolizers = new ArrayList<>();
                 for (Symbolizer symbolizer : rule.symbolizers()) {
-                    Graphic graphic =
-                            IconPropertyExtractor.getGraphic(symbolizer, includeNonPointGraphics);
+                    Graphic graphic = IconPropertyExtractor.getGraphic(symbolizer, includeNonPointGraphics);
                     if (graphic != null) {
                         graphicSymbolizers.add(symbolizer);
                     }
                 }
                 if (!graphicSymbolizers.isEmpty()) {
-                    MiniRule miniRule =
-                            new MiniRule(rule.getFilter(), rule.isElseFilter(), graphicSymbolizers);
+                    MiniRule miniRule = new MiniRule(rule.getFilter(), rule.isElseFilter(), graphicSymbolizers);
                     miniRule.setName(rule.getName());
                     rules.add(miniRule);
                 }

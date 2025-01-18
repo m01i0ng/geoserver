@@ -10,11 +10,11 @@ import org.geoserver.catalog.AttributeTypeInfo;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.catalog.MetadataMap;
 import org.geoserver.util.InternationalStringUtils;
+import org.geotools.api.feature.type.AttributeDescriptor;
+import org.geotools.api.util.InternationalString;
 import org.geotools.filter.text.cql2.CQLException;
 import org.geotools.filter.text.ecql.ECQL;
 import org.geotools.util.GrowableInternationalString;
-import org.opengis.feature.type.AttributeDescriptor;
-import org.opengis.util.InternationalString;
 
 public class AttributeTypeInfoImpl implements AttributeTypeInfo {
 
@@ -135,6 +135,11 @@ public class AttributeTypeInfoImpl implements AttributeTypeInfo {
     }
 
     @Override
+    public String getRawSource() {
+        return source;
+    }
+
+    @Override
     public String getSource() {
         if (source == null && name != null) {
             try {
@@ -168,8 +173,7 @@ public class AttributeTypeInfoImpl implements AttributeTypeInfo {
 
     @Override
     public boolean equals(Object o) {
-        return equalsIngnoreFeatureType(o)
-                && Objects.equals(featureType, ((AttributeTypeInfoImpl) o).featureType);
+        return equalsIngnoreFeatureType(o) && Objects.equals(featureType, ((AttributeTypeInfoImpl) o).featureType);
     }
 
     @Override
@@ -206,7 +210,6 @@ public class AttributeTypeInfoImpl implements AttributeTypeInfo {
                 && Objects.equals(length, that.length)
                 && Objects.equals(description, that.description)
                 // avoid false negatives, source is derived if unset
-                && (Objects.equals(source, that.source)
-                        || Objects.equals(getSource(), that.getSource()));
+                && (Objects.equals(source, that.source) || Objects.equals(getSource(), that.getSource()));
     }
 }

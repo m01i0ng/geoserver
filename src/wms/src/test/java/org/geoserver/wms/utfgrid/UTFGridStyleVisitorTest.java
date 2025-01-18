@@ -14,25 +14,25 @@ import static org.junit.Assert.assertTrue;
 
 import java.awt.Color;
 import java.util.Map;
+import org.geotools.api.filter.FilterFactory;
+import org.geotools.api.filter.expression.Function;
+import org.geotools.api.style.FeatureTypeStyle;
+import org.geotools.api.style.Fill;
+import org.geotools.api.style.Graphic;
+import org.geotools.api.style.LineSymbolizer;
+import org.geotools.api.style.PolygonSymbolizer;
+import org.geotools.api.style.Stroke;
+import org.geotools.api.style.Style;
 import org.geotools.renderer.composite.BlendComposite.BlendingMode;
-import org.geotools.styling.FeatureTypeStyle;
-import org.geotools.styling.Fill;
-import org.geotools.styling.Graphic;
-import org.geotools.styling.LineSymbolizer;
-import org.geotools.styling.PolygonSymbolizer;
-import org.geotools.styling.Stroke;
-import org.geotools.styling.Style;
 import org.geotools.styling.StyleBuilder;
 import org.junit.Before;
 import org.junit.Test;
-import org.opengis.filter.FilterFactory2;
-import org.opengis.filter.expression.Function;
 
 public class UTFGridStyleVisitorTest {
 
     UTFGridStyleVisitor visitor;
     StyleBuilder sb = new StyleBuilder();
-    FilterFactory2 ff = sb.getFilterFactory();
+    FilterFactory ff = sb.getFilterFactory();
     private UTFGridColorFunction colorFunction;
 
     @Before
@@ -44,9 +44,7 @@ public class UTFGridStyleVisitorTest {
 
     @Test
     public void testOnlyTextSymbolizer() {
-        Style style =
-                sb.createStyle(
-                        sb.createTextSymbolizer(Color.BLACK, sb.createFont("Serif", 12), "name"));
+        Style style = sb.createStyle(sb.createTextSymbolizer(Color.BLACK, sb.createFont("Serif", 12), "name"));
         style.accept(visitor);
         Style copy = (Style) visitor.getCopy();
         assertEquals(0, copy.featureTypeStyles().size());
@@ -54,16 +52,14 @@ public class UTFGridStyleVisitorTest {
 
     @Test
     public void testFill() {
-        PolygonSymbolizer polygonSymbolizer =
-                sb.createPolygonSymbolizer(Color.BLACK, Color.BLACK, 3);
+        PolygonSymbolizer polygonSymbolizer = sb.createPolygonSymbolizer(Color.BLACK, Color.BLACK, 3);
         polygonSymbolizer.getFill().setOpacity(ff.literal(0.5));
         polygonSymbolizer.getStroke().setOpacity(ff.literal(0.5));
         Style style = sb.createStyle(polygonSymbolizer);
         style.accept(visitor);
         Style copy = (Style) visitor.getCopy();
-        PolygonSymbolizer ls =
-                (PolygonSymbolizer)
-                        copy.featureTypeStyles().get(0).rules().get(0).symbolizers().get(0);
+        PolygonSymbolizer ls = (PolygonSymbolizer)
+                copy.featureTypeStyles().get(0).rules().get(0).symbolizers().get(0);
         Stroke stroke = ls.getStroke();
         assertEquals(colorFunction, stroke.getColor());
         assertEquals(Integer.valueOf(3), stroke.getWidth().evaluate(null, Integer.class));
@@ -87,9 +83,8 @@ public class UTFGridStyleVisitorTest {
 
         style.accept(visitor);
         Style copy = (Style) visitor.getCopy();
-        PolygonSymbolizer ls =
-                (PolygonSymbolizer)
-                        copy.featureTypeStyles().get(0).rules().get(0).symbolizers().get(0);
+        PolygonSymbolizer ls = (PolygonSymbolizer)
+                copy.featureTypeStyles().get(0).rules().get(0).symbolizers().get(0);
         Stroke strokeCopy = ls.getStroke();
         assertEquals(colorFunction, strokeCopy.getColor());
         assertEquals(Integer.valueOf(8), strokeCopy.getWidth().evaluate(null, Integer.class));
@@ -105,9 +100,8 @@ public class UTFGridStyleVisitorTest {
         Style style = sb.createStyle(sb.createLineSymbolizer(sb.createStroke(Color.BLACK, 3)));
         style.accept(visitor);
         Style copy = (Style) visitor.getCopy();
-        LineSymbolizer ls =
-                (LineSymbolizer)
-                        copy.featureTypeStyles().get(0).rules().get(0).symbolizers().get(0);
+        LineSymbolizer ls = (LineSymbolizer)
+                copy.featureTypeStyles().get(0).rules().get(0).symbolizers().get(0);
         Stroke stroke = ls.getStroke();
         assertEquals(colorFunction, stroke.getColor());
         assertEquals(Integer.valueOf(3), stroke.getWidth().evaluate(null, Integer.class));
@@ -116,15 +110,11 @@ public class UTFGridStyleVisitorTest {
 
     @Test
     public void testStrokedLine() {
-        Style style =
-                sb.createStyle(
-                        sb.createLineSymbolizer(
-                                sb.createStroke(Color.BLACK, 1, new float[] {8, 8})));
+        Style style = sb.createStyle(sb.createLineSymbolizer(sb.createStroke(Color.BLACK, 1, new float[] {8, 8})));
         style.accept(visitor);
         Style copy = (Style) visitor.getCopy();
-        LineSymbolizer ls =
-                (LineSymbolizer)
-                        copy.featureTypeStyles().get(0).rules().get(0).symbolizers().get(0);
+        LineSymbolizer ls = (LineSymbolizer)
+                copy.featureTypeStyles().get(0).rules().get(0).symbolizers().get(0);
         Stroke stroke = ls.getStroke();
         assertEquals(colorFunction, stroke.getColor());
         assertEquals(Integer.valueOf(1), stroke.getWidth().evaluate(null, Integer.class));
@@ -141,9 +131,8 @@ public class UTFGridStyleVisitorTest {
 
         style.accept(visitor);
         Style copy = (Style) visitor.getCopy();
-        LineSymbolizer ls =
-                (LineSymbolizer)
-                        copy.featureTypeStyles().get(0).rules().get(0).symbolizers().get(0);
+        LineSymbolizer ls = (LineSymbolizer)
+                copy.featureTypeStyles().get(0).rules().get(0).symbolizers().get(0);
         stroke = ls.getStroke();
         assertEquals(colorFunction, stroke.getColor());
         assertEquals(Integer.valueOf(8), stroke.getWidth().evaluate(null, Integer.class));
@@ -186,9 +175,7 @@ public class UTFGridStyleVisitorTest {
     public void testRasterToVectorTransform() {
         FeatureTypeStyle fts = sb.createFeatureTypeStyle(sb.createLineSymbolizer());
         Function data = ff.function("parameter", ff.literal("data"));
-        Function levels =
-                ff.function(
-                        "parameter", ff.literal("levels"), ff.literal("1100"), ff.literal("1200"));
+        Function levels = ff.function("parameter", ff.literal("levels"), ff.literal("1100"), ff.literal("1200"));
         Function tx = ff.function("ras:Contour", data, levels);
         fts.setTransformation(tx);
         fts.getOptions().put(FeatureTypeStyle.COMPOSITE_BASE, "true");

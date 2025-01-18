@@ -18,8 +18,8 @@ import java.util.Properties;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.geoserver.data.test.SystemTestData;
-import org.geotools.data.DataStore;
-import org.geotools.data.DataStoreFinder;
+import org.geotools.api.data.DataStore;
+import org.geotools.api.data.DataStoreFinder;
 import org.geotools.data.DataUtilities;
 import org.junit.AfterClass;
 
@@ -43,9 +43,7 @@ public class ChangesetCustomDBTest extends ChangesetTest {
         // copy over the config file
         DATA_DIRECTORY = testData.getDataDirectoryRoot();
         File configFile = new File(DATA_DIRECTORY, CHANGESET_STORE_PROPERTIES);
-        try (InputStream is =
-                        ChangesetCustomDBTest.class.getResourceAsStream(
-                                CHANGESET_STORE_PROPERTIES);
+        try (InputStream is = ChangesetCustomDBTest.class.getResourceAsStream(CHANGESET_STORE_PROPERTIES);
                 OutputStream os = new FileOutputStream(configFile)) {
             IOUtils.copy(is, os);
         }
@@ -56,12 +54,10 @@ public class ChangesetCustomDBTest extends ChangesetTest {
         assertThat(DATA_DIRECTORY.listFiles().length, greaterThan(1));
 
         Properties props = new Properties();
-        try (InputStream is =
-                ChangesetCustomDBTest.class.getResourceAsStream(CHANGESET_STORE_PROPERTIES)) {
+        try (InputStream is = ChangesetCustomDBTest.class.getResourceAsStream(CHANGESET_STORE_PROPERTIES)) {
             props.load(is);
         }
-        DataStore datastore =
-                DataStoreFinder.getDataStore(DataUtilities.toConnectionParameters(props));
+        DataStore datastore = DataStoreFinder.getDataStore(DataUtilities.toConnectionParameters(props));
         try {
             assertThat(datastore, notNullValue());
             // if the cleanup has worked correctly, we expect only one residual table

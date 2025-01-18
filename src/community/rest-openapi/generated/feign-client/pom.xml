@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.geoserver.community</groupId>
     <artifactId>gs-rest-openapi-generated</artifactId>
-    <version>2.24-SNAPSHOT</version>
+    <version>2.27-SNAPSHOT</version>
   </parent>
   <artifactId>gs-rest-openapi-generated-feign-client</artifactId>
   <packaging>jar</packaging>
@@ -17,10 +17,6 @@
       <groupId>org.geoserver.community</groupId>
       <artifactId>gs-rest-openapi-generated-model</artifactId>
       <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.openapitools</groupId>
-      <artifactId>jackson-databind-nullable</artifactId>
     </dependency>
     <!-- HTTP client: Netflix Feign -->
     <dependency>
@@ -258,6 +254,22 @@
             <configuration>
               <generatorName>java</generatorName>
               <inputSpec>${openapi-base-folder}/owsservices.yaml</inputSpec>
+              <configurationFile>${project.basedir}/client-api-config.json</configurationFile>
+              <generateSupportingFiles>false</generateSupportingFiles>
+              <generateModelTests>false</generateModelTests>
+              <generateApiTests>false</generateApiTests>
+              <generateApiDocumentation>false</generateApiDocumentation>
+              <generateModelDocumentation>false</generateModelDocumentation>
+            </configuration>
+          </execution>
+          <execution>
+            <id>generate-urlchecks-api</id>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <generatorName>java</generatorName>
+              <inputSpec>${openapi-base-folder}/urlchecks.yaml</inputSpec>
               <configurationFile>${project.basedir}/client-api-config.json</configurationFile>
               <generateSupportingFiles>false</generateSupportingFiles>
               <generateModelTests>false</generateModelTests>

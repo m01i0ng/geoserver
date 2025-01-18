@@ -12,13 +12,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.data.test.MockData;
 import org.geoserver.data.test.SystemTestData;
+import org.geotools.api.data.FeatureSource;
+import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.data.DataUtilities;
-import org.geotools.data.FeatureSource;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.feature.FeatureIterator;
 import org.junit.Test;
-import org.opengis.feature.simple.SimpleFeature;
 
 public class GetFeatureBoundedTest extends WFSTestSupport {
 
@@ -37,34 +37,32 @@ public class GetFeatureBoundedTest extends WFSTestSupport {
         SimpleFeatureCollection fc = (SimpleFeatureCollection) fs.getFeatures();
         final AtomicInteger openIterators = new AtomicInteger(0);
 
-        SimpleFeatureCollection decorated =
-                new org.geotools.feature.collection.DecoratingSimpleFeatureCollection(fc) {
+        SimpleFeatureCollection decorated = new org.geotools.feature.collection.DecoratingSimpleFeatureCollection(fc) {
+            @Override
+            public SimpleFeatureIterator features() {
+                openIterators.incrementAndGet();
+                final SimpleFeature f = DataUtilities.first(delegate);
+                return new SimpleFeatureIterator() {
+
                     @Override
-                    public SimpleFeatureIterator features() {
-                        openIterators.incrementAndGet();
-                        final SimpleFeature f = DataUtilities.first(delegate);
-                        return new SimpleFeatureIterator() {
+                    public SimpleFeature next() throws NoSuchElementException {
+                        return f;
+                    }
 
-                            @Override
-                            public SimpleFeature next() throws NoSuchElementException {
-                                return f;
-                            }
+                    @Override
+                    public boolean hasNext() {
+                        return true;
+                    }
 
-                            @Override
-                            public boolean hasNext() {
-                                return true;
-                            }
-
-                            @Override
-                            public void close() {
-                                openIterators.decrementAndGet();
-                            }
-                        };
+                    @Override
+                    public void close() {
+                        openIterators.decrementAndGet();
                     }
                 };
+            }
+        };
 
-        FeatureBoundsFeatureCollection fbc =
-                new FeatureBoundsFeatureCollection(decorated, decorated.getSchema());
+        FeatureBoundsFeatureCollection fbc = new FeatureBoundsFeatureCollection(decorated, decorated.getSchema());
         @SuppressWarnings("PMD.CloseResource")
         FeatureIterator<?> i = fbc.features();
         i.close();

@@ -22,9 +22,9 @@ import org.geoserver.platform.Operation;
 import org.geoserver.platform.ServiceException;
 import org.geoserver.wfs.WFSInfo;
 import org.geoserver.wfs.xml.v1_1_0.WFSConfiguration;
+import org.geotools.api.filter.identity.FeatureId;
 import org.geotools.util.Version;
 import org.geotools.xsd.Encoder;
-import org.opengis.filter.identity.FeatureId;
 
 public class LockFeatureTypeResponse extends WFSResponse {
 
@@ -44,8 +44,7 @@ public class LockFeatureTypeResponse extends WFSResponse {
     }
 
     @Override
-    public void write(Object value, OutputStream output, Operation operation)
-            throws IOException, ServiceException {
+    public void write(Object value, OutputStream output, Operation operation) throws IOException, ServiceException {
         WFSInfo wfs = getInfo();
 
         LockFeatureResponseType lockResponse = (LockFeatureResponseType) value;
@@ -119,8 +118,7 @@ public class LockFeatureTypeResponse extends WFSResponse {
         writer.flush();
     }
 
-    void write1_1(LockFeatureResponseType lockResponse, OutputStream output, Operation operation)
-            throws IOException {
+    void write1_1(LockFeatureResponseType lockResponse, OutputStream output, Operation operation) throws IOException {
         XSDSchema result;
         try {
             result = configuration.getXSD().getSchema();
@@ -128,7 +126,8 @@ public class LockFeatureTypeResponse extends WFSResponse {
             throw new RuntimeException(e);
         }
         Encoder encoder = new Encoder(configuration, result);
-        encoder.setEncoding(Charset.forName(getInfo().getGeoServer().getSettings().getCharset()));
+        encoder.setEncoding(
+                Charset.forName(getInfo().getGeoServer().getSettings().getCharset()));
 
         LockFeatureType req = (LockFeatureType) operation.getParameters()[0];
 

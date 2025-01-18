@@ -61,13 +61,19 @@ public class CapabilitiesXmlReader extends XmlRequestReader {
             adapter.parse(new InputSource(reader));
         } catch (SAXException e) {
             throw new ServiceException(
-                    e, "XML capabilities request parsing error", getClass().getName());
+                    cleanSaxException(e),
+                    "XML capabilities request parsing error",
+                    getClass().getName());
         } catch (IOException e) {
             throw new ServiceException(
-                    e, "XML capabilities request input error", getClass().getName());
+                    cleanException(e),
+                    "XML capabilities request input error",
+                    getClass().getName());
         } catch (ParserConfigurationException e) {
             throw new ServiceException(
-                    e, "Some sort of issue creating parser", getClass().getName());
+                    cleanException(e),
+                    "Some sort of issue creating parser",
+                    getClass().getName());
         }
 
         return req;
@@ -82,8 +88,7 @@ public class CapabilitiesXmlReader extends XmlRequestReader {
     private static class CapabilitiesHandler extends XMLFilterImpl implements ContentHandler {
         /** Class logger */
         private static Logger LOGGER =
-                org.geotools.util.logging.Logging.getLogger(
-                        "org.geoserver.wms.xml.CapabilitiesHandler");
+                org.geotools.util.logging.Logging.getLogger("org.geoserver.wms.xml.CapabilitiesHandler");
 
         /** Internal Capabilities request for construction. */
         private GetCapabilitiesRequest request = null;
@@ -112,8 +117,7 @@ public class CapabilitiesXmlReader extends XmlRequestReader {
          * @throws SAXException For any standard SAX errors.
          */
         @Override
-        public void startElement(
-                String namespaceURI, String localName, String rawName, Attributes atts)
+        public void startElement(String namespaceURI, String localName, String rawName, Attributes atts)
                 throws SAXException {
             if (localName.equals("GetCapabilities")) {
                 LOGGER.finer("found capabilities start.");

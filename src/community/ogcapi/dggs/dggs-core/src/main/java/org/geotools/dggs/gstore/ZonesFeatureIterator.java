@@ -21,12 +21,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
-import org.geotools.data.simple.SimpleFeatureReader;
+import org.geotools.api.data.SimpleFeatureReader;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.type.AttributeDescriptor;
 import org.geotools.dggs.Zone;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.AttributeDescriptor;
 
 class ZonesFeatureIterator implements SimpleFeatureReader {
     private final Iterator<Zone> iterator;
@@ -35,15 +35,12 @@ class ZonesFeatureIterator implements SimpleFeatureReader {
     List<Boolean> includeExtraProperties;
 
     public ZonesFeatureIterator(
-            Iterator<Zone> iterator,
-            SimpleFeatureType schema,
-            List<AttributeDescriptor> extraProperties) {
+            Iterator<Zone> iterator, SimpleFeatureType schema, List<AttributeDescriptor> extraProperties) {
         this.iterator = iterator;
         fb = new SimpleFeatureBuilder(schema);
-        requestedProperties =
-                schema.getAttributeDescriptors().stream()
-                        .map(ad -> ad.getLocalName())
-                        .collect(Collectors.toList());
+        requestedProperties = schema.getAttributeDescriptors().stream()
+                .map(ad -> ad.getLocalName())
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -52,8 +49,7 @@ class ZonesFeatureIterator implements SimpleFeatureReader {
     }
 
     @Override
-    public SimpleFeature next()
-            throws IOException, IllegalArgumentException, NoSuchElementException {
+    public SimpleFeature next() throws IOException, IllegalArgumentException, NoSuchElementException {
         Zone zone = iterator.next();
         String id = zone.getId();
         for (String p : requestedProperties) {

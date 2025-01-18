@@ -28,6 +28,11 @@ import org.geoserver.wms.GetMapRequest;
 import org.geoserver.wms.WMS;
 import org.geoserver.wms.WMSMapContent;
 import org.geoserver.wms.featureinfo.FeatureTemplate;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.style.Style;
+import org.geotools.api.style.Symbolizer;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
@@ -37,18 +42,13 @@ import org.geotools.map.Layer;
 import org.geotools.map.MapViewport;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
-import org.geotools.styling.Style;
-import org.geotools.styling.Symbolizer;
 import org.geotools.util.Converters;
 import org.geotools.util.logging.Logging;
 import org.locationtech.jts.geom.Envelope;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
- * A class used by {@link KmlDecorator} to get the current encoding context (request, map content,
- * current layer, feature and so on).
+ * A class used by {@link KmlDecorator} to get the current encoding context (request, map content, current layer,
+ * feature and so on).
  *
  * @author Andrea Aime - GeoSolutions
  */
@@ -101,8 +101,8 @@ public class KmlEncodingContext {
     protected String mode;
 
     /**
-     * Holds the feature iterators that have been opened, but not yet closed, to make sure they get
-     * disposed at the end of the encoding even in case of exceptions during the encoding
+     * Holds the feature iterators that have been opened, but not yet closed, to make sure they get disposed at the end
+     * of the encoding even in case of exceptions during the encoding
      */
     protected IdentityHashMap<FeatureIterator, FeatureIterator> iterators = new IdentityHashMap<>();
 
@@ -123,16 +123,14 @@ public class KmlEncodingContext {
         this.superOverlayEnabled = computeSuperOverlayEnabled();
         this.extendedDataEnabled = computeExtendedDataEnabled();
         this.kmScore = computeKmScore();
-        this.networkLinksFormat =
-                KMLMapOutputFormat.NL_KML_MIME_TYPE.equals(request.getFormat())
-                        || KMZMapOutputFormat.NL_KMZ_MIME_TYPE.equals(request.getFormat());
+        this.networkLinksFormat = KMLMapOutputFormat.NL_KML_MIME_TYPE.equals(request.getFormat())
+                || KMZMapOutputFormat.NL_KMZ_MIME_TYPE.equals(request.getFormat());
         this.kmz = kmz;
         this.service = wms.getServiceInfo();
         this.liveIcons = true;
         this.iconStyles = new HashMap<>();
 
-        Boolean autofit =
-                Converters.convert(request.getFormatOptions().get("autofit"), Boolean.class);
+        Boolean autofit = Converters.convert(request.getFormatOptions().get("autofit"), Boolean.class);
         if (autofit != null && Converters.convert(autofit, Boolean.class)) {
             double width = mapContent.getMapWidth();
             double height = mapContent.getMapHeight();
@@ -165,8 +163,7 @@ public class KmlEncodingContext {
     /** Force the output to be in WGS84 */
     private WMSMapContent fixViewport(WMSMapContent mc) {
         MapViewport viewport = mc.getViewport();
-        if (!CRS.equalsIgnoreMetadata(
-                viewport.getCoordinateReferenceSystem(), DefaultGeographicCRS.WGS84)) {
+        if (!CRS.equalsIgnoreMetadata(viewport.getCoordinateReferenceSystem(), DefaultGeographicCRS.WGS84)) {
             viewport.setCoordinateReferenceSystem(DefaultGeographicCRS.WGS84);
             GetMapRequest req = mc.getRequest();
             req.setSRS("EPSG:4326");
@@ -179,7 +176,7 @@ public class KmlEncodingContext {
     /** Protected constructor used by WFS output format to create a fake kml encoding context */
     protected KmlEncodingContext() {}
 
-    /** Returns the the kmplacemark value (either specified in the request, or the default one) */
+    /** Returns the kmplacemark value (either specified in the request, or the default one) */
     boolean computeKmplacemark() {
         Object kmplacemark = request.getFormatOptions().get("kmplacemark");
         if (kmplacemark != null) {
@@ -189,7 +186,7 @@ public class KmlEncodingContext {
         }
     }
 
-    /** Returns the the kmattr value (either specified in the request, or the default one) */
+    /** Returns the kmattr value (either specified in the request, or the default one) */
     boolean computeKMAttr() {
         Object kmattr = request.getFormatOptions().get("kmattr");
         if (kmattr == null) {
@@ -252,8 +249,7 @@ public class KmlEncodingContext {
 
     /** Returns the {@link KmlDecorator} objects for the specified Feature class */
     public List<KmlDecorator> getDecoratorsForClass(Class<? extends Feature> clazz) {
-        List<KmlDecoratorFactory> factories =
-                GeoServerExtensions.extensions(KmlDecoratorFactory.class);
+        List<KmlDecoratorFactory> factories = GeoServerExtensions.extensions(KmlDecoratorFactory.class);
         List<KmlDecorator> result = new ArrayList<>();
         for (KmlDecoratorFactory factory : factories) {
             KmlDecorator decorator = factory.getDecorator(clazz, this);
@@ -374,8 +370,7 @@ public class KmlEncodingContext {
     public void addKmzGroundOverlay(String imagePath, Layer layer) {
         if (!kmz) {
             throw new IllegalStateException(
-                    "Cannot add ground "
-                            + "overlay layers, the output is not supposed to be a KMZ");
+                    "Cannot add ground " + "overlay layers, the output is not supposed to be a KMZ");
         }
         this.kmzGroundOverlays.put(imagePath, layer);
     }
@@ -418,8 +413,8 @@ public class KmlEncodingContext {
     }
 
     /**
-     * Returns a list of the feature types to be encoded. Will provide a feature type only for the
-     * vector layers, a null will be placed where a layer of different nature is found
+     * Returns a list of the feature types to be encoded. Will provide a feature type only for the vector layers, a null
+     * will be placed where a layer of different nature is found
      */
     public List<SimpleFeatureType> getFeatureTypes() {
         List<SimpleFeatureType> results = new ArrayList<>();
@@ -434,10 +429,7 @@ public class KmlEncodingContext {
         return results;
     }
 
-    /**
-     * Returns the current feature type is the current layer is made of vector features, null
-     * otherwise
-     */
+    /** Returns the current feature type is the current layer is made of vector features, null otherwise */
     public SimpleFeatureType getCurrentFeatureType() {
         if (currentLayer instanceof FeatureLayer) {
             FeatureLayer fl = (FeatureLayer) currentLayer;
@@ -524,18 +516,14 @@ public class KmlEncodingContext {
                 }
             }
 
-            if (!CRS.equalsIgnoreMetadata(
-                    re.getCoordinateReferenceSystem(), DefaultGeographicCRS.WGS84)) {
+            if (!CRS.equalsIgnoreMetadata(re.getCoordinateReferenceSystem(), DefaultGeographicCRS.WGS84)) {
                 return re.transform(DefaultGeographicCRS.WGS84, true);
             } else {
                 return re;
             }
         } catch (Exception e) {
             throw new ServiceException(
-                    "Requested bounding box "
-                            + request.getBbox()
-                            + " could not be tranformed to WGS84",
-                    e);
+                    "Requested bounding box " + request.getBbox() + " could not be tranformed to WGS84", e);
         }
     }
 }

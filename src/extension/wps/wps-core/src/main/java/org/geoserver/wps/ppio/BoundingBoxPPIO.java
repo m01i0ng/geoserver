@@ -10,13 +10,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 import net.opengis.ows11.BoundingBoxType;
 import net.opengis.ows11.Ows11Factory;
+import org.geoserver.catalog.ResourcePool;
 import org.geoserver.wps.WPSException;
-import org.geotools.geometry.GeneralEnvelope;
+import org.geotools.api.geometry.BoundingBox;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.geometry.GeneralBounds;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
 import org.locationtech.jts.geom.Envelope;
-import org.opengis.geometry.BoundingBox;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
  * Process parameter input / output for bounding boxes
@@ -54,20 +55,18 @@ public class BoundingBoxPPIO extends ProcessParameterIO {
         double[] lower = ordinates(bbox.getLowerCorner());
         double[] upper = ordinates(bbox.getUpperCorner());
 
-        if (ReferencedEnvelope.class.isAssignableFrom(getType())
-                || BoundingBox.class.isAssignableFrom(getType())) {
+        if (ReferencedEnvelope.class.isAssignableFrom(getType()) || BoundingBox.class.isAssignableFrom(getType())) {
             return new ReferencedEnvelope(lower[0], upper[0], lower[1], upper[1], crs);
         } else if (Envelope.class.isAssignableFrom(getType())) {
             return new Envelope(lower[0], upper[0], lower[1], upper[1]);
-        } else if (org.opengis.geometry.Envelope.class.isAssignableFrom(getType())) {
-            GeneralEnvelope ge = new GeneralEnvelope(lower, upper);
+        } else if (org.geotools.api.geometry.Bounds.class.isAssignableFrom(getType())) {
+            GeneralBounds ge = new GeneralBounds(lower, upper);
             ge.setCoordinateReferenceSystem(crs);
             return ge;
         } else {
-            throw new WPSException(
-                    "Failed to convert from OWS 1.1 Bounding box type "
-                            + "to the internal representation: "
-                            + getType());
+            throw new WPSException("Failed to convert from OWS 1.1 Bounding box type "
+                    + "to the internal representation: "
+                    + getType());
         }
     }
 
@@ -106,23 +105,19 @@ public class BoundingBoxPPIO extends ProcessParameterIO {
             }
             bbox.setLowerCorner(Arrays.asList(env.getMinX(), env.getMinY()));
             bbox.setUpperCorner(Arrays.asList(env.getMaxX(), env.getMaxY()));
-        } else if (org.opengis.geometry.Envelope.class.isAssignableFrom(getType())) {
-            org.opengis.geometry.Envelope env = (org.opengis.geometry.Envelope) object;
+        } else if (org.geotools.api.geometry.Bounds.class.isAssignableFrom(getType())) {
+            org.geotools.api.geometry.Bounds env = (org.geotools.api.geometry.Bounds) object;
             crs = env.getCoordinateReferenceSystem();
             bbox.setLowerCorner(doubleArrayToList(env.getLowerCorner().getCoordinate()));
             bbox.setUpperCorner(doubleArrayToList(env.getUpperCorner().getCoordinate()));
         } else {
-            throw new WPSException(
-                    "Failed to convert from " + object + " to an OWS 1.1 Bounding box type");
+            throw new WPSException("Failed to convert from " + object + " to an OWS 1.1 Bounding box type");
         }
 
         // handle the EPSG code
         if (crs != null) {
             try {
-                Integer code = CRS.lookupEpsgCode(crs, false);
-                if (code != null) {
-                    bbox.setCrs("EPSG:" + code);
-                }
+                bbox.setCrs(ResourcePool.lookupIdentifier(crs, false));
             } catch (Exception e) {
                 throw new WPSException("Could not lookup epsg code for " + crs, e);
             }

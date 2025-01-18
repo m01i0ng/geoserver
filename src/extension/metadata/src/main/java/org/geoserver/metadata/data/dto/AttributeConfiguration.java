@@ -25,6 +25,8 @@ public interface AttributeConfiguration extends Serializable {
 
     String getLabel();
 
+    List<String> getTab();
+
     void setLabel(String label);
 
     FieldTypeEnum getFieldType();

@@ -13,14 +13,14 @@ import net.opengis.ows11.BoundingBoxType;
 import net.opengis.ows11.Ows11Factory;
 import org.geoserver.ows.KvpParser;
 import org.geoserver.ows.util.KvpUtils;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.referencing.CRS;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.vfny.geoserver.wcs.WcsException;
 import org.vfny.geoserver.wcs.WcsException.WcsExceptionCode;
 
 /**
- * This and wfs BBoxKvpParser share a lot, it's just they don't share the same output type. Find a
- * way to create one common superclass.
+ * This and wfs BBoxKvpParser share a lot, it's just they don't share the same output type. Find a way to create one
+ * common superclass.
  *
  * @author Andrea Aime
  */
@@ -36,8 +36,7 @@ public class BoundingBoxKvpParser extends KvpParser {
         // check to make sure that the bounding box has 4 coordinates
         if (unparsed.size() < 4) {
             throw new WcsException(
-                    "Requested bounding box contains wrong"
-                            + "number of coordinates (should have at least 4): "
+                    "Requested bounding box contains wrong number of coordinates (should have at least 4): "
                             + unparsed.size(),
                     WcsExceptionCode.InvalidParameterValue,
                     "BoundingBox");
@@ -88,8 +87,7 @@ public class BoundingBoxKvpParser extends KvpParser {
                                 "BoundingBox");
                 }
             } catch (Exception e) {
-                throw new WcsException(
-                        "Could not recognize crs " + crsName, InvalidParameterValue, "BoundingBox");
+                throw new WcsException("Could not recognize crs " + crsName, InvalidParameterValue, "BoundingBox");
             }
         }
 

@@ -8,27 +8,26 @@ package org.vfny.geoserver.global;
 import java.io.IOException;
 import java.util.List;
 import org.geoserver.feature.RetypingFeatureCollection;
+import org.geotools.api.data.FeatureReader;
+import org.geotools.api.data.FeatureStore;
+import org.geotools.api.data.SimpleFeatureStore;
+import org.geotools.api.data.Transaction;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.type.Name;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.filter.identity.FeatureId;
 import org.geotools.data.DataUtilities;
-import org.geotools.data.FeatureReader;
-import org.geotools.data.FeatureStore;
-import org.geotools.data.Transaction;
-import org.geotools.data.simple.SimpleFeatureStore;
 import org.geotools.feature.FeatureCollection;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.Name;
-import org.opengis.filter.Filter;
-import org.opengis.filter.identity.FeatureId;
 
 /**
  * GeoServer wrapper for backend Geotools2 DataStore.
  *
- * <p>Support FeatureSource decorator for FeatureTypeInfo that takes care of mapping the
- * FeatureTypeInfo's FeatureSource with the schema and definition query configured for it.
+ * <p>Support FeatureSource decorator for FeatureTypeInfo that takes care of mapping the FeatureTypeInfo's FeatureSource
+ * with the schema and definition query configured for it.
  *
- * <p>Because GeoServer requires that attributes always be returned in the same order we need a way
- * to smoothly inforce this. Could we use this class to do so? It would need to support writing and
- * locking though.
+ * <p>Because GeoServer requires that attributes always be returned in the same order we need a way to smoothly inforce
+ * this. Could we use this class to do so? It would need to support writing and locking though.
  *
  * @author Gabriel Rold?n
  * @version $Id$
@@ -51,8 +50,7 @@ public class GeoServerFeatureStore extends GeoServerFeatureSource implements Sim
 
     /** see interface for details. */
     @Override
-    public List<FeatureId> addFeatures(FeatureCollection<SimpleFeatureType, SimpleFeature> fc)
-            throws IOException {
+    public List<FeatureId> addFeatures(FeatureCollection<SimpleFeatureType, SimpleFeature> fc) throws IOException {
         FeatureStore<SimpleFeatureType, SimpleFeature> store = store();
 
         // check if the feature collection needs to be retyped
@@ -73,8 +71,7 @@ public class GeoServerFeatureStore extends GeoServerFeatureSource implements Sim
 
     /** */
     @Override
-    public void setFeatures(FeatureReader<SimpleFeatureType, SimpleFeature> reader)
-            throws IOException {
+    public void setFeatures(FeatureReader<SimpleFeatureType, SimpleFeature> reader) throws IOException {
         FeatureStore<SimpleFeatureType, SimpleFeature> store = store();
 
         // check if the feature reader needs to be retyped
@@ -98,32 +95,28 @@ public class GeoServerFeatureStore extends GeoServerFeatureSource implements Sim
     }
 
     @Override
-    public void modifyFeatures(String name, Object attributeValue, Filter filter)
-            throws IOException {
+    public void modifyFeatures(String name, Object attributeValue, Filter filter) throws IOException {
         filter = makeDefinitionFilter(filter);
 
         store().modifyFeatures(name, attributeValue, filter);
     }
 
     @Override
-    public void modifyFeatures(String[] names, Object[] attributeValues, Filter filter)
-            throws IOException {
+    public void modifyFeatures(String[] names, Object[] attributeValues, Filter filter) throws IOException {
         filter = makeDefinitionFilter(filter);
 
         store().modifyFeatures(names, attributeValues, filter);
     }
 
     @Override
-    public void modifyFeatures(Name[] attributeNames, Object[] attributeValues, Filter filter)
-            throws IOException {
+    public void modifyFeatures(Name[] attributeNames, Object[] attributeValues, Filter filter) throws IOException {
         filter = makeDefinitionFilter(filter);
 
         store().modifyFeatures(attributeNames, attributeValues, filter);
     }
 
     @Override
-    public void modifyFeatures(Name attributeName, Object attributeValue, Filter filter)
-            throws IOException {
+    public void modifyFeatures(Name attributeName, Object attributeValue, Filter filter) throws IOException {
         filter = makeDefinitionFilter(filter);
 
         store().modifyFeatures(attributeName, attributeValue, filter);

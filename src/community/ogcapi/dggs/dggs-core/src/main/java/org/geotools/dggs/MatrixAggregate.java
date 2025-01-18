@@ -21,13 +21,13 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.geotools.api.feature.Feature;
+import org.geotools.api.filter.expression.Expression;
 import org.geotools.feature.visitor.AbstractCalcResult;
 import org.geotools.feature.visitor.Aggregate;
 import org.geotools.feature.visitor.CalcResult;
 import org.geotools.feature.visitor.FeatureAttributeVisitor;
 import org.geotools.feature.visitor.FeatureCalc;
-import org.opengis.feature.Feature;
-import org.opengis.filter.expression.Expression;
 
 public class MatrixAggregate implements FeatureCalc, FeatureAttributeVisitor {
 
@@ -48,8 +48,7 @@ public class MatrixAggregate implements FeatureCalc, FeatureAttributeVisitor {
 
     public void setResults(List<Object> results) {
         if (results.size() != calculators.size())
-            throw new IllegalArgumentException(
-                    "Invalid results, size does not match expected: " + calculators.size());
+            throw new IllegalArgumentException("Invalid results, size does not match expected: " + calculators.size());
 
         List<CalcResult> resultList = new ArrayList<>();
         Iterator<Object> iterator = results.iterator();
@@ -68,9 +67,8 @@ public class MatrixAggregate implements FeatureCalc, FeatureAttributeVisitor {
 
     @Override
     public CalcResult getResult() {
-        MatrixAggregateResult inMemoryResults =
-                new MatrixAggregateResult(
-                        calculators.stream().map(c -> c.getResult()).collect(Collectors.toList()));
+        MatrixAggregateResult inMemoryResults = new MatrixAggregateResult(
+                calculators.stream().map(c -> c.getResult()).collect(Collectors.toList()));
         if (result == null) return inMemoryResults;
         else return inMemoryResults.merge(result);
     }
@@ -107,8 +105,7 @@ public class MatrixAggregate implements FeatureCalc, FeatureAttributeVisitor {
             MatrixAggregateResult other = (MatrixAggregateResult) resultsToAdd;
             if (other.results.size() != this.results.size()) {
                 throw new IllegalArgumentException(
-                        "Size of the two calc results do not match, should be "
-                                + this.results.size());
+                        "Size of the two calc results do not match, should be " + this.results.size());
             }
             List<CalcResult> merged = new ArrayList<>();
             for (int i = 0; i < this.results.size(); i++) {

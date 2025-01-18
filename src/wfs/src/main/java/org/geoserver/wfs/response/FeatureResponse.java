@@ -15,9 +15,9 @@ import org.geoserver.config.GeoServer;
 import org.geoserver.platform.Operation;
 import org.geoserver.platform.ServiceException;
 import org.geoserver.wfs.xml.v1_1_0.WFSConfiguration;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
 import org.geotools.xsd.Encoder;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
 
 /**
  * Resonse which handles an individual {@link SimpleFeature} and encodes it as gml.
@@ -43,8 +43,7 @@ public class FeatureResponse extends WFSResponse {
     }
 
     @Override
-    public void write(Object value, OutputStream output, Operation operation)
-            throws IOException, ServiceException {
+    public void write(Object value, OutputStream output, Operation operation) throws IOException, ServiceException {
 
         // get the feature
         SimpleFeature feature = (SimpleFeature) value;
@@ -55,7 +54,8 @@ public class FeatureResponse extends WFSResponse {
 
         // create teh encoder
         Encoder encoder = new Encoder(configuration);
-        encoder.setEncoding(Charset.forName(getInfo().getGeoServer().getSettings().getCharset()));
+        encoder.setEncoding(
+                Charset.forName(getInfo().getGeoServer().getSettings().getCharset()));
         encoder.encode(feature, new QName(meta.getNamespace().getURI(), meta.getName()), output);
     }
 }

@@ -44,9 +44,7 @@ public class UpDownPanel<T extends Object> extends Panel {
 
         upLink =
                 new ImageAjaxLink<Void>(
-                        "up",
-                        new PackageResourceReference(
-                                getClass(), "../img/icons/silk/arrow_up.png")) {
+                        "up", new PackageResourceReference(getClass(), "../img/icons/silk/arrow_up.png")) {
                     private static final long serialVersionUID = 2377129539852597050L;
 
                     @Override
@@ -64,9 +62,9 @@ public class UpDownPanel<T extends Object> extends Panel {
                     protected void onComponentTag(ComponentTag tag) {
                         tag.put("title", upTitle.getString());
                         if (items.indexOf(entry) == 0) {
-                            tag.put("style", "visibility:hidden");
+                            tag.put("class", "visibility-hidden");
                         } else {
-                            tag.put("style", "visibility:visible");
+                            tag.put("class", "visibility-visible");
                         }
                     }
                 };
@@ -76,9 +74,7 @@ public class UpDownPanel<T extends Object> extends Panel {
 
         downLink =
                 new ImageAjaxLink<Void>(
-                        "down",
-                        new PackageResourceReference(
-                                getClass(), "../img/icons/silk/arrow_down.png")) {
+                        "down", new PackageResourceReference(getClass(), "../img/icons/silk/arrow_down.png")) {
                     private static final long serialVersionUID = -1770135905138092575L;
 
                     @Override
@@ -96,14 +92,13 @@ public class UpDownPanel<T extends Object> extends Panel {
                     protected void onComponentTag(ComponentTag tag) {
                         tag.put("title", downTitle.getString());
                         if (items.indexOf(entry) == items.size() - 1) {
-                            tag.put("style", "visibility:hidden");
+                            tag.put("class", "visibility-hidden");
                         } else {
-                            tag.put("style", "visibility:visible");
+                            tag.put("class", "visibility-visible");
                         }
                     }
                 };
-        downLink.getImage()
-                .add(new AttributeModifier("alt", new ParamResourceModel("down", downLink)));
+        downLink.getImage().add(new AttributeModifier("alt", new ParamResourceModel("down", downLink)));
         downLink.setOutputMarkupId(true);
         add(downLink);
     }

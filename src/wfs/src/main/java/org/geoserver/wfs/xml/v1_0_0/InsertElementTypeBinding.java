@@ -11,13 +11,13 @@ import net.opengis.wfs.InsertElementType;
 import net.opengis.wfs.WfsFactory;
 import org.eclipse.emf.common.util.EList;
 import org.geoserver.wfs.WFSException;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.gml2.bindings.GML2ParsingUtils;
 import org.geotools.gml3.GML;
 import org.geotools.xsd.AbstractComplexEMFBinding;
 import org.geotools.xsd.ElementInstance;
 import org.geotools.xsd.Node;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.picocontainer.MutablePicoContainer;
 
 /**
@@ -66,8 +66,7 @@ public class InsertElementTypeBinding extends AbstractComplexEMFBinding {
     }
 
     @Override
-    public void initializeChildContext(
-            ElementInstance childInstance, Node node, MutablePicoContainer context) {
+    public void initializeChildContext(ElementInstance childInstance, Node node, MutablePicoContainer context) {
         // if an srsName is set for this geometry, put it in the context for
         // children, so they can use it as well
         if (node.hasAttribute("srsName")) {

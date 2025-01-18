@@ -6,17 +6,17 @@
 package org.geoserver.wfs;
 
 import org.geoserver.catalog.FeatureTypeInfo;
+import org.geotools.api.feature.Feature;
+import org.geotools.api.feature.FeatureVisitor;
+import org.geotools.api.feature.type.FeatureType;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.collection.DecoratingFeatureCollection;
 import org.geotools.feature.collection.DecoratingSimpleFeatureCollection;
-import org.opengis.feature.Feature;
-import org.opengis.feature.FeatureVisitor;
-import org.opengis.feature.type.FeatureType;
 
 /**
- * Simple interface allowing access to the original main {@link FeatureTypeInfo} behind a feature
- * collection. Has a simple and a complex implementation.
+ * Simple interface allowing access to the original main {@link FeatureTypeInfo} behind a feature collection. Has a
+ * simple and a complex implementation.
  */
 public interface TypeInfoCollectionWrapper {
 
@@ -24,15 +24,14 @@ public interface TypeInfoCollectionWrapper {
     static <T extends FeatureType, F extends Feature> FeatureCollection<T, F> wrap(
             FeatureCollection<T, F> delegate, FeatureTypeInfo featureTypeInfo) {
         if (delegate instanceof SimpleFeatureCollection) {
-            return (FeatureCollection<T, F>)
-                    new Simple((SimpleFeatureCollection) delegate, featureTypeInfo);
+            return (FeatureCollection<T, F>) new Simple((SimpleFeatureCollection) delegate, featureTypeInfo);
         } else {
             return new Complex<>(delegate, featureTypeInfo);
         }
     }
 
-    class Complex<T extends FeatureType, F extends Feature>
-            extends DecoratingFeatureCollection<T, F> implements TypeInfoCollectionWrapper {
+    class Complex<T extends FeatureType, F extends Feature> extends DecoratingFeatureCollection<T, F>
+            implements TypeInfoCollectionWrapper {
 
         private final FeatureTypeInfo featureTypeInfo;
 

@@ -20,17 +20,17 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
+import org.geotools.api.filter.FilterFactory;
+import org.geotools.api.filter.expression.Function;
 import org.geotools.dggs.h3.H3DGGSFactory;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.filter.function.EnvFunction;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.opengis.filter.FilterFactory2;
-import org.opengis.filter.expression.Function;
 
 public class NeighborFunctionTest {
-    static final FilterFactory2 FF = CommonFactoryFinder.getFilterFactory2();
+    static final FilterFactory FF = CommonFactoryFinder.getFilterFactory();
     static DGGSInstance DGGS;
 
     @BeforeClass
@@ -48,12 +48,7 @@ public class NeighborFunctionTest {
         Function testedZone = FF.function("env", FF.literal("test"));
 
         Function neighbor =
-                FF.function(
-                        "neighbor",
-                        testedZone,
-                        FF.literal("807ffffffffffff"),
-                        FF.literal(1),
-                        FF.literal(DGGS));
+                FF.function("neighbor", testedZone, FF.literal("807ffffffffffff"), FF.literal(1), FF.literal(DGGS));
         assertNotNull(neighbor);
 
         // test with a couple neighbors
@@ -80,8 +75,7 @@ public class NeighborFunctionTest {
         Function testedZone = FF.function("env", FF.literal("test"));
         Function referenceZone = FF.function("env", FF.literal("testReference"));
 
-        Function neighbor =
-                FF.function("neighbor", testedZone, referenceZone, FF.literal(1), FF.literal(DGGS));
+        Function neighbor = FF.function("neighbor", testedZone, referenceZone, FF.literal(1), FF.literal(DGGS));
         assertNotNull(neighbor);
 
         // setup the reference zone

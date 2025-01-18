@@ -4,33 +4,18 @@
   <wicket:link>
     <link rel="stylesheet" type="text/css" href="style.css"/>
   </wicket:link>
-  
- <style type="text/css">
-   fieldset {
-     margin-top: 3em;
-   }
-   
-   #sources li {
-     margin: 0;
-     padding: 0;
-   }
-   
-   #sources li:first-child {
-     margin: 0.3em 0 0;
-   }
- </style>
  </wicket:head>
 </head>
 <body>
 <wicket:extend>
 
-   <div>
+   <div class="fieldset-margins">
     <fieldset>
       <legend><span><wicket:message key="backupResource">Archive File</wicket:message></span></legend>
 	  <div wicket:id="backupResource"></div>
 	  <label for="workspace"><wicket:message key="workspace">Workspace</wicket:message></label>
       <select id="workspace" wicket:id="workspace"></select>
-      <span wicket:id="workspaceNameContainer"><input type="text" class="text" wicket:id="workspaceName" style="width:10em;"></input></span>
+      <span wicket:id="workspaceNameContainer"><input type="text" class="text w-10-em" wicket:id="workspaceName"></input></span>
 	  <label for="store"><wicket:message key="store">Store</wicket:message></label>
       <select id="store" wicket:id="store"></select>
       <label for="layer"><wicket:message key="layer">Layer</wicket:message></label>
@@ -38,7 +23,7 @@
 	</fieldset>
   </div>
   
-  <form wicket:id="backupForm">
+  <form wicket:id="backupForm" class="fieldset-margins">
     <h3><span><wicket:message key="issueNewBackup">issueNewBackup</wicket:message></span></h3>
 	<fieldset>
 	    <legend><span><wicket:message key="newBackupOptions">Backup Options</wicket:message></span></legend>
@@ -62,7 +47,7 @@
         <span>Start Backup</span>
       </a>
       <a href="#" wicket:id="cancel">
-        <span><wicket:message key="cancel"></wicket:message></span>
+        <span><wicket:message key="abandon"></wicket:message></span>
       </a>
       <span wicket:id="status">Working</span>
     </div>
@@ -81,7 +66,7 @@
     </fieldset>
   </form>
 
-  <form wicket:id="restoreForm">
+  <form wicket:id="restoreForm" class="fieldset-margins">
     <h3><span><wicket:message key="issueNewRestore">issueNewRestore</wicket:message></span></h3>
 	<fieldset>
 	    <legend><span><wicket:message key="newRestoreOptions">Restore Options</wicket:message></span></legend>
@@ -105,7 +90,7 @@
         <span>Start Restore</span>
       </a>
       <a href="#" wicket:id="cancel">
-        <span><wicket:message key="cancel"></wicket:message></span>
+        <span><wicket:message key="abandon"></wicket:message></span>
       </a>
       <span wicket:id="status">Working</span>
     </div>

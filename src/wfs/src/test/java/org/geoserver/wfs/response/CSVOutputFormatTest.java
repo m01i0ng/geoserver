@@ -9,10 +9,12 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+import static org.geoserver.data.test.CiteTestData.ROAD_SEGMENTS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
 import au.com.bytecode.opencsv.CSVReader;
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
@@ -24,19 +26,32 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import net.opengis.wfs.GetFeatureType;
 import net.opengis.wfs.WfsFactory;
+import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.catalog.NamespaceInfo;
 import org.geoserver.catalog.impl.NamespaceInfoImpl;
+import org.geoserver.config.GeoServer;
 import org.geoserver.data.test.MockData;
+import org.geoserver.data.test.SystemTestData;
 import org.geoserver.platform.Operation;
+import org.geoserver.wfs.WFSInfo;
 import org.geoserver.wfs.WFSTestSupport;
 import org.geoserver.wfs.request.FeatureCollectionResponse;
-import org.geotools.data.FeatureSource;
-import org.geotools.data.Query;
+import org.geotools.api.data.FeatureSource;
+import org.geotools.api.data.Query;
+import org.geotools.api.data.SimpleFeatureSource;
+import org.geotools.api.feature.Feature;
+import org.geotools.api.feature.Property;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.type.ComplexType;
+import org.geotools.api.feature.type.Name;
+import org.geotools.api.feature.type.PropertyDescriptor;
+import org.geotools.api.filter.identity.FeatureId;
 import org.geotools.data.complex.feature.type.ComplexFeatureTypeImpl;
 import org.geotools.data.memory.MemoryDataStore;
-import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.data.wfs.internal.WFSContentComplexFeatureCollection;
 import org.geotools.feature.FakeTypes;
 import org.geotools.feature.FeatureCollection;
@@ -51,25 +66,37 @@ import org.junit.Test;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
-import org.opengis.feature.Feature;
-import org.opengis.feature.Property;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.ComplexType;
-import org.opengis.feature.type.Name;
-import org.opengis.feature.type.PropertyDescriptor;
-import org.opengis.filter.identity.FeatureId;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 public class CSVOutputFormatTest extends WFSTestSupport {
     private static final String CSV = "text/csv";
 
     @Test
+    public void testWithAttributesRemoved() throws Exception {
+        String layerId = getLayerId(ROAD_SEGMENTS);
+        FeatureTypeInfo fti = getCatalog().getFeatureTypeByName(layerId);
+        fti.getAttributes().addAll(fti.attributes());
+        fti.getAttributes().remove(1);
+        getCatalog().save(fti);
+
+        GeoServer gs = getGeoServer();
+        WFSInfo wfs = gs.getService(WFSInfo.class);
+        wfs.setFeatureBounding(false);
+        gs.save(wfs);
+
+        MockHttpServletResponse response = getAsServletResponse(
+                "ows?service=WFS&version=1.0.0&request=GetFeature&typeName=cite:RoadSegments&maxFeatures=50&outputFormat=text%2Fcsv&propertyname=NAME");
+        assertEquals("attachment; filename=RoadSegments.csv", response.getHeader("Content-Disposition"));
+
+        assertEquals(CSV, getBaseMimeType(response.getContentType()));
+        BufferedReader content = new BufferedReader(new StringReader(new String(response.getContentAsByteArray())));
+        assertEquals("FID,NAME", content.readLine().strip().replace(" ", ""));
+    }
+
+    @Test
     public void testFullRequest() throws Exception {
-        MockHttpServletResponse resp =
-                getAsServletResponse(
-                        "wfs?version=1.1.0&request=GetFeature&typeName=sf:PrimitiveGeoFeature&outputFormat=csv",
-                        UTF_8.name());
+        MockHttpServletResponse resp = getAsServletResponse(
+                "wfs?version=1.1.0&request=GetFeature&typeName=sf:PrimitiveGeoFeature&outputFormat=csv", UTF_8.name());
 
         FeatureSource fs = getFeatureSource(MockData.PRIMITIVEGEOFEATURE);
 
@@ -82,9 +109,7 @@ public class CSVOutputFormatTest extends WFSTestSupport {
         assertEquals(UTF_8.name(), resp.getCharacterEncoding());
 
         // check the content disposition
-        assertEquals(
-                "attachment; filename=PrimitiveGeoFeature.csv",
-                resp.getHeader("Content-Disposition"));
+        assertEquals("attachment; filename=PrimitiveGeoFeature.csv", resp.getHeader("Content-Disposition"));
 
         // read the response back with a parser that can handle escaping, newlines and what not
         List<String[]> lines = readLines(resp.getContentAsString(), ',');
@@ -100,12 +125,11 @@ public class CSVOutputFormatTest extends WFSTestSupport {
 
     @Test
     public void testHTMLStuff() throws Exception {
-        MockHttpServletResponse resp =
-                getAsServletResponse(
-                        "wfs?version=1.1.0&request=GetFeature&"
-                                + "typeName=sf:PrimitiveGeoFeature&"
-                                + "outputFormat=csv&format_options=filename:test",
-                        UTF_8.name());
+        MockHttpServletResponse resp = getAsServletResponse(
+                "wfs?version=1.1.0&request=GetFeature&"
+                        + "typeName=sf:PrimitiveGeoFeature&"
+                        + "outputFormat=csv&format_options=filename:test",
+                UTF_8.name());
 
         assertEquals(CSV, getBaseMimeType(resp.getContentType()));
         assertEquals(UTF_8.name(), resp.getCharacterEncoding());
@@ -127,39 +151,20 @@ public class CSVOutputFormatTest extends WFSTestSupport {
 
         Date d = (new SimpleDateFormat("yyyy-MM-dd")).parse("2016-01-01");
         GeometryFactory gf = new GeometryFactory();
-        SimpleFeature f1 =
-                SimpleFeatureBuilder.build(
-                        type,
-                        new Object[] {
-                            gf.createPoint(new Coordinate(5, 8)),
-                            "A label with \"quotes\"",
-                            d,
-                            10,
-                            100.0
-                        },
-                        null);
-        SimpleFeature f2 =
-                SimpleFeatureBuilder.build(
-                        type,
-                        new Object[] {
-                            gf.createPoint(new Coordinate(5, 4)),
-                            "A long label\nwith newlines",
-                            d,
-                            10,
-                            200.0
-                        },
-                        null);
-        SimpleFeature f3 =
-                SimpleFeatureBuilder.build(
-                        type,
-                        new Object[] {
-                            gf.createPoint(new Coordinate(5, 4)),
-                            "A long label\r\nwith windows\r\nnewlines",
-                            d,
-                            10,
-                            300.0
-                        },
-                        null);
+        SimpleFeature f1 = SimpleFeatureBuilder.build(
+                type,
+                new Object[] {gf.createPoint(new Coordinate(5, 8)), "A label with \"quotes\"", d, 10, 100.0},
+                null);
+        SimpleFeature f2 = SimpleFeatureBuilder.build(
+                type,
+                new Object[] {gf.createPoint(new Coordinate(5, 4)), "A long label\nwith newlines", d, 10, 200.0},
+                null);
+        SimpleFeature f3 = SimpleFeatureBuilder.build(
+                type,
+                new Object[] {
+                    gf.createPoint(new Coordinate(5, 4)), "A long label\r\nwith windows\r\nnewlines", d, 10, 300.0
+                },
+                null);
 
         MemoryDataStore data = new MemoryDataStore();
         data.addFeature(f1);
@@ -169,8 +174,7 @@ public class CSVOutputFormatTest extends WFSTestSupport {
 
         // build the request objects and feed the output format
         GetFeatureType gft = WfsFactory.eINSTANCE.createGetFeatureType();
-        Operation op =
-                new Operation("GetFeature", getServiceDescriptor10(), null, new Object[] {gft});
+        Operation op = new Operation("GetFeature", getServiceDescriptor10(), null, new Object[] {gft});
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         FeatureCollectionResponse fct =
                 FeatureCollectionResponse.adapt(WfsFactory.eINSTANCE.createFeatureCollectionType());
@@ -221,11 +225,10 @@ public class CSVOutputFormatTest extends WFSTestSupport {
         Character separator = '-';
 
         // Get dash separated csv response
-        MockHttpServletResponse resp =
-                getAsServletResponse(
-                        "wfs?version=1.1.0&request=GetFeature&typeName=sf:PrimitiveGeoFeature&outputFormat=csv&format_options=csvSeparator:"
-                                + separator,
-                        UTF_8.name());
+        MockHttpServletResponse resp = getAsServletResponse(
+                "wfs?version=1.1.0&request=GetFeature&typeName=sf:PrimitiveGeoFeature&outputFormat=csv&format_options=csvSeparator:"
+                        + separator,
+                UTF_8.name());
 
         FeatureSource fs = getFeatureSource(MockData.PRIMITIVEGEOFEATURE);
 
@@ -236,9 +239,7 @@ public class CSVOutputFormatTest extends WFSTestSupport {
         assertEquals(UTF_8.name(), resp.getCharacterEncoding());
 
         // check the content disposition
-        assertEquals(
-                "attachment; filename=PrimitiveGeoFeature.csv",
-                resp.getHeader("Content-Disposition"));
+        assertEquals("attachment; filename=PrimitiveGeoFeature.csv", resp.getHeader("Content-Disposition"));
 
         // read the response back with a parser that can handle escaping, newlines and what not
         List<String[]> lines = readLines(resp.getContentAsString(), separator);
@@ -260,8 +261,7 @@ public class CSVOutputFormatTest extends WFSTestSupport {
         HashMap<String, String> hashMap = new HashMap<>();
         hashMap.put("CSVSEPARATOR", "\"");
         gft.setFormatOptions(hashMap);
-        Operation op =
-                new Operation("GetFeature", getServiceDescriptor10(), null, new Object[] {gft});
+        Operation op = new Operation("GetFeature", getServiceDescriptor10(), null, new Object[] {gft});
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         FeatureCollectionResponse fct =
                 FeatureCollectionResponse.adapt(WfsFactory.eINSTANCE.createFeatureCollectionType());
@@ -276,9 +276,7 @@ public class CSVOutputFormatTest extends WFSTestSupport {
         InvalidParameterException invalidParameterException =
                 assertThrows(InvalidParameterException.class, () -> format.write(fct, bos, op));
 
-        assertEquals(
-                "A double quote is not allowed as a CSV separator",
-                invalidParameterException.getMessage());
+        assertEquals("A double quote is not allowed as a CSV separator", invalidParameterException.getMessage());
     }
 
     @Test
@@ -287,11 +285,10 @@ public class CSVOutputFormatTest extends WFSTestSupport {
         String separator = "semicolon";
 
         // Get semicolon separated csv response
-        MockHttpServletResponse resp =
-                getAsServletResponse(
-                        "wfs?version=1.1.0&request=GetFeature&typeName=sf:PrimitiveGeoFeature&outputFormat=csv&format_options=csvSeparator:"
-                                + separator,
-                        UTF_8.name());
+        MockHttpServletResponse resp = getAsServletResponse(
+                "wfs?version=1.1.0&request=GetFeature&typeName=sf:PrimitiveGeoFeature&outputFormat=csv&format_options=csvSeparator:"
+                        + separator,
+                UTF_8.name());
 
         FeatureSource fs = getFeatureSource(MockData.PRIMITIVEGEOFEATURE);
 
@@ -302,9 +299,7 @@ public class CSVOutputFormatTest extends WFSTestSupport {
         assertEquals(UTF_8.name(), resp.getCharacterEncoding());
 
         // check the content disposition
-        assertEquals(
-                "attachment; filename=PrimitiveGeoFeature.csv",
-                resp.getHeader("Content-Disposition"));
+        assertEquals("attachment; filename=PrimitiveGeoFeature.csv", resp.getHeader("Content-Disposition"));
 
         List<String[]> lines = readLines(resp.getContentAsString(), ';');
 
@@ -325,8 +320,7 @@ public class CSVOutputFormatTest extends WFSTestSupport {
         getGeoServer().getCatalog().add(nsInfo);
         CSVOutputFormat csvFormat = new CSVOutputFormat(getGeoServer());
         assertEquals(
-                "test-ns:attributeName",
-                csvFormat.resolveNamespacePrefixName("http://test-ns/core:attributeName"));
+                "test-ns:attributeName", csvFormat.resolveNamespacePrefixName("http://test-ns/core:attributeName"));
     }
 
     @Test
@@ -336,16 +330,13 @@ public class CSVOutputFormatTest extends WFSTestSupport {
         nsInfo.setURI("http://test-ns2/core");
         getGeoServer().getCatalog().add(nsInfo);
         CSVOutputFormat csvFormat = new CSVOutputFormat(getGeoServer());
-        assertEquals(
-                "test-ns2:attributeName",
-                csvFormat.resolveNamespacePrefixName("test-ns2:attributeName"));
+        assertEquals("test-ns2:attributeName", csvFormat.resolveNamespacePrefixName("test-ns2:attributeName"));
     }
 
     @Test
     public void testUnvalidResolvePrefixedAttributeNames() {
         CSVOutputFormat csvFormat = new CSVOutputFormat(getGeoServer());
-        assertEquals(
-                "test:attributeName:", csvFormat.resolveNamespacePrefixName("test:attributeName:"));
+        assertEquals("test:attributeName:", csvFormat.resolveNamespacePrefixName("test:attributeName:"));
     }
 
     @Test
@@ -358,20 +349,18 @@ public class CSVOutputFormatTest extends WFSTestSupport {
         expect(schema.getName()).andReturn(new NameImpl("testComplexFt"));
         List<PropertyDescriptor> descriptors = new ArrayList<>();
 
-        ComplexType MINENAMETYPE_TYPE =
-                new FeatureTypeImpl(
-                        FakeTypes.Mine.NAME_MineNameType,
-                        FakeTypes.Mine.MINENAMETYPE_SCHEMA,
-                        null,
-                        false,
-                        Collections.emptyList(),
-                        FakeTypes.ANYTYPE_TYPE,
-                        null);
+        ComplexType MINENAMETYPE_TYPE = new FeatureTypeImpl(
+                FakeTypes.Mine.NAME_MineNameType,
+                FakeTypes.Mine.MINENAMETYPE_SCHEMA,
+                null,
+                false,
+                Collections.emptyList(),
+                FakeTypes.ANYTYPE_TYPE,
+                null);
 
         // Name of multi-valued attribute
         Name name = new NameImpl("items");
-        PropertyDescriptor propertyDescriptor =
-                new AttributeDescriptorImpl(MINENAMETYPE_TYPE, name, 1, 1, false, null);
+        PropertyDescriptor propertyDescriptor = new AttributeDescriptorImpl(MINENAMETYPE_TYPE, name, 1, 1, false, null);
         descriptors.add(propertyDescriptor);
 
         expect(schema.getDescriptors()).andReturn(descriptors).anyTimes();
@@ -397,8 +386,7 @@ public class CSVOutputFormatTest extends WFSTestSupport {
         expect(feature.getProperties(name)).andReturn(values).anyTimes();
         replay(feature);
 
-        FeatureCollection featureCollection =
-                createNiceMock(WFSContentComplexFeatureCollection.class);
+        FeatureCollection featureCollection = createNiceMock(WFSContentComplexFeatureCollection.class);
         try (FeatureIterator<Feature> i = createNiceMock(FeatureIterator.class)) {
 
             expect(i.hasNext()).andReturn(true).times(1);
@@ -414,8 +402,7 @@ public class CSVOutputFormatTest extends WFSTestSupport {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
         GetFeatureType gft = WfsFactory.eINSTANCE.createGetFeatureType();
-        Operation op =
-                new Operation("GetFeature", getServiceDescriptor10(), null, new Object[] {gft});
+        Operation op = new Operation("GetFeature", getServiceDescriptor10(), null, new Object[] {gft});
 
         // write out the results
         CSVOutputFormat format = new CSVOutputFormat(getGeoServer());
@@ -436,5 +423,101 @@ public class CSVOutputFormatTest extends WFSTestSupport {
 
         // check expected list of values as a comma separated string
         assertEquals("prop1,prop2", lines.get(1)[1]);
+    }
+
+    @Test
+    public void testIAULayer() throws Exception {
+
+        MockHttpServletResponse resp = getAsServletResponse(
+                "wfs?version=1.1.0&request=GetFeature&typeName=iau:MarsPoi&outputFormat=csv", UTF_8.name());
+
+        FeatureSource fs = getFeatureSource(SystemTestData.MARS_POI);
+
+        // check the mime type
+        assertEquals(CSV, getBaseMimeType(resp.getContentType()));
+
+        // check the charset encoding
+        assertEquals(UTF_8.name(), resp.getCharacterEncoding());
+
+        // check the content disposition
+        assertEquals("attachment; filename=MarsPoi.csv", resp.getHeader("Content-Disposition"));
+
+        // read the response back with a parser that can handle escaping, newlines and what not
+        List<String[]> lines = readLines(resp.getContentAsString(), ',');
+
+        // we should have one header line and then all the features in that feature type
+        assertEquals(fs.getCount(Query.ALL) + 1, lines.size());
+
+        for (String[] line : lines) {
+            // check each line has the expected number of elements (num of att + 1 for the id)
+            assertEquals(fs.getSchema().getDescriptors().size() + 1, line.length);
+        }
+    }
+
+    @Test
+    public void testDates() throws Exception {
+        SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
+        builder.add("geom", Point.class);
+        builder.add("label", String.class);
+        builder.add("dtg", Date.class);
+        builder.add("n", Integer.class);
+        builder.add("d", Double.class);
+        builder.setName("funnyLabels");
+        SimpleFeatureType type = builder.buildFeatureType();
+        Locale currentLocale = Locale.getDefault();
+        Locale.setDefault(new Locale("en", "US"));
+        Date d = new Date(1483228800000L);
+        GeometryFactory gf = new GeometryFactory();
+        SimpleFeature f = SimpleFeatureBuilder.build(
+                type,
+                new Object[] {gf.createPoint(new Coordinate(5, 8)), "A label with \"quotes\"", d, 10, 100.0},
+                null);
+
+        MemoryDataStore data = new MemoryDataStore();
+        data.addFeature(f);
+        SimpleFeatureSource fs = data.getFeatureSource("funnyLabels");
+
+        // build the request objects and feed the output format
+        GetFeatureType gft = WfsFactory.eINSTANCE.createGetFeatureType();
+        Operation op = new Operation("GetFeature", getServiceDescriptor10(), null, new Object[] {gft});
+
+        FeatureCollectionResponse fct =
+                FeatureCollectionResponse.adapt(WfsFactory.eINSTANCE.createFeatureCollectionType());
+        fct.getFeature().add(fs.getFeatures());
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        CSVOutputFormat format = setCSVDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        format.write(fct, bos, op);
+        assertDates("2017-01-01T00:00:00.000Z", bos);
+
+        ByteArrayOutputStream bos1 = new ByteArrayOutputStream();
+        CSVOutputFormat format1 = setCSVDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+        format1.write(fct, bos1, op);
+        assertDates("2017-01-01T00:00:00.000", bos1);
+
+        ByteArrayOutputStream bos2 = new ByteArrayOutputStream();
+        CSVOutputFormat format2 = setCSVDateFormat("EEE, MMM d, ''yy");
+        format2.write(fct, bos2, op);
+        assertDates("Sun, Jan 1, '17", bos2);
+
+        ByteArrayOutputStream bos3 = new ByteArrayOutputStream();
+        CSVOutputFormat format3 = setCSVDateFormat("EEE, d MMM yyyy HH:mm:ss Z");
+        format3.write(fct, bos3, op);
+        assertDates("Sun, 1 Jan 2017 00:00:00 +0000", bos3);
+        Locale.setDefault(currentLocale);
+    }
+
+    private CSVOutputFormat setCSVDateFormat(String csvDateFormat) {
+        GeoServer gs = getGeoServer();
+        WFSInfo wfsInfo = gs.getService(WFSInfo.class);
+        wfsInfo.setCsvDateFormat(csvDateFormat);
+        gs.save(wfsInfo);
+        return new CSVOutputFormat(gs);
+    }
+
+    private void assertDates(String date, ByteArrayOutputStream bou) throws IOException {
+        // read the response back with a parser that can handle escaping, newlines and what not
+        List<String[]> lines = readLines(bou.toString(), ',');
+
+        assertEquals(date, lines.get(1)[3]);
     }
 }

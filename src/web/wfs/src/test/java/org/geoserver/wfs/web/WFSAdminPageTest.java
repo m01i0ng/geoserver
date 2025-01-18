@@ -13,11 +13,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
+import java.util.Locale;
 import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.util.tester.FormTester;
 import org.geoserver.web.GeoServerWicketTestSupport;
 import org.geoserver.wfs.GMLInfo;
 import org.geoserver.wfs.WFSInfo;
+import org.geotools.api.util.InternationalString;
 import org.junit.Test;
 
 public class WFSAdminPageTest extends GeoServerWicketTestSupport {
@@ -28,12 +31,11 @@ public class WFSAdminPageTest extends GeoServerWicketTestSupport {
         login();
         tester.startPage(WFSAdminPage.class);
         tester.assertModelValue("form:maxFeatures", wfs.getMaxFeatures());
-        tester.assertModelValue(
-                "form:maxNumberOfFeaturesForPreview", wfs.getMaxNumberOfFeaturesForPreview());
+        tester.assertModelValue("form:csvDateFormat", wfs.getCsvDateFormat());
+        tester.assertModelValue("form:maxNumberOfFeaturesForPreview", wfs.getMaxNumberOfFeaturesForPreview());
         tester.assertModelValue("form:keywords", wfs.getKeywords());
         tester.assertModelValue(
-                "form:getFeatureOutputTypes:outputTypeCheckingEnabled",
-                wfs.isGetFeatureOutputTypeCheckingEnabled());
+                "form:getFeatureOutputTypes:outputTypeCheckingEnabled", wfs.isGetFeatureOutputTypeCheckingEnabled());
     }
 
     @Test
@@ -71,18 +73,11 @@ public class WFSAdminPageTest extends GeoServerWicketTestSupport {
         tester.startPage(WFSAdminPage.class);
         ft = tester.newFormTester("form");
         ft.setValue("getFeatureOutputTypes:outputTypeCheckingEnabled", true);
-        ft.getForm()
-                .get("getFeatureOutputTypes:palette")
-                .setDefaultModelObject(Collections.singleton("KML"));
+        ft.getForm().get("getFeatureOutputTypes:palette").setDefaultModelObject(Collections.singleton("KML"));
         ft.submit("submit");
         wfs = getGeoServerApplication().getGeoServer().getService(WFSInfo.class);
-        assertTrue(
-                "getFeatureOutputTypeCheckingEnabled= true",
-                wfs.isGetFeatureOutputTypeCheckingEnabled());
-        assertEquals(
-                "getFeatureOutputTypes= KML",
-                Collections.singleton("KML"),
-                wfs.getGetFeatureOutputTypes());
+        assertTrue("getFeatureOutputTypeCheckingEnabled= true", wfs.isGetFeatureOutputTypeCheckingEnabled());
+        assertEquals("getFeatureOutputTypes= KML", Collections.singleton("KML"), wfs.getGetFeatureOutputTypes());
     }
 
     @Test
@@ -124,8 +119,7 @@ public class WFSAdminPageTest extends GeoServerWicketTestSupport {
         tester.startPage(new WFSAdminPage());
         // check that GML MIME type overriding is disabled
         tester.assertComponent("form:gml32:forceGmlMimeType", CheckBox.class);
-        CheckBox checkbox =
-                (CheckBox) tester.getComponentFromLastRenderedPage("form:gml32:forceGmlMimeType");
+        CheckBox checkbox = (CheckBox) tester.getComponentFromLastRenderedPage("form:gml32:forceGmlMimeType");
         assertThat(checkbox.getModelObject(), is(false));
         // MIME type drop down choice should be invisible
         tester.assertInvisible("form:gml32:mimeTypeToForce");
@@ -177,67 +171,71 @@ public class WFSAdminPageTest extends GeoServerWicketTestSupport {
         // start WFS service administration page
         tester.startPage(new WFSAdminPage());
         FormTester form = tester.newFormTester("form");
-        // enable i18n for title
-        form.setValue(
-                "serviceTitleAndAbstract:titleAndAbstract:titleLabel:titleLabel_i18nCheckbox",
-                true);
+        // enable i18n for title and add two entries
+        form.setValue("serviceTitleAndAbstract:titleAndAbstract:titleLabel:titleLabel_i18nCheckbox", true);
         tester.executeAjaxEvent(
-                "form:serviceTitleAndAbstract:titleAndAbstract:titleLabel:titleLabel_i18nCheckbox",
-                "change");
+                "form:serviceTitleAndAbstract:titleAndAbstract:titleLabel:titleLabel_i18nCheckbox", "change");
         tester.executeAjaxEvent(
-                "form:serviceTitleAndAbstract:titleAndAbstract:internationalTitle:container:addNew",
-                "click");
+                "form:serviceTitleAndAbstract:titleAndAbstract:internationalTitle:container:addNew", "click");
+        tester.executeAjaxEvent(
+                "form:serviceTitleAndAbstract:titleAndAbstract:internationalTitle:container:addNew", "click");
 
+        // enable i18n for abstract and add two entries
+        form.setValue("serviceTitleAndAbstract:titleAndAbstract:abstractLabel:abstractLabel_i18nCheckbox", true);
+        tester.executeAjaxEvent(
+                "form:serviceTitleAndAbstract:titleAndAbstract:abstractLabel:abstractLabel_i18nCheckbox", "change");
+        tester.executeAjaxEvent(
+                "form:serviceTitleAndAbstract:titleAndAbstract:internationalAbstract:container:addNew", "click");
+        tester.executeAjaxEvent(
+                "form:serviceTitleAndAbstract:titleAndAbstract:internationalAbstract:container:addNew", "click");
+        // figure out the locales used in the test (might not be stable across JVMs)
+        @SuppressWarnings("unchecked")
+        DropDownChoice<Locale> select = (DropDownChoice)
+                tester.getComponentFromLastRenderedPage(
+                        "form:serviceTitleAndAbstract:titleAndAbstract:internationalTitle:container:tablePanel:listContainer:items:1:itemProperties:0:component:border:border_body:select");
+        Locale l10 = select.getChoices().get(10);
+        Locale l20 = select.getChoices().get(20);
+
+        // fill the form (don't do this in between ajax calls)
         form.select(
                 "serviceTitleAndAbstract:titleAndAbstract:internationalTitle:container:tablePanel:listContainer:items:1:itemProperties:0:component:border:border_body:select",
                 10);
         form.setValue(
                 "serviceTitleAndAbstract:titleAndAbstract:internationalTitle:container:tablePanel:listContainer:items:1:itemProperties:1:component:border:border_body:txt",
-                "an international title");
-        tester.executeAjaxEvent(
-                "form:serviceTitleAndAbstract:titleAndAbstract:internationalTitle:container:addNew",
-                "click");
+                "an international title for WFS");
         form.select(
                 "serviceTitleAndAbstract:titleAndAbstract:internationalTitle:container:tablePanel:listContainer:items:2:itemProperties:0:component:border:border_body:select",
                 20);
         form.setValue(
                 "serviceTitleAndAbstract:titleAndAbstract:internationalTitle:container:tablePanel:listContainer:items:2:itemProperties:1:component:border:border_body:txt",
-                "another international title");
-        tester.executeAjaxEvent(
-                "form:serviceTitleAndAbstract:titleAndAbstract:internationalTitle:container:tablePanel:listContainer:items:2:itemProperties:2:component:remove",
-                "click");
-
-        // enable i18n for abstract
-        form.setValue(
-                "serviceTitleAndAbstract:titleAndAbstract:abstractLabel:abstractLabel_i18nCheckbox",
-                true);
-        tester.executeAjaxEvent(
-                "form:serviceTitleAndAbstract:titleAndAbstract:abstractLabel:abstractLabel_i18nCheckbox",
-                "change");
-        tester.executeAjaxEvent(
-                "form:serviceTitleAndAbstract:titleAndAbstract:internationalAbstract:container:addNew",
-                "click");
+                "another international title for WFS");
         form.select(
                 "serviceTitleAndAbstract:titleAndAbstract:internationalAbstract:container:tablePanel:listContainer:items:1:itemProperties:0:component:border:border_body:select",
                 10);
         form.setValue(
                 "serviceTitleAndAbstract:titleAndAbstract:internationalAbstract:container:tablePanel:listContainer:items:1:itemProperties:1:component:border:border_body:txt",
-                "an international title");
-        tester.executeAjaxEvent(
-                "form:serviceTitleAndAbstract:titleAndAbstract:internationalAbstract:container:addNew",
-                "click");
+                "an international abstract for WFS");
         form.select(
                 "serviceTitleAndAbstract:titleAndAbstract:internationalAbstract:container:tablePanel:listContainer:items:2:itemProperties:0:component:border:border_body:select",
                 20);
         form.setValue(
                 "serviceTitleAndAbstract:titleAndAbstract:internationalAbstract:container:tablePanel:listContainer:items:2:itemProperties:1:component:border:border_body:txt",
-                "another international title");
-        tester.executeAjaxEvent(
-                "form:serviceTitleAndAbstract:titleAndAbstract:internationalAbstract:container:tablePanel:listContainer:items:2:itemProperties:2:component:remove",
-                "click");
-        form = tester.newFormTester("form");
+                "another international abstract for WFS");
+
+        // mandatory fields
+        form.setValue("maxFeatures", "999");
+        form.select("encodeFeatureMember", 0);
+
         form.submit("submit");
         tester.assertNoErrorMessage();
+
+        WFSInfo wfsInfo = getGeoServer().getService(WFSInfo.class);
+        InternationalString internationalTitle = wfsInfo.getInternationalTitle();
+        assertEquals("an international title for WFS", internationalTitle.toString(l10));
+        assertEquals("another international title for WFS", internationalTitle.toString(l20));
+        InternationalString internationalAbstract = wfsInfo.getInternationalAbstract();
+        assertEquals("an international abstract for WFS", internationalAbstract.toString(l10));
+        assertEquals("another international abstract for WFS", internationalAbstract.toString(l20));
     }
 
     @Test
@@ -248,5 +246,16 @@ public class WFSAdminPageTest extends GeoServerWicketTestSupport {
         ft.select("defaultLocale", 11);
         ft.submit("submit");
         assertNotNull(getGeoServer().getService(WFSInfo.class).getDefaultLocale());
+    }
+
+    @Test
+    public void testDateFormat() {
+        login();
+        tester.startPage(WFSAdminPage.class);
+        FormTester ft = tester.newFormTester("form");
+        ft.setValue("csvDateFormat", "yyyy-MM-dd'T'HH:mm:ss'Z'");
+        ft.submit("submit");
+        assertNotNull(getGeoServer().getService(WFSInfo.class).getCsvDateFormat());
+        assertEquals(getGeoServer().getService(WFSInfo.class).getCsvDateFormat(), "yyyy-MM-dd'T'HH:mm:ss'Z'");
     }
 }

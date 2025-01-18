@@ -21,33 +21,24 @@ public class GlobalModel<T> implements IModel<T> {
         setObject(value);
     }
 
-    @Override
-    public void detach() {}
-
     @SuppressWarnings("unchecked")
     @Override
     public T getObject() {
         GlobalModelService service =
-                GeoServerApplication.get()
-                        .getApplicationContext()
-                        .getBean(GlobalModelService.class);
+                GeoServerApplication.get().getApplicationContext().getBean(GlobalModelService.class);
         return (T) service.get(key);
     }
 
     @Override
     public void setObject(T value) {
         GlobalModelService service =
-                GeoServerApplication.get()
-                        .getApplicationContext()
-                        .getBean(GlobalModelService.class);
+                GeoServerApplication.get().getApplicationContext().getBean(GlobalModelService.class);
         service.put(key, value);
     }
 
     public void cleanUp() {
         GlobalModelService service =
-                GeoServerApplication.get()
-                        .getApplicationContext()
-                        .getBean(GlobalModelService.class);
+                GeoServerApplication.get().getApplicationContext().getBean(GlobalModelService.class);
         service.delete(key);
     }
 

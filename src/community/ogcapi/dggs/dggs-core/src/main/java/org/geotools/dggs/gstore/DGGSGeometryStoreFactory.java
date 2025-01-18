@@ -18,30 +18,24 @@ package org.geotools.dggs.gstore;
 
 import java.io.IOException;
 import java.util.Map;
-import org.geotools.data.DataStore;
-import org.geotools.data.DataStoreFactorySpi;
+import org.geotools.api.data.DataStore;
+import org.geotools.api.data.DataStoreFactorySpi;
 import org.geotools.dggs.DGGSFactory;
 import org.geotools.dggs.DGGSFactoryFinder;
 import org.geotools.dggs.DGGSInstance;
 
 /**
- * Creates a {@link DGGSGeometryStore} based solely on a {@link DGGSFactory} identifier, the
- * parameter map can contain initialization params for the
+ * Creates a {@link DGGSGeometryStore} based solely on a {@link DGGSFactory} identifier, the parameter map can contain
+ * initialization params for the
  */
 public class DGGSGeometryStoreFactory implements DataStoreFactorySpi {
 
     /** parameter for database type */
     public static final Param DGGS_FACTORY_ID =
-            new Param(
-                    "dggs_factory_id",
-                    String.class,
-                    "DGGS Factory identifier, e.g., H3 or rHEALPix",
-                    true,
-                    null);
+            new Param("dggs_factory_id", String.class, "DGGS Factory identifier, e.g., H3 or rHEALPix", true, null);
 
     /** parameter for namespace of the datastore */
-    public static final Param NAMESPACE =
-            new Param("namespace", String.class, "Namespace prefix", false);
+    public static final Param NAMESPACE = new Param("namespace", String.class, "Namespace prefix", false);
 
     @Override
     public DataStore createDataStore(Map<String, ?> params) throws IOException {

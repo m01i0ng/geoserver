@@ -7,24 +7,24 @@ package org.geoserver.wfs;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import org.geotools.api.data.FeatureSource;
+import org.geotools.api.data.Query;
+import org.geotools.api.data.SimpleFeatureSource;
+import org.geotools.api.feature.Feature;
+import org.geotools.api.feature.FeatureVisitor;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.type.FeatureType;
 import org.geotools.data.DataUtilities;
-import org.geotools.data.FeatureSource;
-import org.geotools.data.Query;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
-import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.collection.DecoratingSimpleFeatureCollection;
-import org.opengis.feature.Feature;
-import org.opengis.feature.FeatureVisitor;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.FeatureType;
 
 /**
- * A feature collection which caches a configurable (and small) amount of features to avoid repeated
- * reads against datastore that cannot optimize count in a count/read cycle typical of WFS requests
- * (count as a FeatureCollection attribute, and then read for feature collection contents)
+ * A feature collection which caches a configurable (and small) amount of features to avoid repeated reads against
+ * datastore that cannot optimize count in a count/read cycle typical of WFS requests (count as a FeatureCollection
+ * attribute, and then read for feature collection contents)
  *
  * @author Alvaro Huarte
  */
@@ -43,34 +43,29 @@ public class FeatureSizeFeatureCollection extends DecoratingSimpleFeatureCollect
     private Query query;
 
     /**
-     * Defines the maximum number of feature that will be cached in memory to avoid multiple data
-     * reads in case there is no fast {@link FeatureSource#getCount(Query)} implementation for the
-     * current query.
+     * Defines the maximum number of feature that will be cached in memory to avoid multiple data reads in case there is
+     * no fast {@link FeatureSource#getCount(Query)} implementation for the current query.
      *
-     * <p>Useful in particular for stores that do not have any way to perform a fast count against a
-     * filtered query, like shapefiles
+     * <p>Useful in particular for stores that do not have any way to perform a fast count against a filtered query,
+     * like shapefiles
      */
-    private static int FEATURE_CACHE_LIMIT =
-            Integer.valueOf(
-                    System.getProperty(
-                            "org.geoserver.wfs.getfeature.cachelimit",
-                            String.valueOf(DEFAULT_CACHE_SIZE)));
+    private static int FEATURE_CACHE_LIMIT = Integer.valueOf(
+            System.getProperty("org.geoserver.wfs.getfeature.cachelimit", String.valueOf(DEFAULT_CACHE_SIZE)));
 
     /** Allows to programmatically set the maximum number of cacheable features. */
     public static void setFeatureCacheLimit(int featureCacheLimit) {
         FEATURE_CACHE_LIMIT = featureCacheLimit;
     }
 
-    public FeatureSizeFeatureCollection(
-            SimpleFeatureCollection delegate, SimpleFeatureSource source, Query query) {
+    public FeatureSizeFeatureCollection(SimpleFeatureCollection delegate, SimpleFeatureSource source, Query query) {
         super(delegate);
         this.featureSource = source;
         this.query = query;
     }
 
     /**
-     * Wraps the {@link FeatureCollection} into {@link FeatureSizeFeatureCollection} in case the
-     * feature caching is enabled and the the features are simple ones
+     * Wraps the {@link FeatureCollection} into {@link FeatureSizeFeatureCollection} in case the feature caching is
+     * enabled and the features are simple ones
      */
     static FeatureCollection<? extends FeatureType, ? extends Feature> wrap(
             FeatureCollection<? extends FeatureType, ? extends Feature> features,

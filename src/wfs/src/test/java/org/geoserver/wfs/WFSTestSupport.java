@@ -25,8 +25,7 @@ import org.junit.After;
 /**
  * New Base support class for wfs tests.
  *
- * <p>Deriving from this test class provides the test case with preconfigured geoserver and wfs
- * objects.
+ * <p>Deriving from this test class provides the test case with preconfigured geoserver and wfs objects.
  *
  * @author Niels Charlier
  */
@@ -53,14 +52,30 @@ public abstract class WFSTestSupport extends GeoServerSystemTestSupport {
 
     /** @return The 1.1 xml configuration. */
     protected org.geoserver.wfs.xml.v1_1_0.WFSConfiguration getXmlConfiguration11() {
-        return (org.geoserver.wfs.xml.v1_1_0.WFSConfiguration)
-                applicationContext.getBean("wfsXmlConfiguration-1.1");
+        return (org.geoserver.wfs.xml.v1_1_0.WFSConfiguration) applicationContext.getBean("wfsXmlConfiguration-1.1");
+    }
+
+    @Override
+    protected void setUpTestData(SystemTestData testData) throws Exception {
+        super.setUpTestData(testData);
+        testData.setupIAULayers(false, true);
     }
 
     @Override
     protected void onSetUp(SystemTestData testData) throws Exception {
 
         // init xmlunit
+        Map<String, String> namespaces = getNamespaces();
+
+        CiteTestData.registerNamespaces(namespaces);
+
+        setUpNamespaces(namespaces);
+        XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(namespaces));
+
+        setUpInternal(testData);
+    }
+
+    public Map<String, String> getNamespaces() {
         Map<String, String> namespaces = new HashMap<>();
         namespaces.put("wfs", "http://www.opengis.net/wfs");
         namespaces.put("ows", "http://www.opengis.net/ows");
@@ -72,13 +87,7 @@ public abstract class WFSTestSupport extends GeoServerSystemTestSupport {
         namespaces.put("xsi", "http://www.w3.org/2001/XMLSchema-instance");
         namespaces.put("gs", "http://geoserver.org");
         namespaces.put("soap12", "http://www.w3.org/2003/05/soap-envelope");
-
-        CiteTestData.registerNamespaces(namespaces);
-
-        setUpNamespaces(namespaces);
-        XMLUnit.setXpathNamespaceContext(new SimpleNamespaceContext(namespaces));
-
-        setUpInternal(testData);
+        return namespaces;
     }
 
     protected void setUpInternal(SystemTestData testData) throws Exception {}
@@ -86,20 +95,19 @@ public abstract class WFSTestSupport extends GeoServerSystemTestSupport {
     protected void setUpNamespaces(Map<String, String> namespaces) {}
 
     protected List<String> getSupportedSpatialOperatorsList(boolean wfs1_0_0) {
-        return Arrays.asList(
-                new String[] {
-                    "Disjoint",
-                    "Equals",
-                    "DWithin",
-                    "Beyond",
-                    "Intersect" + (wfs1_0_0 ? "" : "s"),
-                    "Touches",
-                    "Crosses",
-                    "Within",
-                    "Contains",
-                    "Overlaps",
-                    "BBOX"
-                });
+        return Arrays.asList(new String[] {
+            "Disjoint",
+            "Equals",
+            "DWithin",
+            "Beyond",
+            "Intersect" + (wfs1_0_0 ? "" : "s"),
+            "Touches",
+            "Crosses",
+            "Within",
+            "Contains",
+            "Overlaps",
+            "BBOX"
+        });
     }
 
     protected Boolean citeCompliant;
@@ -121,19 +129,16 @@ public abstract class WFSTestSupport extends GeoServerSystemTestSupport {
     }
 
     /**
-     * Helper method that activates or deactivates geometries measures encoding for the feature type
-     * matching the provided name.
+     * Helper method that activates or deactivates geometries measures encoding for the feature type matching the
+     * provided name.
      */
-    protected static void setMeasuresEncoding(
-            Catalog catalog, String featureTypeName, boolean encodeMeasures) {
+    protected static void setMeasuresEncoding(Catalog catalog, String featureTypeName, boolean encodeMeasures) {
         // get the feature type from the catalog
         FeatureTypeInfo featureTypeInfo = catalog.getFeatureTypeByName(featureTypeName);
         if (featureTypeInfo == null) {
             // ouch, feature type not found
             throw new RuntimeException(
-                    String.format(
-                            "No feature type matching the provided name '%s' found.",
-                            featureTypeName));
+                    String.format("No feature type matching the provided name '%s' found.", featureTypeName));
         }
         // set encode measures and save
         featureTypeInfo.setEncodeMeasures(encodeMeasures);

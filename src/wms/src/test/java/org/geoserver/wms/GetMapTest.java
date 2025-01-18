@@ -29,6 +29,13 @@ import org.geoserver.platform.ServiceException;
 import org.geoserver.test.http.MockHttpClient;
 import org.geoserver.test.http.MockHttpResponse;
 import org.geoserver.wms.WMSMockData.DummyRasterMapProducer;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.filter.FilterFactory;
+import org.geotools.api.parameter.GeneralParameterValue;
+import org.geotools.api.parameter.ParameterValue;
+import org.geotools.api.referencing.FactoryException;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.util.ProgressListener;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.filter.AttributeExpressionImpl;
 import org.geotools.filter.function.EnvFunction;
@@ -38,13 +45,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Point;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.filter.FilterFactory;
-import org.opengis.parameter.GeneralParameterValue;
-import org.opengis.parameter.ParameterValue;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.util.ProgressListener;
 
 /**
  * Unit test for {@link GetMap}
@@ -94,16 +94,15 @@ public class GetMapTest {
         request.setLayers(Arrays.asList(layer));
 
         final DummyRasterMapProducer producer = new DummyRasterMapProducer();
-        final WMS wms =
-                new WMS(mockData.getGeoServer()) {
-                    @Override
-                    public GetMapOutputFormat getMapOutputFormat(final String mimeType) {
-                        if (DummyRasterMapProducer.MIME_TYPE.equals(mimeType)) {
-                            return producer;
-                        }
-                        return null;
-                    }
-                };
+        final WMS wms = new WMS(mockData.getGeoServer()) {
+            @Override
+            public GetMapOutputFormat getMapOutputFormat(final String mimeType) {
+                if (DummyRasterMapProducer.MIME_TYPE.equals(mimeType)) {
+                    return producer;
+                }
+                return null;
+            }
+        };
         getMapOp = new GetMap(wms);
         getMapOp.run(request);
         assertTrue(producer.produceMapCalled);
@@ -156,30 +155,27 @@ public class GetMapTest {
         final FilterFactory ff = CommonFactoryFinder.getFilterFactory(null);
         EnvFunction.setLocalValues(Collections.singletonMap("myParam", 23));
 
-        final DummyRasterMapProducer producer =
-                new DummyRasterMapProducer() {
-                    @Override
-                    public WebMap produceMap(WMSMapContent ctx)
-                            throws ServiceException, IOException {
-                        assertEquals(23, ff.function("env", ff.literal("myParam")).evaluate(null));
-                        assertEquals(
-                                10,
-                                ff.function("env", ff.literal("otherParam"), ff.literal(10))
-                                        .evaluate(null));
-                        super.produceMapCalled = true;
-                        return null;
-                    }
-                };
-        final WMS wms =
-                new WMS(mockData.getGeoServer()) {
-                    @Override
-                    public GetMapOutputFormat getMapOutputFormat(final String mimeType) {
-                        if (DummyRasterMapProducer.MIME_TYPE.equals(mimeType)) {
-                            return producer;
-                        }
-                        return null;
-                    }
-                };
+        final DummyRasterMapProducer producer = new DummyRasterMapProducer() {
+            @Override
+            public WebMap produceMap(WMSMapContent ctx) throws ServiceException, IOException {
+                assertEquals(23, ff.function("env", ff.literal("myParam")).evaluate(null));
+                assertEquals(
+                        10,
+                        ff.function("env", ff.literal("otherParam"), ff.literal(10))
+                                .evaluate(null));
+                super.produceMapCalled = true;
+                return null;
+            }
+        };
+        final WMS wms = new WMS(mockData.getGeoServer()) {
+            @Override
+            public GetMapOutputFormat getMapOutputFormat(final String mimeType) {
+                if (DummyRasterMapProducer.MIME_TYPE.equals(mimeType)) {
+                    return producer;
+                }
+                return null;
+            }
+        };
 
         getMapOp = new GetMap(wms);
         getMapOp.run(request);
@@ -209,9 +205,7 @@ public class GetMapTest {
         MockHttpClient client = new MockHttpClient();
         Catalog catalog = mockData.getGeoServer().getCatalog();
         URL descURL = new URL(baseURL + "/wmts?REQUEST=GetCapabilities&VERSION=1.0.0&SERVICE=WMTS");
-        client.expectGet(
-                descURL,
-                new MockHttpResponse(getClass().getResource("wmts_getCaps.xml"), "text/xml"));
+        client.expectGet(descURL, new MockHttpResponse(getClass().getResource("wmts_getCaps.xml"), "text/xml"));
 
         TestHttpClientProvider.bind(client, descURL);
         WMTSStoreInfo storeInfo = new MockWMTSStoreInfo(catalog);
@@ -223,12 +217,10 @@ public class GetMapTest {
         storeInfo.setDateModified(new Date());
         catalog.add(storeInfo);
         XStreamPersister xp = new XStreamPersisterFactory().createXMLPersister();
-        WMTSLayerInfo wmtsInfo =
-                xp.load(getClass().getResourceAsStream("wmtsLayerInfo.xml"), WMTSLayerInfo.class);
+        WMTSLayerInfo wmtsInfo = xp.load(getClass().getResourceAsStream("wmtsLayerInfo.xml"), WMTSLayerInfo.class);
         wmtsInfo.setStore(storeInfo);
         catalog.add(wmtsInfo);
-        LayerInfo layerInfo =
-                xp.load(getClass().getResourceAsStream("wmtsLayer.xml"), LayerInfo.class);
+        LayerInfo layerInfo = xp.load(getClass().getResourceAsStream("wmtsLayer.xml"), LayerInfo.class);
         layerInfo.setResource(wmtsInfo);
         GetMap op = new GetMap(mockData.getWMS());
         WMSMapContent mapContent = new WMSMapContent();
@@ -238,8 +230,7 @@ public class GetMapTest {
         SimpleFeature sf = layer.toFeatureCollection().features().next();
         GeneralParameterValue[] params =
                 new AttributeExpressionImpl("params").evaluate(sf, GeneralParameterValue[].class);
-        CoordinateReferenceSystem crs =
-                (CoordinateReferenceSystem) ((ParameterValue) params[0]).getValue();
+        CoordinateReferenceSystem crs = (CoordinateReferenceSystem) ((ParameterValue) params[0]).getValue();
         assertEquals(wmtsInfo.getNativeCRS(), crs);
     }
 

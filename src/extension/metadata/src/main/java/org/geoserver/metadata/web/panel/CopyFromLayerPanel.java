@@ -14,7 +14,6 @@ import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.Model;
@@ -27,6 +26,7 @@ import org.geoserver.web.wicket.GeoServerDialog;
 import org.geoserver.web.wicket.ParamResourceModel;
 
 /** A panel that lets the user select a layer and copy its metadata to the current layer. */
+// TODO WICKET8 - Verify this page works OK
 public abstract class CopyFromLayerPanel extends Panel {
     private static final long serialVersionUID = 1297739738862860160L;
 
@@ -49,88 +49,72 @@ public abstract class CopyFromLayerPanel extends Panel {
         dropDown.setNullValid(true);
         add(dropDown);
 
-        add(
-                new FeedbackPanel("copyFeedback", new ContainerFeedbackMessageFilter(this))
-                        .setOutputMarkupId(true));
+        add(new FeedbackPanel("copyFeedback", new ContainerFeedbackMessageFilter(this)).setOutputMarkupId(true));
 
         add(createCopyAction(dropDown, dialog));
     }
 
     private DropDownChoice<String> createDropDown() {
-        Catalog catalog =
-                GeoServerApplication.get()
-                        .getApplicationContext()
-                        .getBean(GeoServer.class)
-                        .getCatalog();
+        Catalog catalog = GeoServerApplication.get()
+                .getApplicationContext()
+                .getBean(GeoServer.class)
+                .getCatalog();
         SortedSet<String> layers = new TreeSet<>();
         for (ResourceInfo res : catalog.getResources(ResourceInfo.class)) {
             if (!res.getId().equals(resourceId)) {
                 layers.add(res.prefixedName());
             }
         }
-        return new DropDownChoice<>("layer", new Model<String>(""), new ArrayList<>(layers));
+        return new DropDownChoice<>("layer", new Model<>(""), new ArrayList<>(layers));
     }
 
-    private AjaxSubmitLink createCopyAction(
-            final DropDownChoice<String> dropDown, GeoServerDialog dialog) {
+    private AjaxSubmitLink createCopyAction(final DropDownChoice<String> dropDown, GeoServerDialog dialog) {
         return new AjaxSubmitLink("link") {
             private static final long serialVersionUID = -8718015688839770852L;
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void onSubmit(AjaxRequestTarget target) {
                 ResourceInfo res;
                 if (dropDown.getModelObject() == null || "".equals(dropDown.getModelObject())) {
-                    error(
-                            new ParamResourceModel("errorSelectLayer", CopyFromLayerPanel.this)
-                                    .getString());
+                    error(new ParamResourceModel("errorSelectLayer", CopyFromLayerPanel.this).getString());
                     target.add(getFeedbackPanel());
                     return;
                 } else {
-                    Catalog catalog =
-                            GeoServerApplication.get()
-                                    .getApplicationContext()
-                                    .getBean(GeoServer.class)
-                                    .getCatalog();
+                    Catalog catalog = GeoServerApplication.get()
+                            .getApplicationContext()
+                            .getBean(GeoServer.class)
+                            .getCatalog();
                     res = catalog.getResourceByName(dropDown.getModelObject(), ResourceInfo.class);
                     Serializable map = res.getMetadata().get(MetadataConstants.CUSTOM_METADATA_KEY);
                     if (map == null) {
-                        error(
-                                new ParamResourceModel(
-                                                "errorNoMetadataInLayer", CopyFromLayerPanel.this)
-                                        .getString());
+                        error(new ParamResourceModel("errorNoMetadataInLayer", CopyFromLayerPanel.this).getString());
                         target.add(getFeedbackPanel());
                         return;
                     }
                 }
 
-                dialog.setTitle(
-                        new ParamResourceModel("confirmCopyDialog.title", CopyFromLayerPanel.this));
-                dialog.showOkCancel(
-                        target,
-                        new GeoServerDialog.DialogDelegate() {
+                dialog.setTitle(new ParamResourceModel("confirmCopyDialog.title", CopyFromLayerPanel.this));
+                dialog.showOkCancel(target, new GeoServerDialog.DialogDelegate() {
 
-                            private static final long serialVersionUID = -5552087037163833563L;
+                    private static final long serialVersionUID = -5552087037163833563L;
 
-                            @Override
-                            protected Component getContents(String id) {
-                                ParamResourceModel resource =
-                                        new ParamResourceModel(
-                                                "confirmCopyDialog.content",
-                                                CopyFromLayerPanel.this);
-                                return new MultiLineLabel(id, resource.getString());
-                            }
+                    @Override
+                    protected Component getContents(String id) {
+                        ParamResourceModel resource =
+                                new ParamResourceModel("confirmCopyDialog.content", CopyFromLayerPanel.this);
+                        return new MultiLineLabel(id, resource.getString());
+                    }
 
-                            @Override
-                            protected boolean onSubmit(
-                                    AjaxRequestTarget target, Component contents) {
-                                handleCopy(res, target);
-                                return true;
-                            }
-                        });
+                    @Override
+                    protected boolean onSubmit(AjaxRequestTarget target, Component contents) {
+                        handleCopy(res, target);
+                        return true;
+                    }
+                });
             }
 
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
+            protected void onError(AjaxRequestTarget target) {
                 target.add(getFeedbackPanel());
             }
         };

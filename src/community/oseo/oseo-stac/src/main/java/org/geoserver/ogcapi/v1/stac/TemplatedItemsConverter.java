@@ -20,10 +20,10 @@ import org.geoserver.featurestemplating.builders.impl.TemplateBuilderContext;
 import org.geoserver.featurestemplating.configuration.TemplateIdentifier;
 import org.geoserver.ogcapi.OGCAPIMediaTypes;
 import org.geoserver.platform.ServiceException;
+import org.geotools.api.feature.Feature;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.util.logging.Logging;
-import org.opengis.feature.Feature;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
@@ -54,15 +54,12 @@ public class TemplatedItemsConverter extends AbstractHttpMessageConverter<Abstra
     }
 
     @Override
-    protected void writeInternal(
-            AbstractItemsResponse itemsResponse, HttpOutputMessage httpOutputMessage)
+    protected void writeInternal(AbstractItemsResponse itemsResponse, HttpOutputMessage httpOutputMessage)
             throws IOException {
 
-        try (STACGeoJSONWriter writer =
-                new STACGeoJSONWriter(
-                        new JsonFactory()
-                                .createGenerator(httpOutputMessage.getBody(), JsonEncoding.UTF8),
-                        TemplateIdentifier.GEOJSON)) {
+        try (STACGeoJSONWriter writer = new STACGeoJSONWriter(
+                new JsonFactory().createGenerator(httpOutputMessage.getBody(), JsonEncoding.UTF8),
+                TemplateIdentifier.GEOJSON)) {
             writer.startTemplateOutput(null);
             FeatureCollection collection = itemsResponse.getItems();
             try (FeatureIterator features = collection.features()) {
@@ -83,8 +80,7 @@ public class TemplatedItemsConverter extends AbstractHttpMessageConverter<Abstra
         }
     }
 
-    private RootBuilder getRootBuilder(String collectionId, AbstractItemsResponse response)
-            throws IOException {
+    private RootBuilder getRootBuilder(String collectionId, AbstractItemsResponse response) throws IOException {
         Map<String, RootBuilder> templateMap = response.getTemplateMap();
         RootBuilder rootBuilder = null;
         if (templateMap != null) {
@@ -97,8 +93,7 @@ public class TemplatedItemsConverter extends AbstractHttpMessageConverter<Abstra
         return rootBuilder;
     }
 
-    private void writeAdditionFields(STACGeoJSONWriter w, AbstractItemsResponse ir)
-            throws IOException {
+    private void writeAdditionFields(STACGeoJSONWriter w, AbstractItemsResponse ir) throws IOException {
         // number matched
         w.writeElementName("numberMatched", null);
         w.writeElementValue(ir.getNumberMatched(), null);

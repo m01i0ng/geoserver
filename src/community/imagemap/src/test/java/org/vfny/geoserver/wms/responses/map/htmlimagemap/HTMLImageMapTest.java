@@ -18,20 +18,24 @@ import java.io.IOException;
 import java.util.logging.Logger;
 import org.geoserver.platform.GeoServerResourceLoader;
 import org.geoserver.wms.WMSMapContent;
-import org.geotools.data.DataStore;
-import org.geotools.data.FeatureSource;
-import org.geotools.data.Query;
+import org.geotools.api.data.DataStore;
+import org.geotools.api.data.FeatureSource;
+import org.geotools.api.data.Query;
+import org.geotools.api.data.SimpleFeatureSource;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.operation.MathTransform;
+import org.geotools.api.style.Style;
+import org.geotools.api.style.StyleFactory;
 import org.geotools.data.property.PropertyDataStore;
 import org.geotools.data.shapefile.ShapefileDataStore;
-import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.data.view.DefaultView;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.map.FeatureLayer;
 import org.geotools.referencing.CRS;
-import org.geotools.styling.Style;
-import org.geotools.styling.StyleFactory;
 import org.geotools.test.TestData;
 import org.geotools.util.URLs;
 import org.geotools.xml.styling.SLDParser;
@@ -39,10 +43,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.locationtech.jts.geom.Envelope;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.MathTransform;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 
 /**
@@ -54,9 +54,8 @@ public class HTMLImageMapTest {
 
     private static final StyleFactory sFac = CommonFactoryFinder.getStyleFactory(null);
 
-    private static final Logger LOGGER =
-            org.geotools.util.logging.Logging.getLogger(
-                    HTMLImageMapTest.class.getPackage().getName());
+    private static final Logger LOGGER = org.geotools.util.logging.Logging.getLogger(
+            HTMLImageMapTest.class.getPackage().getName());
 
     private HTMLImageMapMapProducer mapProducer;
 
@@ -168,8 +167,7 @@ public class HTMLImageMapTest {
     @Test
     public void testMapProduceBasicPolygons() throws Exception {
 
-        final FeatureSource<SimpleFeatureType, SimpleFeature> fs =
-                testDS.getFeatureSource("BasicPolygons");
+        final FeatureSource<SimpleFeatureType, SimpleFeature> fs = testDS.getFeatureSource("BasicPolygons");
         final ReferencedEnvelope env = new ReferencedEnvelope(fs.getBounds(), WGS84);
 
         LOGGER.info("about to create map ctx for BasicPolygons with bounds " + env);
@@ -190,8 +188,7 @@ public class HTMLImageMapTest {
     @Test
     public void testMapProducePolygonsWithHoles() throws Exception {
 
-        final FeatureSource<SimpleFeatureType, SimpleFeature> fs =
-                testDS.getFeatureSource("PolygonWithHoles");
+        final FeatureSource<SimpleFeatureType, SimpleFeature> fs = testDS.getFeatureSource("PolygonWithHoles");
         final ReferencedEnvelope env = new ReferencedEnvelope(fs.getBounds(), WGS84);
 
         LOGGER.info("about to create map ctx for BasicPolygons with bounds " + env);
@@ -212,8 +209,7 @@ public class HTMLImageMapTest {
     @Test
     public void testMapProducePolygonsWithSkippedHoles() throws Exception {
 
-        final FeatureSource<SimpleFeatureType, SimpleFeature> fs =
-                testDS.getFeatureSource("PolygonWithSkippedHoles");
+        final FeatureSource<SimpleFeatureType, SimpleFeature> fs = testDS.getFeatureSource("PolygonWithSkippedHoles");
         final ReferencedEnvelope env = new ReferencedEnvelope(fs.getBounds(), WGS84);
 
         LOGGER.info("about to create map ctx for BasicPolygons with bounds " + env);
@@ -240,8 +236,7 @@ public class HTMLImageMapTest {
         query.setCoordinateSystem(CRS.decode("EPSG:3004"));
         final SimpleFeatureSource fs = new DefaultView(origional, query);
 
-        final ReferencedEnvelope env =
-                new ReferencedEnvelope(fs.getBounds(), CRS.decode("EPSG:3004"));
+        final ReferencedEnvelope env = new ReferencedEnvelope(fs.getBounds(), CRS.decode("EPSG:3004"));
 
         LOGGER.info("about to create map ctx for ProjectedPolygon with bounds " + env);
 
@@ -272,8 +267,7 @@ public class HTMLImageMapTest {
     @Test
     public void testMapProduceLines() throws Exception {
 
-        final FeatureSource<SimpleFeatureType, SimpleFeature> fs =
-                testDS.getFeatureSource("RoadSegments");
+        final FeatureSource<SimpleFeatureType, SimpleFeature> fs = testDS.getFeatureSource("RoadSegments");
         final ReferencedEnvelope env = new ReferencedEnvelope(fs.getBounds(), WGS84);
 
         LOGGER.info("about to create map ctx for RoadSegments with bounds " + env);
@@ -299,12 +293,10 @@ public class HTMLImageMapTest {
          * f=filterFactory.equals(filterFactory.property("NAME"),filterFactory.literal("Route 5"));
          * Query q=new Query("RoadSegments",f);
          */
-        final FeatureSource<SimpleFeatureType, SimpleFeature> fs =
-                testDS.getFeatureSource("RoadSegments");
+        final FeatureSource<SimpleFeatureType, SimpleFeature> fs = testDS.getFeatureSource("RoadSegments");
         final ReferencedEnvelope env = new ReferencedEnvelope(fs.getBounds(), WGS84);
 
-        LOGGER.info(
-                "about to create map ctx for RoadSegments with filter on name and bounds " + env);
+        LOGGER.info("about to create map ctx for RoadSegments with filter on name and bounds " + env);
 
         final WMSMapContent map = new WMSMapContent();
         map.getViewport().setBounds(env);
@@ -323,8 +315,7 @@ public class HTMLImageMapTest {
     @Test
     public void testMapProducePoints() throws Exception {
 
-        final FeatureSource<SimpleFeatureType, SimpleFeature> fs =
-                testDS.getFeatureSource("BuildingCenters");
+        final FeatureSource<SimpleFeatureType, SimpleFeature> fs = testDS.getFeatureSource("BuildingCenters");
         final ReferencedEnvelope env = new ReferencedEnvelope(fs.getBounds(), WGS84);
 
         LOGGER.info("about to create map ctx for BuildingCenters with bounds " + env);
@@ -346,8 +337,7 @@ public class HTMLImageMapTest {
     @Test
     public void testMapProducePointsWithSize() throws Exception {
 
-        final FeatureSource<SimpleFeatureType, SimpleFeature> fs =
-                testDS.getFeatureSource("BuildingCenters");
+        final FeatureSource<SimpleFeatureType, SimpleFeature> fs = testDS.getFeatureSource("BuildingCenters");
         final ReferencedEnvelope env = new ReferencedEnvelope(fs.getBounds(), WGS84);
 
         LOGGER.info("about to create map ctx for BuildingCenters with bounds " + env);
@@ -369,8 +359,7 @@ public class HTMLImageMapTest {
     @Test
     public void testMapProducePointsWithDifferenSizeInScale1() throws Exception {
 
-        final FeatureSource<SimpleFeatureType, SimpleFeature> fs =
-                testDS.getFeatureSource("BuildingCenters");
+        final FeatureSource<SimpleFeatureType, SimpleFeature> fs = testDS.getFeatureSource("BuildingCenters");
         final ReferencedEnvelope env = new ReferencedEnvelope(fs.getBounds(), WGS84);
 
         LOGGER.info("about to create map ctx for BuildingCenters with bounds " + env);
@@ -392,8 +381,7 @@ public class HTMLImageMapTest {
     @Test
     public void testMapProducePointsWithDifferenSizeInScale2() throws Exception {
 
-        final FeatureSource<SimpleFeatureType, SimpleFeature> fs =
-                testDS.getFeatureSource("BuildingCenters");
+        final FeatureSource<SimpleFeatureType, SimpleFeature> fs = testDS.getFeatureSource("BuildingCenters");
         ReferencedEnvelope tmp = fs.getBounds();
         tmp.expandBy(5, 5);
         final ReferencedEnvelope env = new ReferencedEnvelope(tmp, WGS84);
@@ -417,8 +405,7 @@ public class HTMLImageMapTest {
     @Test
     public void testMapProduceMultiPoints() throws Exception {
 
-        final FeatureSource<SimpleFeatureType, SimpleFeature> fs =
-                testDS.getFeatureSource("BuildingCentersMultiPoint");
+        final FeatureSource<SimpleFeatureType, SimpleFeature> fs = testDS.getFeatureSource("BuildingCentersMultiPoint");
         final ReferencedEnvelope env = new ReferencedEnvelope(fs.getBounds(), WGS84);
 
         LOGGER.info("about to create map ctx for BuildingCentersMultiPoint with bounds " + env);
@@ -440,8 +427,7 @@ public class HTMLImageMapTest {
     @Test
     public void testMapProduceCollection() throws Exception {
 
-        final FeatureSource<SimpleFeatureType, SimpleFeature> fs =
-                testDS.getFeatureSource("CollectionSample");
+        final FeatureSource<SimpleFeatureType, SimpleFeature> fs = testDS.getFeatureSource("CollectionSample");
         final ReferencedEnvelope env = new ReferencedEnvelope(fs.getBounds(), WGS84);
 
         LOGGER.info("about to create map ctx for RoadSegments with bounds " + env);
@@ -462,8 +448,7 @@ public class HTMLImageMapTest {
 
     @Test
     public void testMapProduceNoCoords() throws Exception {
-        final FeatureSource<SimpleFeatureType, SimpleFeature> fs =
-                testDS.getFeatureSource("NoCoords");
+        final FeatureSource<SimpleFeatureType, SimpleFeature> fs = testDS.getFeatureSource("NoCoords");
         final ReferencedEnvelope env = new ReferencedEnvelope(2.0, 6.0, 2.0, 6.0, WGS84);
 
         LOGGER.info("about to create map ctx for NamedPlaces with bounds " + env);

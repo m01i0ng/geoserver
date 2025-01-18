@@ -13,7 +13,6 @@ import net.opengis.wfs.WfsFactory;
 import net.opengis.wfs20.UpdateType;
 import net.opengis.wfs20.Wfs20Factory;
 import org.eclipse.emf.ecore.EObject;
-import org.geoserver.wfs.request.Insert.WFS11;
 
 /**
  * Update element in a Transaction request.
@@ -51,7 +50,8 @@ public abstract class Update extends TransactionElement {
         public void setUpdateProperties(List<Property> properties) {
             UpdateElementType update = (UpdateElementType) adaptee;
             update.getProperty().clear();
-            properties.stream().map(p -> p.getAdaptee()).forEach(p -> update.getProperty().add(p));
+            properties.stream().map(p -> p.getAdaptee()).forEach(p -> update.getProperty()
+                    .add(p));
         }
 
         @Override

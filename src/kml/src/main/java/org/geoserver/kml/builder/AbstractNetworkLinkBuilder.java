@@ -16,15 +16,15 @@ import org.geoserver.kml.decorator.KmlDecoratorFactory.KmlDecorator;
 import org.geoserver.platform.ServiceException;
 import org.geoserver.wms.MapLayerInfo;
 import org.geoserver.wms.WMSMapContent;
-import org.geotools.data.FeatureSource;
-import org.geotools.data.Query;
+import org.geotools.api.data.FeatureSource;
+import org.geotools.api.data.Query;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.map.Layer;
 import org.geotools.referencing.CRS;
 import org.geotools.util.logging.Logging;
-import org.opengis.filter.Filter;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 public abstract class AbstractNetworkLinkBuilder {
 
@@ -53,9 +53,7 @@ public abstract class AbstractNetworkLinkBuilder {
             document = (Document) decorator.decorate(document, context);
             if (document == null) {
                 throw new ServiceException(
-                        "Coding error in decorator "
-                                + decorator
-                                + ", document objects cannot be set to null");
+                        "Coding error in decorator " + decorator + ", document objects cannot be set to null");
             }
         }
 
@@ -67,13 +65,11 @@ public abstract class AbstractNetworkLinkBuilder {
     abstract void encodeDocumentContents(Document document);
 
     /**
-     * @return the aggregated bounds for all the requested layers, taking into account whether the
-     *     whole layer or filtered bounds is used for each layer
+     * @return the aggregated bounds for all the requested layers, taking into account whether the whole layer or
+     *     filtered bounds is used for each layer
      */
     protected ReferencedEnvelope computePerLayerQueryBounds(
-            final WMSMapContent context,
-            final List<ReferencedEnvelope> target,
-            final LookAt lookAt) {
+            final WMSMapContent context, final List<ReferencedEnvelope> target, final LookAt lookAt) {
 
         // no need to compute queried bounds if request explicitly specified the view area
         final boolean computeQueryBounds = lookAt == null;
@@ -93,12 +89,9 @@ public abstract class AbstractNetworkLinkBuilder {
             final Layer Layer = mapLayers.get(i);
             final MapLayerInfo layerInfo = layerInfos.get(i);
 
-            ReferencedEnvelope layerLatLongBbox =
-                    computeLayerBounds(Layer, layerInfo, computeQueryBounds);
+            ReferencedEnvelope layerLatLongBbox = computeLayerBounds(Layer, layerInfo, computeQueryBounds);
             try {
-                layerLatLongBbox =
-                        layerLatLongBbox.transform(
-                                aggregatedBounds.getCoordinateReferenceSystem(), true);
+                layerLatLongBbox = layerLatLongBbox.transform(aggregatedBounds.getCoordinateReferenceSystem(), true);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -108,8 +101,7 @@ public abstract class AbstractNetworkLinkBuilder {
         return aggregatedBounds;
     }
 
-    protected ReferencedEnvelope computeLayerBounds(
-            Layer layer, MapLayerInfo layerInfo, boolean computeQueryBounds) {
+    protected ReferencedEnvelope computeLayerBounds(Layer layer, MapLayerInfo layerInfo, boolean computeQueryBounds) {
 
         final Query layerQuery = layer.getQuery();
         // make sure if layer is going to be filtered, the resulting bounds are obtained instead of
@@ -131,11 +123,7 @@ public abstract class AbstractNetworkLinkBuilder {
                 layerLatLongBbox = features.getBounds();
                 layerLatLongBbox = layerLatLongBbox.transform(targetCRS, true);
             } catch (Exception e) {
-                LOGGER.info(
-                        "Error computing bounds for "
-                                + featureSource.getName()
-                                + " with "
-                                + layerQuery);
+                LOGGER.info("Error computing bounds for " + featureSource.getName() + " with " + layerQuery);
             }
         }
         if (layerLatLongBbox == null) {

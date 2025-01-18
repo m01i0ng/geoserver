@@ -5,15 +5,14 @@
 package org.geoserver.ogcapi.v1.stac;
 
 import java.math.BigInteger;
-import org.geotools.data.Query;
+import org.geotools.api.data.Query;
 import org.geotools.feature.FeatureCollection;
 
 public class QueryResult extends AbstractQueryResult {
 
     private final Query query;
 
-    public QueryResult(
-            Query query, FeatureCollection items, BigInteger numberMatched, int returned) {
+    public QueryResult(Query query, FeatureCollection items, BigInteger numberMatched, int returned) {
         super(items, numberMatched, returned);
         this.query = query;
     }

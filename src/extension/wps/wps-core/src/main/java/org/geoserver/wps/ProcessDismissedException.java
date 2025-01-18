@@ -5,12 +5,12 @@
 package org.geoserver.wps;
 
 import org.geoserver.wps.executor.MaxExecutionTimeListener;
+import org.geotools.api.util.ProgressListener;
 import org.geotools.data.util.DelegateProgressListener;
-import org.opengis.util.ProgressListener;
 
 /**
- * Exception used to "poison" inputs and listener methods to force processes to exit when a dismiss
- * request was submitted
+ * Exception used to "poison" inputs and listener methods to force processes to exit when a dismiss request was
+ * submitted
  *
  * @author Andrea Aime - GeoSolutions
  */
@@ -28,8 +28,7 @@ public class ProcessDismissedException extends RuntimeException {
 
     private static String getMessageFromListener(ProgressListener listener) {
         // see if we went beyond the maximum time allowed
-        while (!(listener instanceof MaxExecutionTimeListener)
-                && (listener instanceof DelegateProgressListener)) {
+        while (!(listener instanceof MaxExecutionTimeListener) && (listener instanceof DelegateProgressListener)) {
             DelegateProgressListener d = (DelegateProgressListener) listener;
             listener = d.getDelegate();
         }

@@ -4,7 +4,7 @@
  */
 package org.geoserver.wps.remote;
 
-import org.opengis.feature.type.Name;
+import org.geotools.api.feature.type.Name;
 
 /**
  * Just a utility class to store info associated to the remote processing machines
@@ -25,11 +25,7 @@ public class RemoteMachineDescriptor {
 
     /** */
     public RemoteMachineDescriptor(
-            String nodeJID,
-            Name serviceName,
-            Boolean available,
-            Double memPercUsed,
-            Double loadAverage) {
+            String nodeJID, Name serviceName, Boolean available, Double memPercUsed, Double loadAverage) {
         super();
         this.nodeJID = nodeJID;
         this.serviceName = serviceName;

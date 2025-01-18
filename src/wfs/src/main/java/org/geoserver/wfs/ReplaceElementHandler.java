@@ -20,16 +20,16 @@ import org.geoserver.wfs.request.Replace;
 import org.geoserver.wfs.request.TransactionElement;
 import org.geoserver.wfs.request.TransactionRequest;
 import org.geoserver.wfs.request.TransactionResponse;
+import org.geotools.api.data.FeatureStore;
+import org.geotools.api.data.SimpleFeatureStore;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.type.AttributeDescriptor;
+import org.geotools.api.filter.FilterFactory;
+import org.geotools.api.filter.identity.FeatureId;
 import org.geotools.data.DataUtilities;
-import org.geotools.data.FeatureStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
-import org.geotools.data.simple.SimpleFeatureStore;
 import org.geotools.factory.CommonFactoryFinder;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.type.AttributeDescriptor;
-import org.opengis.filter.FilterFactory;
-import org.opengis.filter.identity.FeatureId;
 
 public class ReplaceElementHandler extends AbstractTransactionElementHandler {
 
@@ -47,8 +47,7 @@ public class ReplaceElementHandler extends AbstractTransactionElementHandler {
     }
 
     @Override
-    public QName[] getTypeNames(TransactionRequest request, TransactionElement element)
-            throws WFSTransactionException {
+    public QName[] getTypeNames(TransactionRequest request, TransactionElement element) throws WFSTransactionException {
         Replace replace = (Replace) element;
 
         List<QName> typeNames = new ArrayList<>();
@@ -69,17 +68,14 @@ public class ReplaceElementHandler extends AbstractTransactionElementHandler {
     }
 
     @Override
-    public void checkValidity(TransactionElement element, Map featureTypeInfos)
-            throws WFSTransactionException {
+    public void checkValidity(TransactionElement element, Map featureTypeInfos) throws WFSTransactionException {
         if (!getInfo().getServiceLevel().getOps().contains(WFSInfo.Operation.TRANSACTION_REPLACE)) {
             throw new WFSException(element, "Transaction REPLACE support is not enabled");
         }
 
         if (featureTypeInfos.size() != 1) {
             throw new WFSException(
-                    element,
-                    "Transaction REPLACE must only specify features from a"
-                            + " single feature type");
+                    element, "Transaction REPLACE must only specify features from a" + " single feature type");
         }
     }
 
@@ -96,8 +92,8 @@ public class ReplaceElementHandler extends AbstractTransactionElementHandler {
 
         @SuppressWarnings("unchecked")
         List<SimpleFeature> newFeatures = replace.getFeatures();
-        SimpleFeatureStore featureStore =
-                DataUtilities.simple((FeatureStore) featureStores.values().iterator().next());
+        SimpleFeatureStore featureStore = DataUtilities.simple(
+                (FeatureStore) featureStores.values().iterator().next());
         if (featureStore == null) {
             throw new WFSException(element, "Could not obtain feature store");
         }
@@ -153,7 +149,7 @@ public class ReplaceElementHandler extends AbstractTransactionElementHandler {
                 replace(oldFeature, newFeature, featureStore, oldFeatures, replaced);
             }
         } catch (IOException e) {
-            throw new WFSException(element, "Transaction REPLACE failed", e);
+            throw exceptionFactory.newWFSTransactionException("Replace error: " + e.getMessage(), e);
         }
 
         response.setTotalReplaced(BigInteger.valueOf(replaced.size()));

@@ -12,7 +12,7 @@
   <parent>
     <groupId>org.geoserver.community.security</groupId>
     <artifactId>gs-sec-oauth2-openid-connect</artifactId>
-    <version>2.24-SNAPSHOT</version>
+    <version>2.27-SNAPSHOT</version>
   </parent>
 
   <artifactId>gs-sec-oauth2-openid-connect-core</artifactId>
@@ -51,18 +51,33 @@
 
     <dependency>
       <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-oauth2-core</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-crypto</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk18on</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-jwt</artifactId>
       <version>1.0.11.RELEASE</version>
+      <exclusions>
+        <exclusion>
+          <artifactId>bcprov-jdk15on</artifactId>
+          <groupId>org.bouncycastle</groupId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
       <groupId>net.sf.json-lib</groupId>
       <artifactId>json-lib</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-mapper-asl</artifactId>
     </dependency>
 
     <dependency>
@@ -81,16 +96,14 @@
     </dependency>
 
     <dependency>
-      <groupId>org.geoserver.community.security</groupId>
-      <artifactId>gs-sec-oauth2-core</artifactId>
-      <version>${project.version}</version>
-      <classifier>tests</classifier>
-      <scope>test</scope>
+      <groupId>com.nimbusds</groupId>
+      <artifactId>nimbus-jose-jwt</artifactId>
+      <version>9.37.2</version>
     </dependency>
 
     <dependency>
       <groupId>org.geoserver.community.security</groupId>
-      <artifactId>gs-sec-oauth2-web</artifactId>
+      <artifactId>gs-sec-oauth2-core</artifactId>
       <version>${project.version}</version>
       <classifier>tests</classifier>
       <scope>test</scope>
@@ -125,9 +138,8 @@
     </dependency>
 
     <dependency>
-      <groupId>com.github.tomakehurst</groupId>
+      <groupId>org.wiremock</groupId>
       <artifactId>wiremock-standalone</artifactId>
-      <version>2.1.12</version>
       <scope>test</scope>
     </dependency>
 

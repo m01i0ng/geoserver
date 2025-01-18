@@ -11,7 +11,7 @@ import javax.xml.transform.TransformerException;
 import org.geoserver.ows.Response;
 import org.geoserver.platform.Operation;
 import org.geoserver.platform.ServiceException;
-import org.geotools.styling.StyledLayerDescriptor;
+import org.geotools.api.style.StyledLayerDescriptor;
 import org.geotools.xml.styling.SLDTransformer;
 
 public class GetStylesResponse extends Response {
@@ -28,8 +28,7 @@ public class GetStylesResponse extends Response {
     }
 
     @Override
-    public void write(Object value, OutputStream output, Operation operation)
-            throws IOException, ServiceException {
+    public void write(Object value, OutputStream output, Operation operation) throws IOException, ServiceException {
         StyledLayerDescriptor sld = (StyledLayerDescriptor) value;
 
         SLDTransformer tx = new SLDTransformer();

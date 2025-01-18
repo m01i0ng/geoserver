@@ -5,26 +5,28 @@
  */
 package org.geoserver.wms.svg;
 
+import static org.apache.commons.text.StringEscapeUtils.escapeXml10;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.logging.Logger;
 import org.geoserver.wms.WMSMapContent;
 import org.geoserver.wms.WebMap;
+import org.geotools.api.data.Query;
+import org.geotools.api.data.SimpleFeatureSource;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.type.GeometryDescriptor;
+import org.geotools.api.filter.FilterFactory;
+import org.geotools.api.filter.spatial.BBOX;
 import org.geotools.data.DataUtilities;
-import org.geotools.data.Query;
 import org.geotools.data.simple.SimpleFeatureIterator;
-import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.map.Layer;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.MultiPoint;
 import org.locationtech.jts.geom.Point;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.GeometryDescriptor;
-import org.opengis.filter.FilterFactory2;
-import org.opengis.filter.spatial.BBOX;
 
 /**
  * Streaming SVG encoder (does not support styling)
@@ -38,9 +40,8 @@ public class StreamingSVGMap extends WebMap {
             org.geotools.util.logging.Logging.getLogger("org.vfny.geoserver.responses.wms.map");
 
     /** the XML and SVG header */
-    private static final String SVG_HEADER =
-            "<?xml version=\"1.0\" standalone=\"no\"?>\n\t"
-                    + "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" \n\tstroke=\"green\" \n\tfill=\"none\" \n\tstroke-width=\"0.1%\"\n\tstroke-linecap=\"round\"\n\tstroke-linejoin=\"round\"\n\twidth=\"_width_\" \n\theight=\"_height_\" \n\tviewBox=\"_viewBox_\" \n\tpreserveAspectRatio=\"xMidYMid meet\">\n";
+    private static final String SVG_HEADER = "<?xml version=\"1.0\" standalone=\"no\"?>\n\t"
+            + "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" \n\tstroke=\"green\" \n\tfill=\"none\" \n\tstroke-width=\"0.1%\"\n\tstroke-linecap=\"round\"\n\tstroke-linejoin=\"round\"\n\twidth=\"_width_\" \n\theight=\"_height_\" \n\tviewBox=\"_viewBox_\" \n\tpreserveAspectRatio=\"xMidYMid meet\">\n";
 
     /** the SVG closing element */
     private static final String SVG_FOOTER = "</svg>\n";
@@ -72,14 +73,13 @@ public class StreamingSVGMap extends WebMap {
 
     public String createViewBox() {
         Envelope referenceSpace = mapContent.getRenderingArea();
-        String viewBox =
-                writer.getX(referenceSpace.getMinX())
-                        + " "
-                        + (writer.getY(referenceSpace.getMinY()) - referenceSpace.getHeight())
-                        + " "
-                        + referenceSpace.getWidth()
-                        + " "
-                        + referenceSpace.getHeight();
+        String viewBox = writer.getX(referenceSpace.getMinX())
+                + " "
+                + (writer.getY(referenceSpace.getMinY()) - referenceSpace.getHeight())
+                + " "
+                + referenceSpace.getWidth()
+                + " "
+                + referenceSpace.getHeight();
 
         return viewBox;
     }
@@ -104,29 +104,27 @@ public class StreamingSVGMap extends WebMap {
     }
 
     private void writePointDefs() throws IOException {
-        writer.write(
-                "<defs>\n\t<circle id='point' cx='0' cy='0' r='0.25%' fill='blue'/>\n</defs>\n");
+        writer.write("<defs>\n\t<circle id='point' cx='0' cy='0' r='0.25%' fill='blue'/>\n</defs>\n");
     }
 
     /** @task TODO: respect layer filtering given by their Styles */
     private void writeLayers() throws IOException {
         List<Layer> layers = mapContent.layers();
-        FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
+        FilterFactory ff = CommonFactoryFinder.getFilterFactory();
 
         for (Layer layer : layers) {
             SimpleFeatureSource fSource = (SimpleFeatureSource) layer.getFeatureSource();
             SimpleFeatureType schema = fSource.getSchema();
 
             try {
-                String defaultGeometry = schema.getGeometryDescriptor().getName().getLocalPart();
+                String defaultGeometry =
+                        schema.getGeometryDescriptor().getName().getLocalPart();
                 ReferencedEnvelope renderingArea = mapContent.getRenderingArea();
                 BBOX bboxFilter = ff.bbox(ff.property(defaultGeometry), renderingArea);
 
                 Query bboxQuery = new Query(schema.getTypeName(), bboxFilter);
                 Query definitionQuery = layer.getQuery();
-                Query finalQuery =
-                        new Query(
-                                DataUtilities.mixQueries(definitionQuery, bboxQuery, "svgEncoder"));
+                Query finalQuery = new Query(DataUtilities.mixQueries(definitionQuery, bboxQuery, "svgEncoder"));
                 finalQuery.setHints(definitionQuery.getHints());
                 finalQuery.setSortBy(definitionQuery.getSortBy());
                 finalQuery.setStartIndex(definitionQuery.getStartIndex());
@@ -138,10 +136,10 @@ public class StreamingSVGMap extends WebMap {
 
                 String styleName = layer.getStyle().getName();
 
-                writer.write("<g id=\"" + groupId + "\"");
+                writer.write("<g id=\"" + escapeXml10(groupId) + "\"");
 
                 if (!styleName.startsWith("#")) {
-                    writer.write(" class=\"" + styleName + "\"");
+                    writer.write(" class=\"" + escapeXml10(styleName) + "\"");
                 }
 
                 writer.write(">\n");

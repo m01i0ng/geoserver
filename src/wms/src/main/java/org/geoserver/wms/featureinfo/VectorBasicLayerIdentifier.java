@@ -11,13 +11,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.catalog.LayerInfo;
 import org.geoserver.platform.ServiceException;
 import org.geoserver.wms.FeatureInfoRequestParameters;
+import org.geoserver.wms.GetMapRequest;
 import org.geoserver.wms.MapLayerInfo;
 import org.geoserver.wms.WMS;
-import org.geotools.data.FeatureSource;
-import org.geotools.data.Query;
+import org.geotools.api.data.FeatureSource;
+import org.geotools.api.data.Query;
+import org.geotools.api.feature.Feature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.type.FeatureType;
+import org.geotools.api.feature.type.GeometryDescriptor;
+import org.geotools.api.feature.type.Name;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.filter.FilterFactory;
+import org.geotools.api.filter.Or;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.style.Rule;
+import org.geotools.api.style.Style;
 import org.geotools.data.store.FilteringFeatureCollection;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.filter.Filters;
@@ -27,24 +40,13 @@ import org.geotools.geometry.jts.JTS;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
 import org.geotools.renderer.lite.MetaBufferEstimator;
-import org.geotools.styling.Rule;
-import org.geotools.styling.Style;
 import org.geotools.util.factory.Hints;
 import org.geotools.util.logging.Logging;
 import org.locationtech.jts.geom.Polygon;
-import org.opengis.feature.Feature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.FeatureType;
-import org.opengis.feature.type.GeometryDescriptor;
-import org.opengis.feature.type.Name;
-import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory2;
-import org.opengis.filter.Or;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
- * An identifier for vector layers that will take into account the filters, viewparams, styles and
- * build a bbox (plus extra filters) query against the database
+ * An identifier for vector layers that will take into account the filters, viewparams, styles and build a bbox (plus
+ * extra filters) query against the database
  *
  * @author Andrea Aime - GeoSolutions
  */
@@ -52,8 +54,7 @@ public class VectorBasicLayerIdentifier extends AbstractVectorLayerIdentifier {
 
     static final Logger LOGGER = Logging.getLogger(VectorBasicLayerIdentifier.class);
 
-    public static final String FEATUREINFO_DEFAULT_BUFFER =
-            "org.geoserver.wms.featureinfo.minBuffer";
+    public static final String FEATUREINFO_DEFAULT_BUFFER = "org.geoserver.wms.featureinfo.minBuffer";
     public static final int MIN_BUFFER_SIZE = Integer.getInteger(FEATUREINFO_DEFAULT_BUFFER, 5);
 
     private WMS wms;
@@ -63,12 +64,12 @@ public class VectorBasicLayerIdentifier extends AbstractVectorLayerIdentifier {
     }
 
     @Override
-    public List<FeatureCollection> identify(FeatureInfoRequestParameters params, int maxFeatures)
-            throws Exception {
+    public List<FeatureCollection> identify(FeatureInfoRequestParameters params, int maxFeatures) throws Exception {
         LOGGER.log(Level.FINER, "Appliying bbox based feature info identifier");
 
         final MapLayerInfo layer = params.getLayer();
         final Filter filter = params.getFilter();
+
         final Style style = params.getStyle();
         // ok, internally rendered layer then, we check the style to see what's active
         final List<Rule> rules = getActiveRules(style, params.getScaleDenominator());
@@ -76,10 +77,10 @@ public class VectorBasicLayerIdentifier extends AbstractVectorLayerIdentifier {
             return null;
         }
 
-        // compute the request radius
+        // compute the getMapRequest radius
         double radius = getSearchRadius(params, layer, rules);
 
-        // compute the bbox for the request
+        // compute the bbox for the getMapRequest
         ReferencedEnvelope queryEnvelope = LayerIdentifier.getEnvelopeFilter(params, radius);
         CoordinateReferenceSystem requestedCRS = params.getRequestedCRS();
         CoordinateReferenceSystem dataCRS = layer.getCoordinateReferenceSystem();
@@ -97,7 +98,7 @@ public class VectorBasicLayerIdentifier extends AbstractVectorLayerIdentifier {
         FeatureType schema = featureSource.getSchema();
 
         Filter getFInfoFilter = null;
-        FilterFactory2 ff = params.getFilterFactory();
+        FilterFactory ff = params.getFilterFactory();
         try {
             GeometryDescriptor geometryDescriptor = schema.getGeometryDescriptor();
             Name name = geometryDescriptor.getName();
@@ -119,17 +120,21 @@ public class VectorBasicLayerIdentifier extends AbstractVectorLayerIdentifier {
         Filter rulesFilters = buildRulesFilter(ff, rules);
         if (!(featureSource.getSchema() instanceof SimpleFeatureType)
                 || !(rulesFilters instanceof Or)
-                || (rulesFilters instanceof Or && ((Or) rulesFilters).getChildren().size() <= 20)) {
+                || (rulesFilters instanceof Or
+                        && ((Or) rulesFilters).getChildren().size() <= 20)) {
             getFInfoFilter = ff.and(getFInfoFilter, rulesFilters);
         } else {
             postFilter = rulesFilters;
         }
 
         // handle time/elevation
-        Filter timeElevationFilter =
-                wms.getTimeElevationToFilter(
-                        params.getTimes(), params.getElevations(), layer.getFeature());
-        getFInfoFilter = Filters.and(ff, getFInfoFilter, timeElevationFilter);
+        List<Object> times = params.getTimes();
+        List<Object> elevations = params.getElevations();
+        FeatureTypeInfo featureInfo = layer.getFeature();
+        GetMapRequest getMapRequest = params.getGetMapRequest();
+        wms.validateVectorDimensions(times, elevations, featureInfo, getMapRequest);
+        Filter dimensionFilter = wms.getDimensionFilter(times, elevations, featureInfo, getMapRequest);
+        getFInfoFilter = Filters.and(ff, getFInfoFilter, dimensionFilter);
 
         // simplify the filter
         SimplifyingFilterVisitor simplifier = new SimplifyingFilterVisitor();
@@ -137,14 +142,7 @@ public class VectorBasicLayerIdentifier extends AbstractVectorLayerIdentifier {
 
         // build the query
         String typeName = schema.getName().getLocalPart();
-        Query q =
-                new Query(
-                        typeName,
-                        null,
-                        getFInfoFilter,
-                        maxFeatures,
-                        params.getPropertyNames(),
-                        null);
+        Query q = new Query(typeName, null, getFInfoFilter, maxFeatures, params.getPropertyNames(), null);
         q.setSortBy(params.getSort());
 
         // handle sql view params
@@ -156,12 +154,11 @@ public class VectorBasicLayerIdentifier extends AbstractVectorLayerIdentifier {
         LOGGER.log(Level.FINE, q.toString());
         // let's see if we need to reproject
         if (!wms.isFeaturesReprojectionDisabled()) {
-            // reproject the features to the request CRS, this way complex feature will also be
-            // reprojected
+            // reproject the features to the getMapRequest CRS, this way complex feature will also
+            // be reprojected
             q.setCoordinateSystemReproject(requestedCRS);
         }
-        FeatureCollection<? extends FeatureType, ? extends Feature> match =
-                featureSource.getFeatures(q);
+        FeatureCollection<? extends FeatureType, ? extends Feature> match = featureSource.getFeatures(q);
 
         // if we could not include the rules filter into the query, post process in
         // memory
@@ -211,7 +208,7 @@ public class VectorBasicLayerIdentifier extends AbstractVectorLayerIdentifier {
         return radius;
     }
 
-    private Filter buildRulesFilter(org.opengis.filter.FilterFactory ff, List<Rule> rules) {
+    private Filter buildRulesFilter(org.geotools.api.filter.FilterFactory ff, List<Rule> rules) {
         // build up a or of all the rule filters
         List<Filter> filters = new ArrayList<>();
         for (Rule rule : rules) {

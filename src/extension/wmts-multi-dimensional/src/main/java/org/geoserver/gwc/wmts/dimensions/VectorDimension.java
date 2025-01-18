@@ -12,27 +12,23 @@ import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.catalog.LayerInfo;
 import org.geoserver.gwc.wmts.MultiDimensionalExtension;
 import org.geoserver.wms.WMS;
-import org.geotools.data.FeatureSource;
-import org.geotools.data.Query;
+import org.geotools.api.data.FeatureSource;
+import org.geotools.api.data.Query;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.filter.sort.SortBy;
+import org.geotools.api.filter.sort.SortOrder;
 import org.geotools.feature.FeatureCollection;
-import org.opengis.filter.Filter;
-import org.opengis.filter.sort.SortBy;
-import org.opengis.filter.sort.SortOrder;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
 /** Base class for vector based dimension */
 public abstract class VectorDimension extends Dimension {
 
-    public VectorDimension(
-            WMS wms, String dimensionName, LayerInfo layerInfo, DimensionInfo dimensionInfo) {
+    public VectorDimension(WMS wms, String dimensionName, LayerInfo layerInfo, DimensionInfo dimensionInfo) {
         super(wms, dimensionName, layerInfo, dimensionInfo);
     }
 
-    /**
-     * Helper method used to get domain values from a vector type in the form of a feature
-     * collection.
-     */
+    /** Helper method used to get domain values from a vector type in the form of a feature collection. */
     @Override
     protected FeatureCollection getDomain(Query query) {
         FeatureTypeInfo typeInfo = (FeatureTypeInfo) getResourceInfo();
@@ -42,9 +38,7 @@ public abstract class VectorDimension extends Dimension {
             source = DimensionsUtils.getFeatures(typeInfo);
         } catch (Exception exception) {
             throw new RuntimeException(
-                    String.format(
-                            "Error getting feature source of vector '%s'.", resourceInfo.getName()),
-                    exception);
+                    String.format("Error getting feature source of vector '%s'.", resourceInfo.getName()), exception);
         }
         // fix type name
         query = new Query(query);
@@ -65,11 +59,8 @@ public abstract class VectorDimension extends Dimension {
         FeatureCollection featureCollection = getDomain(new Query(null, filter));
         if (noDuplicates) {
             // no duplicate values should be included
-            Set<Comparable> values =
-                    DimensionsUtils.getValuesWithoutDuplicates(
-                            dimensionInfo.getAttribute(),
-                            dimensionInfo.getEndAttribute(),
-                            featureCollection);
+            Set<Comparable> values = DimensionsUtils.getValuesWithoutDuplicates(
+                    dimensionInfo.getAttribute(), dimensionInfo.getEndAttribute(), featureCollection);
             return new ArrayList<>(values);
         }
         // we need the duplicate values (this is useful for some operations like get histogram
@@ -87,8 +78,7 @@ public abstract class VectorDimension extends Dimension {
     }
 
     @Override
-    protected DomainSummary getPagedDomainValues(
-            Query query, int maxNumberOfValues, SortOrder sortOrder) {
+    protected DomainSummary getPagedDomainValues(Query query, int maxNumberOfValues, SortOrder sortOrder) {
         String attribute = dimensionInfo.getAttribute();
         String endAttribute = dimensionInfo.getEndAttribute();
         Query sortedQuery = new Query(query);
@@ -96,8 +86,7 @@ public abstract class VectorDimension extends Dimension {
         SortBy sortByDim = FILTER_FACTORY.sort(sortByEnd ? endAttribute : attribute, sortOrder);
         sortedQuery.setSortBy(new SortBy[] {sortByDim});
         FeatureCollection features = getDomain(sortedQuery);
-        return getPagedDomainValues(
-                features, attribute, endAttribute, maxNumberOfValues, sortByDim);
+        return getPagedDomainValues(features, attribute, endAttribute, maxNumberOfValues, sortByDim);
     }
 
     private boolean sortByEnd() {

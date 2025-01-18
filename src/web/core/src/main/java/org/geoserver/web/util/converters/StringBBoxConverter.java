@@ -5,6 +5,7 @@
  */
 package org.geoserver.web.util.converters;
 
+import org.geoserver.catalog.ResourcePool;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.CRS;
 import org.geotools.util.Converter;
@@ -27,7 +28,7 @@ public class StringBBoxConverter implements Converter {
                     str.append(envelope.getMaximum(0)).append(SEPARATOR);
                     str.append(envelope.getMinimum(1)).append(SEPARATOR);
                     str.append(envelope.getMaximum(1)).append(SEPARATOR);
-                    str.append(CRS.lookupIdentifier(envelope.getCoordinateReferenceSystem(), true));
+                    str.append(ResourcePool.lookupIdentifier(envelope.getCoordinateReferenceSystem(), true));
 
                     return (T) str.toString();
                 } catch (Exception e) {
@@ -39,14 +40,13 @@ public class StringBBoxConverter implements Converter {
                 String text = (String) source;
                 String[] parsed = text.split("\\s*" + SEPARATOR + "\\s*");
                 try {
-                    return (T)
-                            (new ReferencedEnvelope(
-                                    new Envelope(
-                                            Double.valueOf(parsed[0]),
-                                            Double.valueOf(parsed[1]),
-                                            Double.valueOf(parsed[2]),
-                                            Double.valueOf(parsed[3])),
-                                    CRS.decode(parsed[4])));
+                    return (T) (new ReferencedEnvelope(
+                            new Envelope(
+                                    Double.valueOf(parsed[0]),
+                                    Double.valueOf(parsed[1]),
+                                    Double.valueOf(parsed[2]),
+                                    Double.valueOf(parsed[3])),
+                            CRS.decode(parsed[4])));
                 } catch (Exception e) {
                     return null;
                 }

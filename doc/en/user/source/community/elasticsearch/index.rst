@@ -10,6 +10,8 @@ This data store allows features from an Elasticsearch index to be published thro
 Configuration
 -------------
 
+.. _config_elasticsearch:
+
 Configuring data store
 ^^^^^^^^^^^^^^^^^^^^^^
 
@@ -23,12 +25,10 @@ Once the Elasticsearch GeoServer extension is installed, ``Elasticsearch index``
 | |new_store| |
 +-------------+
 
-.. _config_elasticsearch:
-
 The Elasticsearch data store configuration panel includes connection parameters and search settings.
 
 .. |store_config| image:: images/elasticsearch_configuration.png
-   :scale: 55%
+   :scale: 90%
 
 +----------------+
 | |store_config| |
@@ -82,6 +82,8 @@ Available data store configuration parameters are summarized in the following ta
      - Hint for Geohash grid size (numRows*numCols)
    * - grid_threshold
      - Geohash grid aggregation precision will be the minimum necessary so that actual_grid_size/grid_size > grid_threshold
+   * - response_buffer_limit
+     - Maximum number of bytes to buffer in memory when reading responses from Elasticsearch
 
 Configuring authentication
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -165,6 +167,8 @@ The initial layer configuration panel for an Elasticsearch layer will include an
      - Native spatial reference ID of the geometries. Currently only EPSG:4326 is supported.
    * - ``Valid Date Formats``
      - Possible valid date formats used for parsing field values and printing filter elements
+   * - ``Refresh``
+     - If the field mappings or Elasticsearch schema has changed since this page was loaded, use this button to update the field configuration list.
 
 To return to the field table after it has been closed, click the "Configure Elasticsearch fields" button below the "Feature Type Details" panel on the layer configuration page.
 

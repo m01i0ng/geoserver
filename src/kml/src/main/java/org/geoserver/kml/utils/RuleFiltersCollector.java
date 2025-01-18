@@ -7,17 +7,17 @@ package org.geoserver.kml.utils;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.filter.FilterFactory;
+import org.geotools.api.style.FeatureTypeStyle;
+import org.geotools.api.style.Rule;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.filter.visitor.SimplifyingFilterVisitor;
 import org.geotools.styling.AbstractStyleVisitor;
-import org.geotools.styling.FeatureTypeStyle;
-import org.geotools.styling.Rule;
-import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory;
 
 /**
- * Collects all the filters in the style and builds a summary filter that matches every feature
- * matched by at least one rule in the style
+ * Collects all the filters in the style and builds a summary filter that matches every feature matched by at least one
+ * rule in the style
  *
  * @author Andrea Aime - GeoSolutions
  */

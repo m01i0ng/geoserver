@@ -9,7 +9,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.geoserver</groupId>
   <artifactId>geoserver</artifactId>
-  <version>2.24-SNAPSHOT</version>
+  <version>2.27-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>GeoServer</name>
   <inceptionYear>2006</inceptionYear>
@@ -88,23 +88,23 @@
   </distributionManagement>
 
   <properties>
-    <gs.version>2.24-SNAPSHOT</gs.version>
-    <gt.version>30-SNAPSHOT</gt.version>
-    <gwc.version>1.24-SNAPSHOT</gwc.version>
-    <jts.version>1.19.0</jts.version>
-    <spring.version>5.3.27</spring.version>
-    <spring.security.version>5.7.8</spring.security.version>
+    <gs.version>2.27-SNAPSHOT</gs.version>
+    <gt.version>33-SNAPSHOT</gt.version>
+    <gwc.version>1.27-SNAPSHOT</gwc.version>
+    <jts.version>1.20.0</jts.version>
+    <spring.version>5.3.39</spring.version>
+    <spring.security.version>5.8.16</spring.security.version>
     <spring-integration.version>5.5.18</spring-integration.version>
     <spring.security.oauth2.version>2.5.2.RELEASE</spring.security.oauth2.version>
     <servlet-api.version>3.1.0</servlet-api.version>
-    <jetty.version>9.4.48.v20220622</jetty.version>
+    <jetty.version>9.4.57.v20241219</jetty.version>
     <jetty.servlet-api.version>3.1.0</jetty.servlet-api.version>
-    <poi.version>4.1.1</poi.version>
-    <wicket.version>7.18.0</wicket.version>
+    <poi.version>5.2.5</poi.version>
+    <wicket.version>9.19.0</wicket.version>
     <ant.version>1.10.11</ant.version>
-    <httpclient.version>4.5.13</httpclient.version>
-    <imageio-ext.version>1.4.7</imageio-ext.version>
-    <jaiext.version>1.1.24</jaiext.version>
+    <httpclient.version>4.5.14</httpclient.version>
+    <imageio-ext.version>1.4.14</imageio-ext.version>
+    <jaiext.version>1.1.27</jaiext.version>
     <java.awt.headless>true</java.awt.headless>
     <sun.java2d.d3d>true</sun.java2d.d3d>
     <jvm.opts></jvm.opts>
@@ -123,33 +123,35 @@
     <image.tests>true</image.tests>
     <interactive.image>false</interactive.image>
     <windows.leniency>true</windows.leniency>
-    <gf.version>3.6.0</gf.version>
-    <jasypt.version>1.9.2</jasypt.version>
+    <gf.version>3.7.2</gf.version>
+    <mf.version>2.3.2</mf.version>
+    <jasypt.version>1.9.3</jasypt.version>
     <hibernate-version>3.6.9.Final</hibernate-version>
     <hibernate-generic-dao-version>1.1.0</hibernate-generic-dao-version>
     <hibernate-spatial-version>1.1.3.2</hibernate-spatial-version>
     <opengeo-geodb.version>0.9</opengeo-geodb.version>
     <!-- NOTE: be careful if upgrading log4j, check transitive slf4j with netcdf and netcdf-out -->
-    <log4j.version>2.17.2</log4j.version>
+    <log4j.version>2.24.3</log4j.version>
     <joda-time.version>2.8.1</joda-time.version>
     <git.commit.useNative>false</git.commit.useNative>
     <git.commit.runOnlyOnce>true</git.commit.runOnlyOnce>
     <eclipse.emf.version>2.15.0</eclipse.emf.version>
+    <hamcrest.version>3.0</hamcrest.version>
     <jackson1.version>1.9.13</jackson1.version>
-    <jackson2.version>2.15.2</jackson2.version>
-    <jackson2.databind.version>2.15.2</jackson2.databind.version>
+    <jackson2.version>2.18.2</jackson2.version>
+    <jackson2.databind.version>${jackson2.version}</jackson2.databind.version>
     <compress-lzf.version>1.0.3</compress-lzf.version>
-    <marlin.version>0.9.3</marlin.version>
-    <postgresql.jdbc.version>42.6.0</postgresql.jdbc.version>
+    <marlin.version>0.9.4.8</marlin.version>
+    <postgresql.jdbc.version>42.7.3</postgresql.jdbc.version>
     <postgis.jdbc.version>1.3.3</postgis.jdbc.version>
     <oracle.jdbc.version>19.18.0.0</oracle.jdbc.version>
-    <mysql.jdbc.version>8.0.28</mysql.jdbc.version>
-    <solrj.version>7.2.1</solrj.version>
-    <mockito.version>3.12.4</mockito.version>
+    <mysql.jdbc.version>9.1.0</mysql.jdbc.version>
+    <solrj.version>8.11.3</solrj.version>
+    <mockito.version>5.12.0</mockito.version>
     <jacoco.version>0.8.6</jacoco.version>
-    <hazelcast.version>3.11.1</hazelcast.version>
+    <hazelcast.version>5.3.6</hazelcast.version>
     <xalan.version>2.7.3</xalan.version>
-    <argLine>-Xmx${test.maxHeapSize} -enableassertions ${jvm.opts} -Djava.awt.headless=${java.awt.headless} -Dsun.java2d.d3d=${sun.java2d.d3d} -DremoteOwsTests=${remoteOwsTests} -DquietTests=${quietTests} -Dorg.geotools.image.test.enabled=${image.tests} -Dorg.geotools.image.test.interactive=${interactive.image} -Duser.timezone=${user.timezone} -Dwindows.leniency=${windows.leniency} -XX:+TieredCompilation -XX:TieredStopAtLevel=1</argLine>
+    <argLine>-Xmx${test.maxHeapSize} -enableassertions ${jvm.opts} -Djava.awt.headless=${java.awt.headless} -Dsun.java2d.d3d=${sun.java2d.d3d} -DremoteOwsTests=${remoteOwsTests} -DquietTests=${quietTests} -Dorg.geotools.image.test.enabled=${image.tests} -Dorg.geotools.image.test.interactive=${interactive.image} -Duser.timezone=${user.timezone} -Dwindows.leniency=${windows.leniency} -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -XX:ReservedCodeCacheSize=240m</argLine>
     <spotless.action>apply</spotless.action>
     <spotless.apply.skip>false</spotless.apply.skip>
     <pom.fmt.action>sort</pom.fmt.action>
@@ -157,11 +159,12 @@
     <errorProneFlags></errorProneFlags>
     <errorProne.version>2.18.0</errorProne.version>
     <javac.version>9+181-r4173-1</javac.version>
-    <pmd.version>6.42.0</pmd.version>
-    <hsql.version>2.7.1</hsql.version>
+    <pmd.version>7.4.0</pmd.version>
+    <hsql.version>2.7.2</hsql.version>
     <checkstyle.skip>false</checkstyle.skip>
     <qa>false</qa>
     <lint>deprecation,unchecked</lint>
+    <jmh.version>1.37</jmh.version>
   </properties>
 
   <dependencyManagement>
@@ -321,6 +324,12 @@
       </dependency>
       <dependency>
         <groupId>org.geotools</groupId>
+        <artifactId>gt-main</artifactId>
+        <version>${gt.version}</version>
+        <classifier>tests</classifier>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
         <artifactId>gt-render</artifactId>
         <version>${gt.version}</version>
       </dependency>
@@ -328,6 +337,16 @@
         <groupId>org.geotools</groupId>
         <artifactId>gt-svg</artifactId>
         <version>${gt.version}</version>
+        <exclusions>
+          <exclusion>
+            <artifactId>fop</artifactId>
+            <groupId>org.apache.xmlgraphics</groupId>
+          </exclusion>
+          <exclusion>
+            <artifactId>xml-apis</artifactId>
+            <groupId>xml-apis</groupId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.geotools</groupId>
@@ -392,6 +411,12 @@
       </dependency>
       <dependency>
         <groupId>org.geotools.xsd</groupId>
+        <artifactId>gt-xsd-gml3</artifactId>
+        <version>${gt.version}</version>
+        <classifier>tests</classifier>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools.xsd</groupId>
         <artifactId>gt-xsd-filter</artifactId>
         <version>${gt.version}</version>
       </dependency>
@@ -424,6 +449,18 @@
         <groupId>org.geotools</groupId>
         <artifactId>gt-jdbc</artifactId>
         <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-jdbc</artifactId>
+        <version>${gt.version}</version>
+        <type>test-jar</type>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-jdbc</artifactId>
+        <version>${gt.version}</version>
+        <classifier>tests</classifier>
       </dependency>
       <dependency>
         <groupId>org.geotools</groupId>
@@ -487,7 +524,12 @@
       </dependency>
       <dependency>
         <groupId>org.geotools</groupId>
-        <artifactId>gt-cql-json</artifactId>
+        <artifactId>gt-cql2-text</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-cql2-json</artifactId>
         <version>${gt.version}</version>
       </dependency>
       <dependency>
@@ -568,6 +610,181 @@
       <dependency>
         <groupId>org.geotools</groupId>
         <artifactId>gt-vector-mosaic</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-brewer</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-app-schema</artifactId>
+        <version>${gt.version}</version>
+        <exclusions>
+          <exclusion>
+            <artifactId>xml-apis</artifactId>
+            <groupId>xml-apis</groupId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-app-schema</artifactId>
+        <version>${gt.version}</version>
+        <classifier>tests</classifier>
+        <exclusions>
+          <exclusion>
+            <artifactId>xml-apis</artifactId>
+            <groupId>xml-apis</groupId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-complex</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-css</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-elasticsearch</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-feature-pregeneralized</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-flatgeobuf</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-geojson-core</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-graticule</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-grib</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-grid</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-http</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-mbstyle</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-mbtiles</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-ogr-jni</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-s3-geotiff</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-sample-data-access</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-solr</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-solr</artifactId>
+        <version>${gt.version}</version>
+        <classifier>tests</classifier>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-vsi</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-wps</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-ysld</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-ysld</artifactId>
+        <version>${gt.version}</version>
+        <classifier>tests</classifier>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools.ogc</groupId>
+        <artifactId>net.opengis.csw</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools.ogc</groupId>
+        <artifactId>net.opengis.fes</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools.ogc</groupId>
+        <artifactId>net.opengis.wps</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools.xsd</groupId>
+        <artifactId>gt-xsd-csw</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools.xsd</groupId>
+        <artifactId>gt-xsd-kml</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools.xsd</groupId>
+        <artifactId>gt-xsd-wms</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools.xsd</groupId>
+        <artifactId>gt-xsd-wps</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-epsg-wkt</artifactId>
         <version>${gt.version}</version>
       </dependency>
 
@@ -700,9 +917,21 @@
         <version>${hibernate-generic-dao-version}</version>
       </dependency>
       <dependency>
-        <groupId>mysql</groupId>
-        <artifactId>mysql-connector-java</artifactId>
+        <groupId>net.sf.opencsv</groupId>
+        <artifactId>opencsv</artifactId>
+        <version>1.8</version>
+      </dependency>
+      <dependency>
+        <groupId>com.mysql</groupId>
+        <artifactId>mysql-connector-j</artifactId>
         <version>${mysql.jdbc.version}</version>
+        <exclusions>
+          <exclusion>
+            <artifactId>protobuf-java</artifactId>
+            <!-- only required for using X DevAPI -->
+            <groupId>com.google.protobuf</groupId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.jdom</groupId>
@@ -717,29 +946,38 @@
       <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
-        <version>4.13.1</version>
+        <version>4.13.2</version>
         <scope>test</scope>
+        <exclusions>
+          <exclusion>
+            <artifactId>hamcrest-core</artifactId>
+            <groupId>org.hamcrest</groupId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.awaitility</groupId>
         <artifactId>awaitility</artifactId>
-        <version>4.2.0</version>
+        <version>4.2.2</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest</artifactId>
+        <version>${hamcrest.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest-core</artifactId>
+        <version>${hamcrest.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.hamcrest</groupId>
         <artifactId>hamcrest-library</artifactId>
-        <version>1.3</version>
-      </dependency>
-      <dependency>
-        <groupId>org.hamcrest</groupId>
-        <artifactId>hamcrest-core</artifactId>
-        <version>1.3</version>
-      </dependency>
-      <dependency>
-        <groupId>org.hamcrest</groupId>
-        <artifactId>hamcrest-integration</artifactId>
-        <version>1.3</version>
+        <version>${hamcrest.version}</version>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.hibernate</groupId>
@@ -770,12 +1008,12 @@
       <dependency>
         <groupId>org.easymock</groupId>
         <artifactId>easymock</artifactId>
-        <version>4.3</version>
+        <version>5.4.0</version>
       </dependency>
       <dependency>
         <groupId>cglib</groupId>
         <artifactId>cglib-nodep</artifactId>
-        <version>2.2</version>
+        <version>3.3.0</version>
       </dependency>
       <dependency>
         <groupId>httpunit</groupId>
@@ -840,12 +1078,12 @@
       <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
-        <version>2.8.0</version>
+        <version>2.16.1</version>
       </dependency>
       <dependency>
         <groupId>commons-codec</groupId>
         <artifactId>commons-codec</artifactId>
-        <version>1.15</version>
+        <version>1.17.1</version>
       </dependency>
       <dependency>
         <groupId>commons-httpclient</groupId>
@@ -855,7 +1093,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
-        <version>3.8.1</version>
+        <version>3.15.0</version>
       </dependency>
       <dependency>
         <groupId>commons-validator</groupId>
@@ -895,7 +1133,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-text</artifactId>
-        <version>1.10.0</version>
+        <version>1.12.0</version>
       </dependency>
       <dependency>
         <groupId>commons-dbcp</groupId>
@@ -905,7 +1143,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-vfs2</artifactId>
-        <version>2.0</version>
+        <version>2.9.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -915,12 +1153,20 @@
       <dependency>
         <groupId>com.jayway.jsonpath</groupId>
         <artifactId>json-path</artifactId>
-        <version>2.7.0</version>
+        <version>2.9.0</version>
+      </dependency>
+      <dependency>
+        <!-- this version should match with that used in com.jayway.jsonpath:json-path;
+        which provides runtime scope; however gs-auth has a compile time dependency-->
+        <groupId>net.minidev</groupId>
+        <artifactId>json-smart</artifactId>
+        <version>2.5.0</version>
+        <scope>compile</scope>
       </dependency>
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpcore</artifactId>
-        <version>4.4.10</version>
+        <version>4.4.16</version>
       </dependency>
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>
@@ -937,6 +1183,11 @@
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpclient-cache</artifactId>
         <version>${httpclient.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter</artifactId>
+        <version>5.10.1</version>
       </dependency>
 
       <!-- logging dependencies -->
@@ -963,14 +1214,25 @@
       <!-- bridge slf4j to log4j -->
       <dependency>
         <groupId>org.apache.logging.log4j</groupId>
-        <artifactId>log4j-slf4j-impl</artifactId>
+        <artifactId>log4j-slf4j2-impl</artifactId>
         <version>${log4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>2.0.16</version>
       </dependency>
       <!-- bridge commons-logging to log4j -->
       <dependency>
         <groupId>org.apache.logging.log4j</groupId>
         <artifactId>log4j-jcl</artifactId>
         <version>${log4j.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>javax.measure</groupId>
+        <artifactId>unit-api</artifactId>
+        <version>2.2</version>
       </dependency>
 
       <!-- springframework -->
@@ -1060,6 +1322,16 @@
         <version>${spring.security.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.springframework.security</groupId>
+        <artifactId>spring-security-oauth2-core</artifactId>
+        <version>${spring.security.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.security</groupId>
+        <artifactId>spring-security-crypto</artifactId>
+        <version>${spring.security.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.springframework.security.oauth</groupId>
         <artifactId>spring-security-oauth2</artifactId>
         <version>${spring.security.oauth2.version}</version>
@@ -1076,8 +1348,8 @@
       </dependency>
       <dependency>
         <groupId>org.bouncycastle</groupId>
-        <artifactId>bcprov-jdk15on</artifactId>
-        <version>1.69</version>
+        <artifactId>bcprov-jdk18on</artifactId>
+        <version>1.79</version>
       </dependency>
 
       <!-- wicket framework -->
@@ -1115,7 +1387,7 @@
       <dependency>
         <groupId>org.mapfish.print</groupId>
         <artifactId>print-lib</artifactId>
-        <version>2.2.0</version>
+        <version>${mf.version}</version>
       </dependency>
       <dependency>
         <groupId>com.github.librepdf</groupId>
@@ -1182,18 +1454,13 @@
       <dependency>
         <groupId>org.freemarker</groupId>
         <artifactId>freemarker</artifactId>
-        <version>2.3.31</version>
+        <version>2.3.34</version>
       </dependency>
       <dependency>
         <groupId>net.sf.json-lib</groupId>
         <artifactId>json-lib</artifactId>
         <version>2.4.2-geoserver</version>
         <!-- fork: https://github.com/geosolutions-it/Json-lib -->
-      </dependency>
-      <dependency>
-        <groupId>org.codehaus.jackson</groupId>
-        <artifactId>jackson-mapper-asl</artifactId>
-        <version>${jackson1.version}</version>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
@@ -1228,19 +1495,14 @@
       </dependency>
 
       <dependency>
-        <groupId>javax.mail</groupId>
-        <artifactId>mail</artifactId>
-        <version>1.4</version>
+        <groupId>com.sun.mail</groupId>
+        <artifactId>jakarta.mail</artifactId>
+        <version>1.6.7</version>
       </dependency>
       <dependency>
-        <groupId>javax.activation</groupId>
-        <artifactId>javax.activation-api</artifactId>
-        <version>1.2.0</version>
-      </dependency>
-      <dependency>
-        <groupId>javax.activation</groupId>
-        <artifactId>activation</artifactId>
-        <version>1.1</version>
+        <groupId>com.sun.activation</groupId>
+        <artifactId>jakarta.activation</artifactId>
+        <version>1.2.2</version>
       </dependency>
 
       <!-- restlet: legacy -->
@@ -1292,13 +1554,15 @@
       <dependency>
         <groupId>com.thoughtworks.xstream</groupId>
         <artifactId>xstream</artifactId>
-        <version>1.4.20</version>
+        <version>1.4.21</version>
+        <!-- this is marked as optional in the xstream 1.4.21 pom file so I don't think it is needed anymore
         <exclusions>
           <exclusion>
             <artifactId>xpp3</artifactId>
             <groupId>xpp3_min</groupId>
           </exclusion>
         </exclusions>
+        -->
       </dependency>
       <dependency>
         <groupId>com.h2database</groupId>
@@ -1318,7 +1582,7 @@
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>32.0.0-jre</version>
+        <version>33.2.1-jre</version>
       </dependency>
       <dependency>
         <groupId>com.google.code.findbugs</groupId>
@@ -1334,6 +1598,12 @@
         <groupId>org.apache.poi</groupId>
         <artifactId>poi-ooxml</artifactId>
         <version>${poi.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-compress</artifactId>
+        <!-- version override for version included in Apache POI 5.2.5 (which is 1.25.0) -->
+        <version>1.26.1</version>
       </dependency>
       <dependency>
         <groupId>jfree</groupId>
@@ -1416,7 +1686,7 @@
       <dependency>
         <groupId>org.jsoup</groupId>
         <artifactId>jsoup</artifactId>
-        <version>1.15.3</version>
+        <version>1.18.1</version>
       </dependency>
       <dependency>
         <groupId>com.github.svenmeier.wicket-dnd</groupId>
@@ -1438,7 +1708,7 @@
       <dependency>
         <groupId>com.github.oshi</groupId>
         <artifactId>oshi-core</artifactId>
-        <version>6.2.2</version>
+        <version>6.6.3</version>
       </dependency>
       <dependency>
         <groupId>org.postgresql</groupId>
@@ -1504,9 +1774,15 @@
         <version>${hazelcast.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.github.tomakehurst</groupId>
+        <groupId>org.wiremock</groupId>
         <artifactId>wiremock-standalone</artifactId>
-        <version>2.27.2</version>
+        <version>3.10.0</version>
+      </dependency>
+      <dependency>
+        <groupId>com.github.erosb</groupId>
+        <artifactId>json-sKema</artifactId>
+        <version>0.19.0</version>
+        <scope>test</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -1525,12 +1801,7 @@
     </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-library</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-integration</artifactId>
+      <artifactId>hamcrest</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -1692,7 +1963,6 @@
         </plugin>
         <plugin>
           <artifactId>maven-assembly-plugin</artifactId>
-          <version>3.2.0</version>
         </plugin>
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
@@ -1712,7 +1982,7 @@
         </plugin>
         <plugin>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>3.5.0</version>
+          <version>2.10.3</version>
         </plugin>
         <plugin>
           <artifactId>maven-resources-plugin</artifactId>
@@ -1728,7 +1998,12 @@
         </plugin>
         <plugin>
           <artifactId>maven-war-plugin</artifactId>
-          <version>3.3.2</version>
+          <version>3.4.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.commonjava.maven.plugins</groupId>
+          <artifactId>directory-maven-plugin</artifactId>
+          <version>1.0</version>
         </plugin>
 
         <!-- third-party plugins -->
@@ -1766,10 +2041,15 @@
       <!-- unit testing -->
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
+        <dependencies>
+          <dependency>
+            <groupId>org.apache.maven.surefire</groupId>
+            <artifactId>surefire-junit4</artifactId>
+            <version>2.22.2</version>
+          </dependency>
+        </dependencies>
         <configuration>
           <runOrder>alphabetical</runOrder>
-          <source>11</source>
-          <target>11</target>
           <includes>
             <include>**/*Test.java</include>
           </includes>
@@ -1800,58 +2080,61 @@
             <descriptor>release/javadoc.xml</descriptor>
             <descriptor>release/bin.xml</descriptor>
             <descriptor>release/data.xml</descriptor>
-            <descriptor>release/ext-db2.xml</descriptor>
-            <descriptor>release/ext-feature-pregeneralized.xml</descriptor>
-            <descriptor>release/ext-jp2k.xml</descriptor>
-            <descriptor>release/ext-mysql.xml</descriptor>
-            <descriptor>release/ext-oracle.xml</descriptor>
-            <descriptor>release/ext-pyramid.xml</descriptor>
-            <descriptor>release/ext-gdal.xml</descriptor>
-            <descriptor>release/ext-h2.xml</descriptor>
-            <descriptor>release/ext-sqlserver.xml</descriptor>
-            <descriptor>release/ext-ogr-wfs.xml</descriptor>
-            <descriptor>release/ext-ogr-wps.xml</descriptor>
-            <descriptor>release/ext-excel.xml</descriptor>
-            <descriptor>release/ext-charts.xml</descriptor>
+            <!-- extensions -->
             <descriptor>release/ext-app-schema.xml</descriptor>
-            <descriptor>release/ext-control-flow.xml</descriptor>
-            <descriptor>release/ext-wps.xml</descriptor>
-            <descriptor>release/ext-wps-hazelcast.xml</descriptor>
-            <descriptor>release/ext-querylayer.xml</descriptor>
+            <descriptor>release/ext-authkey.xml</descriptor>
             <descriptor>release/ext-cas.xml</descriptor>
-            <descriptor>release/ext-monitor.xml</descriptor>
-            <descriptor>release/ext-mongodb.xml</descriptor>
-            <descriptor>release/ext-inspire.xml</descriptor>
+            <descriptor>release/ext-charts.xml</descriptor>
+            <descriptor>release/ext-control-flow.xml</descriptor>
             <descriptor>release/ext-css.xml</descriptor>
-            <descriptor>release/ext-csw.xml</descriptor>
             <descriptor>release/ext-csw-iso.xml</descriptor>
+            <descriptor>release/ext-csw.xml</descriptor>
+            <descriptor>release/ext-db2.xml</descriptor>
             <descriptor>release/ext-dxf.xml</descriptor>
-            <descriptor>release/ext-printing.xml</descriptor>
-            <descriptor>release/ext-wcs2_0-eo.xml</descriptor>
-            <descriptor>release/ext-libjpeg-turbo.xml</descriptor>
-            <descriptor>release/ext-importer.xml</descriptor>
-            <descriptor>release/ext-grib.xml</descriptor>
-            <descriptor>release/ext-geopkg-output.xml</descriptor>
-            <descriptor>release/ext-netcdf.xml</descriptor>
-            <descriptor>release/ext-netcdf-out.xml</descriptor>
-            <descriptor>release/ext-vectortiles.xml</descriptor>
-            <descriptor>release/ext-ysld.xml</descriptor>
-            <descriptor>release/ext-mbstyle.xml</descriptor>
-            <descriptor>release/ext-sldservice.xml</descriptor>
-            <descriptor>release/ext-geofence.xml</descriptor>
+            <descriptor>release/ext-excel.xml</descriptor>
+            <descriptor>release/ext-feature-pregeneralized.xml</descriptor>
+            <descriptor>release/ext-gdal.xml</descriptor>
             <descriptor>release/ext-geofence-server.xml</descriptor>
             <descriptor>release/ext-geofence-wps.xml</descriptor>
-            <descriptor>release/ext-authkey.xml</descriptor>
-            <descriptor>release/ext-web-resource.xml</descriptor>
-            <descriptor>release/ext-params-extractor.xml</descriptor>
+            <descriptor>release/ext-geofence.xml</descriptor>
+            <descriptor>release/ext-geopkg-output.xml</descriptor>
+            <descriptor>release/ext-grib.xml</descriptor>
             <descriptor>release/ext-gwc-s3.xml</descriptor>
+            <descriptor>release/ext-h2.xml</descriptor>
+            <descriptor>release/ext-iau.xml</descriptor>
+            <descriptor>release/ext-importer.xml</descriptor>
+            <descriptor>release/ext-inspire.xml</descriptor>
+            <descriptor>release/ext-jp2k.xml</descriptor>
+            <descriptor>release/ext-libjpeg-turbo.xml</descriptor>
+            <descriptor>release/ext-mapml.xml</descriptor>
+            <descriptor>release/ext-mbstyle.xml</descriptor>
+            <descriptor>release/ext-metadata.xml</descriptor>
+            <descriptor>release/ext-mongodb.xml</descriptor>
+            <descriptor>release/ext-monitor.xml</descriptor>
+            <descriptor>release/ext-mysql.xml</descriptor>
+            <descriptor>release/ext-netcdf-out.xml</descriptor>
+            <descriptor>release/ext-netcdf.xml</descriptor>
+            <descriptor>release/ext-ogr-wfs.xml</descriptor>
+            <descriptor>release/ext-ogr-wps.xml</descriptor>
+            <descriptor>release/ext-oracle.xml</descriptor>
+            <descriptor>release/ext-params-extractor.xml</descriptor>
+            <descriptor>release/ext-printing.xml</descriptor>
+            <descriptor>release/ext-pyramid.xml</descriptor>
+            <descriptor>release/ext-querylayer.xml</descriptor>
+            <descriptor>release/ext-sldservice.xml</descriptor>
+            <descriptor>release/ext-sqlserver.xml</descriptor>
+            <descriptor>release/ext-vectortiles.xml</descriptor>
+            <descriptor>release/ext-wcs2_0-eo.xml</descriptor>
+            <descriptor>release/ext-web-resource.xml</descriptor>
             <descriptor>release/ext-wmts-multi-dimensional.xml</descriptor>
             <descriptor>release/ext-wps-download.xml</descriptor>
+            <descriptor>release/ext-wps-hazelcast.xml</descriptor>
             <descriptor>release/ext-wps-jdbc.xml</descriptor>
-            <descriptor>release/ext-mapml.xml</descriptor>
-            <descriptor>release/ext-metadata.xml</descriptor>
+            <descriptor>release/ext-wps.xml</descriptor>
+            <descriptor>release/ext-ysld.xml</descriptor>
+            <descriptor>release/ext-rat.xml</descriptor>
+            <descriptor>release/ext-ogcapi-features.xml</descriptor>
           </descriptors>
-          <finalName>geoserver-${project.version}</finalName>
           <outputDirectory>${project.build.directory}/release</outputDirectory>
         </configuration>
       </plugin>
@@ -1875,6 +2158,9 @@
             <goals>
               <goal>test-jar</goal>
             </goals>
+            <configuration>
+              <skipIfEmpty>true</skipIfEmpty>
+            </configuration>
           </execution>
         </executions>
         <configuration>
@@ -1916,7 +2202,7 @@
       <plugin>
         <groupId>pl.project13.maven</groupId>
         <artifactId>git-commit-id-plugin</artifactId>
-        <version>4.0.3</version>
+        <version>4.9.10</version>
         <executions>
           <execution>
             <goals>
@@ -1999,14 +2285,14 @@
           </tags>
 
           <links>
-            <link>http://docs.oracle.com/javase/8/docs/api/</link>
+            <link>https://docs.oracle.com/en/java/javase/11/docs/api</link>
             <link>http://docs.oracle.com/javaee/7/api/</link>
             <link>http://jscience.org/api/</link>
-            <link>http://tsusiatsoftware.net/jts/javadoc</link>
+            <link>https://locationtech.github.io/jts/javadoc/</link>
             <link>http://docs.geotools.org/latest/javadocs/</link>
             <link>http://xmlgraphics.apache.org/batik/javadoc</link>
             <link>http://freemarker.sourceforge.net/docs/api/</link>
-            <link>https://ci.apache.org/projects/wicket/apidocs/7.x/</link>
+            <link>https://ci.apache.org/projects/wicket/apidocs/9.x/</link>
           </links>
         </configuration>
       </plugin>
@@ -2014,7 +2300,7 @@
       <plugin>
         <groupId>com.diffplug.spotless</groupId>
         <artifactId>spotless-maven-plugin</artifactId>
-        <version>2.22.1</version>
+        <version>2.43.0</version>
         <executions>
           <execution>
             <phase>validate</phase>
@@ -2025,10 +2311,10 @@
         </executions>
         <configuration>
           <java>
-            <googleJavaFormat>
-              <version>1.7</version>
-              <style>AOSP</style>
-            </googleJavaFormat>
+            <palantirJavaFormat>
+              <version>2.50.0</version>
+              <formatJavadoc>true</formatJavadoc>
+            </palantirJavaFormat>
           </java>
           <upToDateChecking>
             <enabled>true</enabled>
@@ -2062,7 +2348,6 @@
       <plugin>
         <groupId>org.commonjava.maven.plugins</groupId>
         <artifactId>directory-maven-plugin</artifactId>
-        <version>0.3.1</version>
         <executions>
           <execution>
             <id>directories</id>
@@ -2146,7 +2431,7 @@
             <link>http://docs.geotools.org/latest/javadocs/</link>
             <link>http://xmlgraphics.apache.org/batik/javadoc</link>
             <link>http://freemarker.sourceforge.net/docs/api/</link>
-            <link>https://ci.apache.org/projects/wicket/apidocs/7.x/</link>
+            <link>https://ci.apache.org/projects/wicket/apidocs/9.x/</link>
           </links>
         </configuration>
       </plugin>
@@ -2461,7 +2746,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-pmd-plugin</artifactId>
-            <version>3.14.0</version>
+            <version>3.24.0</version>
             <executions>
               <execution>
                 <goals>
@@ -2501,8 +2786,6 @@
               <verbose>true</verbose>
               <printFailingErrors>true</printFailingErrors>
               <includeTests>true</includeTests>
-              <sourceEncoding>UTF-8</sourceEncoding>
-              <outputEncoding>UTF-8</outputEncoding>
               <excludeRoots>
                 <excludeRoot>target/generated-sources</excludeRoot>
               </excludeRoots>
@@ -2642,7 +2925,7 @@
                       <excludes>src/main/resources/GeoServerApplication*.utf8.properties</excludes>
                     </requireEncoding>
                   </rules>
-                  <fastFail>false</fastFail>
+                  <failFast>false</failFast>
                 </configuration>
               </execution>
             </executions>

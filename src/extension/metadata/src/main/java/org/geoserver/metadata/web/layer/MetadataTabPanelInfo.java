@@ -26,16 +26,15 @@ public class MetadataTabPanelInfo extends PublishedEditTabPanelInfo<LayerInfo> {
     @Override
     public IModel<?> createOwnModel(IModel<? extends LayerInfo> model, boolean isNew) {
         MetadataTemplateService service =
-                GeoServerApplication.get()
-                        .getApplicationContext()
-                        .getBean(MetadataTemplateService.class);
+                GeoServerApplication.get().getApplicationContext().getBean(MetadataTemplateService.class);
 
         List<MetadataTemplate> selectedTemplates = new ArrayList<>();
         for (MetadataTemplate template : service.list()) {
-            if (template.getLinkedLayers().contains(model.getObject().getResource().getId())) {
+            if (template.getLinkedLayers()
+                    .contains(model.getObject().getResource().getId())) {
                 selectedTemplates.add(template);
             }
         }
-        return new ListModel<MetadataTemplate>(selectedTemplates);
+        return new ListModel<>(selectedTemplates);
     }
 }

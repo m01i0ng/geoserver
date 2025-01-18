@@ -4,12 +4,14 @@
  */
 package org.geoserver.web.data.resource;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -48,30 +50,24 @@ class AttributeTypeInfoEditor extends Panel {
     static final Logger LOGGER = Logging.getLogger(AttributeTypeInfoEditor.class);
 
     // editor panel constants
-    private static final Property<AttributeTypeInfo> NAME =
-            new GeoServerDataProvider.BeanProperty<>("name");
-    private static final Property<AttributeTypeInfo> BINDING =
-            new GeoServerDataProvider.BeanProperty<>("binding");
-    private static final Property<AttributeTypeInfo> SOURCE =
-            new GeoServerDataProvider.BeanProperty<>("source");
+    private static final Property<AttributeTypeInfo> NAME = new GeoServerDataProvider.BeanProperty<>("name");
+    private static final Property<AttributeTypeInfo> BINDING = new GeoServerDataProvider.BeanProperty<>("binding");
+    private static final Property<AttributeTypeInfo> SOURCE = new GeoServerDataProvider.BeanProperty<>("source");
     private static final Property<AttributeTypeInfo> DESCRIPTION =
             new GeoServerDataProvider.BeanProperty<>("description");
-    private static final Property<AttributeTypeInfo> NILLABLE =
-            new GeoServerDataProvider.BeanProperty<>("nillable");
+    private static final Property<AttributeTypeInfo> NILLABLE = new GeoServerDataProvider.BeanProperty<>("nillable");
     private static final GeoServerDataProvider.PropertyPlaceholder<AttributeTypeInfo> REMOVE =
             new GeoServerDataProvider.PropertyPlaceholder<>("remove");
 
     // make sure we don't end up serializing the list, but get it fresh from the dataProvider,
     // to avoid serialization issues seen in GEOS-8273
-    private static final LoadableDetachableModel<List<Property<AttributeTypeInfo>>>
-            propertiesModel =
-                    new LoadableDetachableModel<List<Property<AttributeTypeInfo>>>() {
-                        @Override
-                        protected List<Property<AttributeTypeInfo>> load() {
-                            return Arrays.asList(
-                                    NAME, BINDING, SOURCE, DESCRIPTION, NILLABLE, REMOVE);
-                        }
-                    };
+    private static final LoadableDetachableModel<List<Property<AttributeTypeInfo>>> propertiesModel =
+            new LoadableDetachableModel<>() {
+                @Override
+                protected List<Property<AttributeTypeInfo>> load() {
+                    return Arrays.asList(NAME, BINDING, SOURCE, DESCRIPTION, NILLABLE, REMOVE);
+                }
+            };
     private final ReorderableTablePanel<AttributeTypeInfo> table;
     private final Component parent;
 
@@ -103,8 +99,7 @@ class AttributeTypeInfoEditor extends Panel {
         if (attributes.stream().anyMatch(a -> a.getBinding() == null)) {
             List<AttributeTypeInfo> nativeAttributes = loadNativeAttributes(typeInfo, parent);
             Map<String, Class> bindings =
-                    nativeAttributes.stream()
-                            .collect(Collectors.toMap(a -> a.getName(), a -> a.getBinding()));
+                    nativeAttributes.stream().collect(Collectors.toMap(a -> a.getName(), a -> a.getBinding()));
             for (AttributeTypeInfo at : attributes) {
                 if (at.getBinding() == null) {
                     at.setBinding(bindings.get(at.getName()));
@@ -116,8 +111,7 @@ class AttributeTypeInfoEditor extends Panel {
         return new ArrayList<>(attributes);
     }
 
-    static List<AttributeTypeInfo> loadNativeAttributes(
-            FeatureTypeInfo typeInfo, Component component) {
+    static List<AttributeTypeInfo> loadNativeAttributes(FeatureTypeInfo typeInfo, Component component) {
         try {
             Catalog catalog = GeoServerApplication.get().getCatalog();
             final ResourcePool resourcePool = catalog.getResourcePool();
@@ -126,10 +120,16 @@ class AttributeTypeInfoEditor extends Panel {
             return resourcePool.loadAttributes(typeInfo);
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Grabbing the attribute list failed", e);
-            String error =
-                    new ParamResourceModel("attributeListingFailed", component, e.getMessage())
-                            .getString();
-            component.getPage().error(error);
+            String errorMessage = e.getMessage();
+            if (e.getCause() != null && e.getCause() instanceof SQLException) {
+                errorMessage = e.getCause().getMessage();
+            }
+            String error = new ParamResourceModel("attributeListingFailed", component, errorMessage).getString();
+            try {
+                component.getPage().error(error);
+            } catch (Exception e1) {
+                LOGGER.log(Level.SEVERE, "Grabbing the attribute list failed", e1.getMessage());
+            }
             return Collections.emptyList();
         }
     }
@@ -143,31 +143,24 @@ class AttributeTypeInfoEditor extends Panel {
         private final Component targetComponent;
 
         public EditorTable(List<AttributeTypeInfo> attributes, Component targetComponent) {
-            super(
-                    "table",
-                    AttributeTypeInfo.class,
-                    attributes,
-                    AttributeTypeInfoEditor.propertiesModel);
+            super("table", AttributeTypeInfo.class, attributes, AttributeTypeInfoEditor.propertiesModel);
             this.targetComponent = targetComponent;
         }
 
         /**
-         * Note, all editors returned are without validation and with a behavior that updates the
-         * server side whenever the editor loses focus, to make sure drag/up/down don't end up
-         * resetting the client side content (as they happen server side, with a subsequent AJAX
-         * redraw on the client).
+         * Note, all editors returned are without validation and with a behavior that updates the server side whenever
+         * the editor loses focus, to make sure drag/up/down don't end up resetting the client side content (as they
+         * happen server side, with a subsequent AJAX redraw on the client).
          */
         @Override
         @SuppressWarnings("unchecked")
         protected Component getComponentForProperty(
-                String id,
-                IModel<AttributeTypeInfo> itemModel,
-                Property<AttributeTypeInfo> property) {
+                String id, IModel<AttributeTypeInfo> itemModel, Property<AttributeTypeInfo> property) {
             IModel model = property.getModel(itemModel);
             if (property == NAME) {
                 Fragment f = new Fragment(id, "text", getParent());
                 TextField<String> nameField = new TextField<>("text", model);
-                nameField.add(new UpdateModelBehavior());
+                nameField.add(new SourceUpdateBehavior(itemModel));
                 f.add(nameField);
                 return f;
             } else if (property == BINDING) {
@@ -183,14 +176,13 @@ class AttributeTypeInfoEditor extends Panel {
                 return f;
             } else if (property == DESCRIPTION) {
                 Fragment f = new Fragment(id, "description", getParent());
-                TextArea<String> source =
-                        new TextArea<>("description", model) {
-                            @SuppressWarnings("unchecked")
-                            @Override
-                            public <C> IConverter<C> getConverter(Class<C> type) {
-                                return (IConverter<C>) new InternationalStringConverter();
-                            }
-                        };
+                TextArea<String> source = new TextArea<>("description", model) {
+                    @SuppressWarnings("unchecked")
+                    @Override
+                    public <C> IConverter<C> getConverter(Class<C> type) {
+                        return (IConverter<C>) new InternationalStringConverter();
+                    }
+                };
                 source.add(new UpdateModelBehavior());
                 f.add(source);
                 return f;
@@ -200,18 +192,17 @@ class AttributeTypeInfoEditor extends Panel {
                 f.add(check);
                 return f;
             } else if (property == REMOVE) {
-                final AttributeTypeInfo entry = (AttributeTypeInfo) itemModel.getObject();
+                final AttributeTypeInfo entry = itemModel.getObject();
                 PackageResourceReference icon =
                         new PackageResourceReference(getClass(), "../../img/icons/silk/delete.png");
-                ImageAjaxLink<Object> link =
-                        new ImageAjaxLink<Object>(id, icon) {
+                ImageAjaxLink<Object> link = new ImageAjaxLink<>(id, icon) {
 
-                            @Override
-                            protected void onClick(AjaxRequestTarget target) {
-                                getItems().remove(entry);
-                                target.add(targetComponent);
-                            }
-                        };
+                    @Override
+                    protected void onClick(AjaxRequestTarget target) {
+                        getItems().remove(entry);
+                        target.add(targetComponent);
+                    }
+                };
                 return link;
             }
 
@@ -229,6 +220,41 @@ class AttributeTypeInfoEditor extends Panel {
         protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
             // nothing to do, the mere presence is enough to update the server side model
             // before up/down/drag actions are performed
+        }
+    }
+
+    /**
+     * Behavior that updates the source of an {@link AttributeTypeInfo} when the associated form component loses focus.
+     * This behavior ensures that if the raw source is null and the name of the attribute has changed, the source is set
+     * to the previous name (the original name of the attribute).
+     */
+    private class SourceUpdateBehavior extends AjaxFormComponentUpdatingBehavior {
+
+        private final IModel<AttributeTypeInfo> itemModel;
+        private final String previousName;
+
+        /**
+         * Constructs a new SourceUpdateBehavior.
+         *
+         * @param itemModel the model of the {@link AttributeTypeInfo} being edited
+         */
+        public SourceUpdateBehavior(IModel<AttributeTypeInfo> itemModel) {
+            super("blur");
+            this.itemModel = itemModel;
+            this.previousName = itemModel.getObject().getName();
+        }
+
+        /**
+         * Called when the form component loses focus and updates the source of the attribute if necessary.
+         *
+         * @param ajaxRequestTarget the AJAX request target
+         */
+        @Override
+        protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
+            AttributeTypeInfo attribute = itemModel.getObject();
+            if (attribute.getRawSource() == null && !Objects.equals(attribute.getName(), previousName)) {
+                attribute.setSource(previousName);
+            }
         }
     }
 
@@ -256,8 +282,7 @@ class AttributeTypeInfoEditor extends Panel {
         @Override
         public void onClick(AjaxRequestTarget target) {
             table.getItems().clear();
-            FeatureTypeInfo typeInfo =
-                    (FeatureTypeInfo) AttributeTypeInfoEditor.this.getDefaultModelObject();
+            FeatureTypeInfo typeInfo = (FeatureTypeInfo) AttributeTypeInfoEditor.this.getDefaultModelObject();
             table.getItems().addAll(loadNativeAttributes(typeInfo, parent));
             target.add(parent);
         }

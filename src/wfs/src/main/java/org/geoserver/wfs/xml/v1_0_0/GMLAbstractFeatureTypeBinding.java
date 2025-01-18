@@ -7,6 +7,9 @@ package org.geoserver.wfs.xml.v1_0_0;
 
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.FeatureTypeInfo;
+import org.geotools.api.feature.type.AttributeDescriptor;
+import org.geotools.api.feature.type.FeatureType;
+import org.geotools.api.feature.type.PropertyDescriptor;
 import org.geotools.gml2.FeatureTypeCache;
 import org.geotools.xsd.BindingWalkerFactory;
 import org.geotools.xsd.Configuration;
@@ -18,12 +21,8 @@ import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Polygon;
-import org.opengis.feature.type.AttributeDescriptor;
-import org.opengis.feature.type.FeatureType;
-import org.opengis.feature.type.PropertyDescriptor;
 
-public final class GMLAbstractFeatureTypeBinding
-        extends org.geotools.gml2.bindings.GMLAbstractFeatureTypeBinding {
+public final class GMLAbstractFeatureTypeBinding extends org.geotools.gml2.bindings.GMLAbstractFeatureTypeBinding {
     GeometryFactory geometryFactory;
     Catalog catalog;
     // SchemaIndex schemaIndex;
@@ -42,8 +41,7 @@ public final class GMLAbstractFeatureTypeBinding
     @Override
     public Object parse(ElementInstance instance, Node node, Object value) throws Exception {
         // pre process parsee tree to make sure types match up
-        FeatureTypeInfo meta =
-                catalog.getFeatureTypeByName(instance.getNamespace(), instance.getName());
+        FeatureTypeInfo meta = catalog.getFeatureTypeByName(instance.getNamespace(), instance.getName());
         if (meta != null) {
             FeatureType featureType = meta.getFeatureType();
 
@@ -69,8 +67,7 @@ public final class GMLAbstractFeatureTypeBinding
                                 boundedByNode.setValue(polygon);
                             } else if (type.isAssignableFrom(MultiPolygon.class)) {
                                 MultiPolygon multiPolygon =
-                                        geometryFactory.createMultiPolygon(
-                                                new Polygon[] {polygon(bounds)});
+                                        geometryFactory.createMultiPolygon(new Polygon[] {polygon(bounds)});
                                 boundedByNode.setValue(multiPolygon);
                             }
                         }
@@ -84,14 +81,13 @@ public final class GMLAbstractFeatureTypeBinding
 
     Polygon polygon(Envelope bounds) {
         return geometryFactory.createPolygon(
-                geometryFactory.createLinearRing(
-                        new Coordinate[] {
-                            new Coordinate(bounds.getMinX(), bounds.getMinY()),
-                            new Coordinate(bounds.getMinX(), bounds.getMaxY()),
-                            new Coordinate(bounds.getMaxX(), bounds.getMaxY()),
-                            new Coordinate(bounds.getMaxX(), bounds.getMinY()),
-                            new Coordinate(bounds.getMinX(), bounds.getMinY())
-                        }),
+                geometryFactory.createLinearRing(new Coordinate[] {
+                    new Coordinate(bounds.getMinX(), bounds.getMinY()),
+                    new Coordinate(bounds.getMinX(), bounds.getMaxY()),
+                    new Coordinate(bounds.getMaxX(), bounds.getMaxY()),
+                    new Coordinate(bounds.getMaxX(), bounds.getMinY()),
+                    new Coordinate(bounds.getMinX(), bounds.getMinY())
+                }),
                 null);
     }
 }

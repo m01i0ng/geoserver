@@ -13,12 +13,12 @@ import static org.junit.Assert.assertNull;
 import java.util.Arrays;
 import java.util.List;
 import org.geoserver.catalog.FeatureTypeInfo;
-import org.geotools.data.Join;
+import org.geotools.api.data.Join;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.filter.FilterFactory;
 import org.geotools.factory.CommonFactoryFinder;
 import org.junit.Before;
 import org.junit.Test;
-import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory2;
 
 public class JoinExtractingVisitorTest {
 
@@ -26,7 +26,7 @@ public class JoinExtractingVisitorTest {
 
     private FeatureTypeInfo forests;
 
-    private FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
+    private FilterFactory ff = CommonFactoryFinder.getFilterFactory();
 
     private FeatureTypeInfo buildings;
 
@@ -73,8 +73,7 @@ public class JoinExtractingVisitorTest {
     @Test
     public void testThreeWayJoinWithAliases() {
         JoinExtractingVisitor visitor =
-                new JoinExtractingVisitor(
-                        Arrays.asList(lakes, forests, buildings), Arrays.asList("a", "b", "c"));
+                new JoinExtractingVisitor(Arrays.asList(lakes, forests, buildings), Arrays.asList("a", "b", "c"));
         Filter f1 = ff.equals(ff.property("a/FID"), ff.property("b/FID"));
         Filter f2 = ff.equals(ff.property("b/FID"), ff.property("c/FID"));
         Filter f = ff.and(Arrays.asList(f1, f2));
@@ -83,8 +82,7 @@ public class JoinExtractingVisitorTest {
 
     @Test
     public void testThreeWayJoinNoAliasesUnqualified() {
-        JoinExtractingVisitor visitor =
-                new JoinExtractingVisitor(Arrays.asList(lakes, forests, buildings), null);
+        JoinExtractingVisitor visitor = new JoinExtractingVisitor(Arrays.asList(lakes, forests, buildings), null);
         Filter f1 = ff.equals(ff.property("Lakes/FID"), ff.property("Forests/FID"));
         Filter f2 = ff.equals(ff.property("Forests/FID"), ff.property("Buildings/FID"));
         Filter f = ff.and(Arrays.asList(f1, f2));
@@ -93,8 +91,7 @@ public class JoinExtractingVisitorTest {
 
     @Test
     public void testThreeWayJoinNoAliasesQualified() {
-        JoinExtractingVisitor visitor =
-                new JoinExtractingVisitor(Arrays.asList(lakes, forests, buildings), null);
+        JoinExtractingVisitor visitor = new JoinExtractingVisitor(Arrays.asList(lakes, forests, buildings), null);
         Filter f1 = ff.equals(ff.property("gs:Lakes/FID"), ff.property("gs:Forests/FID"));
         Filter f2 = ff.equals(ff.property("gs:Forests/FID"), ff.property("gs:Buildings/FID"));
         Filter f = ff.and(Arrays.asList(f1, f2));
@@ -126,8 +123,7 @@ public class JoinExtractingVisitorTest {
     @Test
     public void testThreeWayJoinPrimaryFilters() {
         JoinExtractingVisitor visitor =
-                new JoinExtractingVisitor(
-                        Arrays.asList(lakes, forests, buildings), Arrays.asList("a", "b", "c"));
+                new JoinExtractingVisitor(Arrays.asList(lakes, forests, buildings), Arrays.asList("a", "b", "c"));
         Filter fj1 = ff.equals(ff.property("a/FID"), ff.property("b/FID"));
         Filter fj2 = ff.equals(ff.property("b/FID"), ff.property("c/FID"));
         Filter f1 = ff.equals(ff.property("a/FID"), ff.literal("Lakes.10"));
@@ -160,8 +156,7 @@ public class JoinExtractingVisitorTest {
     @Test
     public void testThreeWayJoinWithSelf() {
         JoinExtractingVisitor visitor =
-                new JoinExtractingVisitor(
-                        Arrays.asList(forests, lakes, lakes), Arrays.asList("a", "b", "c"));
+                new JoinExtractingVisitor(Arrays.asList(forests, lakes, lakes), Arrays.asList("a", "b", "c"));
         Filter f1 = ff.equals(ff.property("a/FID"), ff.property("b/FID"));
         Filter f2 = ff.equals(ff.property("b/FID"), ff.property("c/FID"));
         Filter f = ff.and(Arrays.asList(f1, f2));

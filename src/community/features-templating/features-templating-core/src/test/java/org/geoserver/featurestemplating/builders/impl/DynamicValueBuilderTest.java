@@ -34,6 +34,12 @@ import net.sf.json.*;
 import org.geoserver.featurestemplating.configuration.TemplateIdentifier;
 import org.geoserver.featurestemplating.writers.GMLTemplateWriter;
 import org.geoserver.featurestemplating.writers.GeoJSONWriter;
+import org.geotools.api.feature.Attribute;
+import org.geotools.api.feature.Feature;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.type.AttributeDescriptor;
+import org.geotools.api.feature.type.FeatureType;
 import org.geotools.data.DataTestCase;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.AttributeBuilder;
@@ -45,12 +51,6 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.jdbc.JDBCDataStore;
 import org.junit.Before;
 import org.junit.Test;
-import org.opengis.feature.Attribute;
-import org.opengis.feature.Feature;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.AttributeDescriptor;
-import org.opengis.feature.type.FeatureType;
 import org.xml.sax.helpers.NamespaceSupport;
 
 public class DynamicValueBuilderTest extends DataTestCase {
@@ -187,12 +187,9 @@ public class DynamicValueBuilderTest extends DataTestCase {
     private JSONObject encodeDynamic(String expression, Feature feature) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         GeoJSONWriter writer =
-                new GeoJSONWriter(
-                        new JsonFactory().createGenerator(baos, JsonEncoding.UTF8),
-                        TemplateIdentifier.JSON);
+                new GeoJSONWriter(new JsonFactory().createGenerator(baos, JsonEncoding.UTF8), TemplateIdentifier.JSON);
 
-        DynamicValueBuilder builder =
-                new DynamicValueBuilder("key", expression, new NamespaceSupport());
+        DynamicValueBuilder builder = new DynamicValueBuilder("key", expression, new NamespaceSupport());
 
         writer.writeStartObject();
         builder.evaluate(writer, new TemplateBuilderContext(feature));
@@ -208,8 +205,7 @@ public class DynamicValueBuilderTest extends DataTestCase {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         GMLTemplateWriter outputWriter = getGmlWriter(TemplateIdentifier.GML31, baos);
 
-        DynamicValueBuilder builder =
-                new DynamicValueBuilder("key", expression, new NamespaceSupport());
+        DynamicValueBuilder builder = new DynamicValueBuilder("key", expression, new NamespaceSupport());
         builder.evaluate(outputWriter, new TemplateBuilderContext(feature));
         outputWriter.close();
 
@@ -217,12 +213,10 @@ public class DynamicValueBuilderTest extends DataTestCase {
         return new String(baos.toByteArray());
     }
 
-    private GMLTemplateWriter getGmlWriter(TemplateIdentifier identifier, OutputStream out)
-            throws XMLStreamException {
+    private GMLTemplateWriter getGmlWriter(TemplateIdentifier identifier, OutputStream out) throws XMLStreamException {
         XMLOutputFactory xMLOutputFactory = XMLOutputFactory.newInstance();
         XMLStreamWriter xMLStreamWriter = xMLOutputFactory.createXMLStreamWriter(out);
-        GMLTemplateWriter outputWriter =
-                new GMLTemplateWriter(xMLStreamWriter, identifier.getOutputFormat());
+        GMLTemplateWriter outputWriter = new GMLTemplateWriter(xMLStreamWriter, identifier.getOutputFormat());
         outputWriter.addNamespaces(new HashMap<>());
         return outputWriter;
     }

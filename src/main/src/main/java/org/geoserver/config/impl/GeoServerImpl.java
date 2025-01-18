@@ -126,8 +126,7 @@ public class GeoServerImpl implements GeoServer, ApplicationContextAware {
 
         WorkspaceInfo workspace = settings.getWorkspace();
         if (facade.getSettings(workspace) != null) {
-            throw new IllegalArgumentException(
-                    "Settings already exist for workspace '" + workspace.getName() + "'");
+            throw new IllegalArgumentException("Settings already exist for workspace '" + workspace.getName() + "'");
         }
 
         facade.add(settings);
@@ -165,28 +164,19 @@ public class GeoServerImpl implements GeoServer, ApplicationContextAware {
             try {
                 l.handleSettingsAdded(settings);
             } catch (Exception e) {
-                LOGGER.log(
-                        Level.SEVERE,
-                        "Error occurred processing a configuration change listener",
-                        e);
+                LOGGER.log(Level.SEVERE, "Error occurred processing a configuration change listener", e);
             }
         }
     }
 
     @Override
     public void fireSettingsModified(
-            SettingsInfo settings,
-            List<String> changed,
-            List<Object> oldValues,
-            List<Object> newValues) {
+            SettingsInfo settings, List<String> changed, List<Object> oldValues, List<Object> newValues) {
         for (ConfigurationListener l : listeners) {
             try {
                 l.handleSettingsModified(settings, changed, oldValues, newValues);
             } catch (Exception e) {
-                LOGGER.log(
-                        Level.SEVERE,
-                        "Error occurred processing a configuration change listener",
-                        e);
+                LOGGER.log(Level.SEVERE, "Error occurred processing a configuration change listener", e);
             }
         }
     }
@@ -196,10 +186,7 @@ public class GeoServerImpl implements GeoServer, ApplicationContextAware {
             try {
                 l.handleSettingsPostModified(settings);
             } catch (Exception e) {
-                LOGGER.log(
-                        Level.SEVERE,
-                        "Error occurred processing a configuration change listener",
-                        e);
+                LOGGER.log(Level.SEVERE, "Error occurred processing a configuration change listener", e);
             }
         }
     }
@@ -209,10 +196,7 @@ public class GeoServerImpl implements GeoServer, ApplicationContextAware {
             try {
                 l.handleSettingsRemoved(settings);
             } catch (Exception e) {
-                LOGGER.log(
-                        Level.SEVERE,
-                        "Error occurred processing a configuration change listener",
-                        e);
+                LOGGER.log(Level.SEVERE, "Error occurred processing a configuration change listener", e);
             }
         }
     }
@@ -237,22 +221,19 @@ public class GeoServerImpl implements GeoServer, ApplicationContextAware {
 
     @Override
     public void add(ServiceInfo service) {
-        if (service.getId() != null
-                && facade.getService(service.getId(), ServiceInfo.class) != null) {
-            throw new IllegalArgumentException(
-                    "service with id '" + service.getId() + "' already exists");
+        if (service.getId() != null && facade.getService(service.getId(), ServiceInfo.class) != null) {
+            throw new IllegalArgumentException("service with id '" + service.getId() + "' already exists");
         }
 
         resolve(service);
         WorkspaceInfo workspace = service.getWorkspace();
         if (workspace != null) {
             if (facade.getServiceByName(service.getName(), workspace, ServiceInfo.class) != null) {
-                throw new IllegalArgumentException(
-                        "service with name '"
-                                + service.getName()
-                                + "' already exists in workspace '"
-                                + workspace.getName()
-                                + "'");
+                throw new IllegalArgumentException("service with name '"
+                        + service.getName()
+                        + "' already exists in workspace '"
+                        + workspace.getName()
+                        + "'");
             }
         }
         facade.add(service);
@@ -275,9 +256,18 @@ public class GeoServerImpl implements GeoServer, ApplicationContextAware {
         T service = ws != null ? facade.getService(ws, clazz) : null;
         service = service != null ? service : facade.getService(clazz);
         if (service == null) {
-            LOGGER.log(
-                    Level.SEVERE,
-                    "Could not locate service of type " + clazz + ", local workspace is " + ws);
+            if (ws != null) {
+                LOGGER.log(
+                        Level.CONFIG,
+                        "Could not locate service info configuration of type "
+                                + clazz
+                                + ", for local workspace "
+                                + ws.getName());
+            } else {
+                LOGGER.log(
+                        Level.CONFIG,
+                        "Could not locate service info configuration of type " + clazz + ", for global service");
+            }
         }
 
         return service;
@@ -295,16 +285,12 @@ public class GeoServerImpl implements GeoServer, ApplicationContextAware {
 
     @Override
     public <T extends ServiceInfo> T getServiceByName(String name, Class<T> clazz) {
-        T service =
-                LocalWorkspace.get() != null
-                        ? facade.getServiceByName(name, LocalWorkspace.get(), clazz)
-                        : null;
+        T service = LocalWorkspace.get() != null ? facade.getServiceByName(name, LocalWorkspace.get(), clazz) : null;
         return service != null ? service : facade.getServiceByName(name, clazz);
     }
 
     @Override
-    public <T extends ServiceInfo> T getServiceByName(
-            WorkspaceInfo workspace, String name, Class<T> clazz) {
+    public <T extends ServiceInfo> T getServiceByName(WorkspaceInfo workspace, String name, Class<T> clazz) {
         return facade.getServiceByName(name, workspace, clazz);
     }
 
@@ -348,48 +334,33 @@ public class GeoServerImpl implements GeoServer, ApplicationContextAware {
             try {
                 l.handlePostGlobalChange(facade.getGlobal());
             } catch (Exception e) {
-                LOGGER.log(
-                        Level.SEVERE,
-                        "Error occurred processing a configuration change listener",
-                        e);
+                LOGGER.log(Level.SEVERE, "Error occurred processing a configuration change listener", e);
             }
         }
     }
 
     @Override
     public void fireGlobalModified(
-            GeoServerInfo global,
-            List<String> changed,
-            List<Object> oldValues,
-            List<Object> newValues) {
+            GeoServerInfo global, List<String> changed, List<Object> oldValues, List<Object> newValues) {
 
         for (ConfigurationListener l : getListeners()) {
             try {
                 l.handleGlobalChange(global, changed, oldValues, newValues);
             } catch (Exception e) {
-                LOGGER.log(
-                        Level.SEVERE,
-                        "Error occurred processing a configuration change listener",
-                        e);
+                LOGGER.log(Level.SEVERE, "Error occurred processing a configuration change listener", e);
             }
         }
     }
 
     @Override
     public void fireLoggingModified(
-            LoggingInfo logging,
-            List<String> changed,
-            List<Object> oldValues,
-            List<Object> newValues) {
+            LoggingInfo logging, List<String> changed, List<Object> oldValues, List<Object> newValues) {
 
         for (ConfigurationListener l : getListeners()) {
             try {
                 l.handleLoggingChange(logging, changed, oldValues, newValues);
             } catch (Exception e) {
-                LOGGER.log(
-                        Level.SEVERE,
-                        "Error occurred processing a configuration change listener",
-                        e);
+                LOGGER.log(Level.SEVERE, "Error occurred processing a configuration change listener", e);
             }
         }
     }
@@ -399,10 +370,7 @@ public class GeoServerImpl implements GeoServer, ApplicationContextAware {
             try {
                 l.handlePostLoggingChange(facade.getLogging());
             } catch (Exception e) {
-                LOGGER.log(
-                        Level.SEVERE,
-                        "Error occurred processing a configuration change listener",
-                        e);
+                LOGGER.log(Level.SEVERE, "Error occurred processing a configuration change listener", e);
             }
         }
     }
@@ -423,19 +391,13 @@ public class GeoServerImpl implements GeoServer, ApplicationContextAware {
 
     @Override
     public void fireServiceModified(
-            ServiceInfo service,
-            List<String> changed,
-            List<Object> oldValues,
-            List<Object> newValues) {
+            ServiceInfo service, List<String> changed, List<Object> oldValues, List<Object> newValues) {
 
         for (ConfigurationListener l : getListeners()) {
             try {
                 l.handleServiceChange(service, changed, oldValues, newValues);
             } catch (Exception e) {
-                LOGGER.log(
-                        Level.SEVERE,
-                        "Error occurred processing a configuration change listener",
-                        e);
+                LOGGER.log(Level.SEVERE, "Error occurred processing a configuration change listener", e);
             }
         }
     }
@@ -445,10 +407,7 @@ public class GeoServerImpl implements GeoServer, ApplicationContextAware {
             try {
                 l.handlePostServiceChange(service);
             } catch (Exception e) {
-                LOGGER.log(
-                        Level.SEVERE,
-                        "Error occurred processing a configuration change listener",
-                        e);
+                LOGGER.log(Level.SEVERE, "Error occurred processing a configuration change listener", e);
             }
         }
     }
@@ -458,10 +417,7 @@ public class GeoServerImpl implements GeoServer, ApplicationContextAware {
             try {
                 l.handleServiceRemove(service);
             } catch (Exception e) {
-                LOGGER.log(
-                        Level.SEVERE,
-                        "Error occurred processing a configuration change listener",
-                        e);
+                LOGGER.log(Level.SEVERE, "Error occurred processing a configuration change listener", e);
             }
         }
     }
@@ -551,18 +507,13 @@ public class GeoServerImpl implements GeoServer, ApplicationContextAware {
      * @param callback to perform.
      * @param name of callback to generate a possible error message.
      */
-    private static void callLifecycleHandlers(
-            Consumer<GeoServerLifecycleHandler> callback, String name) {
-        List<GeoServerLifecycleHandler> handlers =
-                GeoServerExtensions.extensions(GeoServerLifecycleHandler.class);
+    private static void callLifecycleHandlers(Consumer<GeoServerLifecycleHandler> callback, String name) {
+        List<GeoServerLifecycleHandler> handlers = GeoServerExtensions.extensions(GeoServerLifecycleHandler.class);
         for (GeoServerLifecycleHandler handler : handlers) {
             try {
                 callback.accept(handler);
             } catch (Throwable t) {
-                LOGGER.log(
-                        Level.SEVERE,
-                        "A GeoServer lifecycle handler threw an exception during " + name,
-                        t);
+                LOGGER.log(Level.SEVERE, "A GeoServer lifecycle handler threw an exception during " + name, t);
             }
         }
     }

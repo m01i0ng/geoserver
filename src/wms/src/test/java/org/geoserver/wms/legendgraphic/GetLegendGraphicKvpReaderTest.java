@@ -5,6 +5,8 @@
  */
 package org.geoserver.wms.legendgraphic;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -14,19 +16,27 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.net.URL;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import org.geoserver.catalog.FeatureTypeInfo;
+import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.platform.ServiceException;
+import org.geoserver.security.urlchecks.GeoServerURLChecker;
+import org.geoserver.security.urlchecks.RegexURLCheck;
+import org.geoserver.security.urlchecks.StyleURLChecker;
+import org.geoserver.security.urlchecks.URLCheckDAO;
 import org.geoserver.wms.GetLegendGraphicRequest;
 import org.geoserver.wms.WMS;
 import org.geoserver.wms.WMSInfo;
 import org.geoserver.wms.WMSTestSupport;
+import org.geotools.api.style.Style;
+import org.geotools.data.ows.URLCheckerException;
 import org.geotools.feature.NameImpl;
-import org.geotools.styling.Style;
 import org.geotools.util.GrowableInternationalString;
 import org.junit.Before;
+import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 
 public class GetLegendGraphicKvpReaderTest extends WMSTestSupport {
@@ -50,6 +60,8 @@ public class GetLegendGraphicKvpReaderTest extends WMSTestSupport {
 
     /** mock config object */
     WMS wms;
+
+    URLCheckDAO dao;
 
     /**
      * Remainder:
@@ -92,14 +104,23 @@ public class GetLegendGraphicKvpReaderTest extends WMSTestSupport {
         allParameters.putAll(optionalParameters);
 
         wms = getWMS();
+        WMSInfo info = wms.getServiceInfo();
+        info.setDynamicStylingDisabled(false);
+        wms.getGeoServer().save(info);
 
         this.requestReader = new GetLegendGraphicKvpReader(wms);
         this.httpRequest = createRequest("wms", allParameters);
+
+        GeoServerExtensions.bean(GeoServerURLChecker.class);
+        GeoServerExtensions.bean(StyleURLChecker.class);
+        this.dao = GeoServerExtensions.bean(URLCheckDAO.class);
+        this.dao.setEnabled(false);
+        this.dao.saveChecks(Collections.emptyList());
     }
 
     /**
-     * This test ensures that when a SLD parameter has been passed that refers to a SLD document
-     * with multiple styles, the required one is choosed based on the LAYER parameter.
+     * This test ensures that when a SLD parameter has been passed that refers to a SLD document with multiple styles,
+     * the required one is choosed based on the LAYER parameter.
      *
      * <p>This is the case where a remote SLD document is used in "library" mode.
      */
@@ -138,23 +159,36 @@ public class GetLegendGraphicKvpReaderTest extends WMSTestSupport {
         final URL remoteSldUrl = getClass().getResource("MultipleStyles.sld");
         this.allParameters.put("SLD", remoteSldUrl.toExternalForm());
         this.allParameters.put("LAYER", "cite:Ponds");
-        ServiceException exception =
-                assertThrows(
-                        ServiceException.class,
-                        () ->
-                                requestReader.read(
-                                        new GetLegendGraphicRequest(),
-                                        allParameters,
-                                        allParameters));
+        ServiceException exception = assertThrows(
+                ServiceException.class,
+                () -> requestReader.read(new GetLegendGraphicRequest(), allParameters, allParameters));
         assertEquals("Dynamic style usage is forbidden", exception.getMessage());
+    }
+
+    @Test
+    public void testRemoteSLDURLCheckerAllowed() throws Exception {
+        this.dao.setEnabled(true);
+        this.dao.save(new RegexURLCheck("Multiple", "Multiple", "^.*MultipleStyles.sld$"));
+        testRemoteSLDMultipleStyles();
+    }
+
+    @Test
+    public void testRemoteSLDURLCheckerDisallowed() throws Exception {
+        this.dao.setEnabled(true);
+        URL remoteSldUrl = getClass().getResource("MultipleStyles.sld");
+        this.allParameters.put("SLD", remoteSldUrl.toExternalForm());
+        this.allParameters.put("LAYER", "cite:Ponds");
+        ServiceException exception = assertThrows(
+                ServiceException.class,
+                () -> requestReader.read(new GetLegendGraphicRequest(), allParameters, allParameters));
+        assertThat(exception.getCause(), instanceOf(URLCheckerException.class));
     }
 
     @org.junit.Test
     public void testMissingLayerParameter() throws Exception {
         requiredParameters.remove("LAYER");
         try {
-            requestReader.read(
-                    new GetLegendGraphicRequest(), requiredParameters, requiredParameters);
+            requestReader.read(new GetLegendGraphicRequest(), requiredParameters, requiredParameters);
             fail("Expected ServiceException");
         } catch (ServiceException e) {
             assertEquals("LayerNotDefined", e.getCode());
@@ -165,8 +199,7 @@ public class GetLegendGraphicKvpReaderTest extends WMSTestSupport {
     public void testMissingFormatParameter() throws Exception {
         requiredParameters.remove("FORMAT");
         try {
-            requestReader.read(
-                    new GetLegendGraphicRequest(), requiredParameters, requiredParameters);
+            requestReader.read(new GetLegendGraphicRequest(), requiredParameters, requiredParameters);
             fail("Expected ServiceException");
         } catch (ServiceException e) {
             assertEquals("MissingFormat", e.getCode());
@@ -191,14 +224,11 @@ public class GetLegendGraphicKvpReaderTest extends WMSTestSupport {
     public void testLayerGroup() throws Exception {
 
         GetLegendGraphicRequest request =
-                requestReader.read(
-                        new GetLegendGraphicRequest(), requiredParameters, requiredParameters);
+                requestReader.read(new GetLegendGraphicRequest(), requiredParameters, requiredParameters);
         assertEquals(1, request.getLegends().size());
 
         requiredParameters.put("LAYER", NATURE_GROUP);
-        request =
-                requestReader.read(
-                        new GetLegendGraphicRequest(), requiredParameters, requiredParameters);
+        request = requestReader.read(new GetLegendGraphicRequest(), requiredParameters, requiredParameters);
         assertTrue(request.getLegends().size() > 1);
     }
 
@@ -206,8 +236,7 @@ public class GetLegendGraphicKvpReaderTest extends WMSTestSupport {
     public void testLanguage() throws Exception {
 
         GetLegendGraphicRequest request =
-                requestReader.read(
-                        new GetLegendGraphicRequest(), requiredParameters, requiredParameters);
+                requestReader.read(new GetLegendGraphicRequest(), requiredParameters, requiredParameters);
         assertNull(request.getLocale());
 
         request = requestReader.read(new GetLegendGraphicRequest(), allParameters, allParameters);
@@ -219,8 +248,7 @@ public class GetLegendGraphicKvpReaderTest extends WMSTestSupport {
         requiredParameters.put("LAYER", NATURE_GROUP);
         requiredParameters.put("STYLE", "");
         GetLegendGraphicRequest request =
-                requestReader.read(
-                        new GetLegendGraphicRequest(), requiredParameters, requiredParameters);
+                requestReader.read(new GetLegendGraphicRequest(), requiredParameters, requiredParameters);
         assertEquals(2, request.getLegends().size());
     }
 
@@ -230,8 +258,7 @@ public class GetLegendGraphicKvpReaderTest extends WMSTestSupport {
         requiredParameters.put("LAYER", NATURE_GROUP);
         requiredParameters.put("RULE", "rule1,rule2");
         GetLegendGraphicRequest request =
-                requestReader.read(
-                        new GetLegendGraphicRequest(), requiredParameters, requiredParameters);
+                requestReader.read(new GetLegendGraphicRequest(), requiredParameters, requiredParameters);
         assertEquals(2, request.getLegends().size());
     }
 
@@ -240,10 +267,9 @@ public class GetLegendGraphicKvpReaderTest extends WMSTestSupport {
 
         requiredParameters.put("LAYER", NATURE_GROUP);
         GetLegendGraphicRequest request =
-                requestReader.read(
-                        new GetLegendGraphicRequest(), requiredParameters, requiredParameters);
-        assertNotNull(
-                request.getLegend(new NameImpl("http://www.opengis.net/cite", "Lakes")).getTitle());
+                requestReader.read(new GetLegendGraphicRequest(), requiredParameters, requiredParameters);
+        assertNotNull(request.getLegend(new NameImpl("http://www.opengis.net/cite", "Lakes"))
+                .getTitle());
     }
 
     @org.junit.Test
@@ -267,8 +293,7 @@ public class GetLegendGraphicKvpReaderTest extends WMSTestSupport {
             assertEquals(legend.getTitle(), "it title");
 
             this.allParameters.put("LANGUAGE", "en");
-            request =
-                    requestReader.read(new GetLegendGraphicRequest(), allParameters, allParameters);
+            request = requestReader.read(new GetLegendGraphicRequest(), allParameters, allParameters);
             legend = request.getLegend(new NameImpl("http://www.opengis.net/cite", "Ponds"));
             assertEquals(legend.getTitle(), "en title");
         } finally {

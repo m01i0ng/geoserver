@@ -16,9 +16,9 @@ import org.geoserver.kml.KmlEncodingContext;
 import org.geoserver.kml.decorator.KmlDecoratorFactory.KmlDecorator;
 import org.geoserver.ows.URLMangler.URLType;
 import org.geoserver.wms.GetMapRequest;
-import org.geotools.data.FeatureSource;
+import org.geotools.api.data.FeatureSource;
+import org.geotools.api.feature.type.Name;
 import org.geotools.map.Layer;
-import org.opengis.feature.type.Name;
 
 /**
  * Base class for GeoSearch placemark decorators
@@ -39,7 +39,6 @@ public abstract class AbstractGeoSearchDecorator implements KmlDecorator {
         GetMapRequest request = context.getRequest();
         String baseURL = request.getBaseUrl();
         String prefix = ns.getPrefix();
-        return buildURL(
-                baseURL, appendPath("rest", prefix, featureTypeName), null, URLType.SERVICE);
+        return buildURL(baseURL, appendPath("rest", prefix, featureTypeName), null, URLType.SERVICE);
     }
 }

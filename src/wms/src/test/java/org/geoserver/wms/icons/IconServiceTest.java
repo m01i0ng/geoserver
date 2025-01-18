@@ -16,9 +16,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.StyleInfo;
-import org.geotools.styling.Style;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.style.Style;
 import org.junit.Test;
-import org.opengis.filter.Filter;
 
 public class IconServiceTest extends IconTestSupport {
 
@@ -35,6 +35,23 @@ public class IconServiceTest extends IconTestSupport {
         replay(s, cat);
 
         dispatch("/icon/foo", "0.0.0=", cat);
+    }
+
+    @Test
+    public void testHandleMultipleFTS() throws Exception {
+        Style style = style(
+                featureTypeStyle(rule(Filter.INCLUDE, grayCircle())),
+                featureTypeStyle(rule(Filter.INCLUDE, redStar())));
+
+        StyleInfo s = createNiceMock(StyleInfo.class);
+        expect(s.getStyle()).andReturn(style);
+
+        Catalog cat = createNiceMock(Catalog.class);
+        expect(cat.getStyleByName("foo-bar")).andReturn(s);
+
+        replay(s, cat);
+
+        dispatch("/icon/foo-bar", "1.0.0=", cat);
     }
 
     @Test

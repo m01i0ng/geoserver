@@ -27,9 +27,9 @@ import org.geoserver.catalog.ResourceInfo;
 import org.geoserver.catalog.StoreInfo;
 import org.geoserver.catalog.StyleInfo;
 import org.geoserver.catalog.WorkspaceInfo;
+import org.geotools.api.filter.Filter;
 import org.junit.After;
 import org.junit.Test;
-import org.opengis.filter.Filter;
 
 public class CascadeDeleteVisitorTest extends CascadeVisitorAbstractTest {
 
@@ -111,8 +111,8 @@ public class CascadeDeleteVisitorTest extends CascadeVisitorAbstractTest {
     @Test
     public void testCascadeStore() {
         Catalog catalog = getCatalog();
-        DataStoreInfo store =
-                (DataStoreInfo) catalog.getLayerByName(getLayerId(LAKES)).getResource().getStore();
+        DataStoreInfo store = (DataStoreInfo)
+                catalog.getLayerByName(getLayerId(LAKES)).getResource().getStore();
         new CascadeDeleteVisitor(catalog).visit(store);
 
         // that store actually holds all layers, so check we got empty

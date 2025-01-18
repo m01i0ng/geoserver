@@ -10,14 +10,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.geoserver.wms.map.RasterSymbolizerVisitor;
-import org.geotools.styling.ChannelSelection;
-import org.geotools.styling.ColorMap;
-import org.geotools.styling.RasterSymbolizer;
+import org.geotools.api.style.ChannelSelection;
+import org.geotools.api.style.ColorMap;
+import org.geotools.api.style.RasterSymbolizer;
 
 /**
- * A visitor able to produce ColorMapLabelMatcher objects from a Style having vendor options
- * <VendorOption name="labelInFeatureInfo">add</VendorOption> <VendorOption
- * name="labelAttributeName">custom name</VendorOption>
+ * A visitor able to produce ColorMapLabelMatcher objects from a Style having vendor options <VendorOption
+ * name="labelInFeatureInfo">add</VendorOption> <VendorOption name="labelAttributeName">custom name</VendorOption>
  */
 class ColorMapLabelMatcherExtractor extends RasterSymbolizerVisitor {
 
@@ -42,9 +41,7 @@ class ColorMapLabelMatcherExtractor extends RasterSymbolizerVisitor {
         if (targetAttributeName == null) targetAttributeName = DEFAULT_ATTRIBUTE_NAME;
 
         if (labelIncluded != null
-                && !labelIncluded
-                        .toUpperCase()
-                        .equals(ColorMapLabelMatcher.LabelInFeatureInfoMode.NONE.name())) {
+                && !labelIncluded.toUpperCase().equals(ColorMapLabelMatcher.LabelInFeatureInfoMode.NONE.name())) {
             Integer channelName = extractChannelSelectionName(raster.getChannelSelection());
             ColorMapLabelMatcher colorMapLabelMatcher =
                     new ColorMapLabelMatcher(targetAttributeName, cm, labelIncluded, channelName);
@@ -59,11 +56,7 @@ class ColorMapLabelMatcherExtractor extends RasterSymbolizerVisitor {
     private Integer extractChannelSelectionName(ChannelSelection channelSelection) {
         Integer channelName = null;
         if (channelSelection != null && channelSelection.getGrayChannel() != null)
-            channelName =
-                    channelSelection
-                            .getGrayChannel()
-                            .getChannelName()
-                            .evaluate(null, Integer.class);
+            channelName = channelSelection.getGrayChannel().getChannelName().evaluate(null, Integer.class);
         return channelName;
     }
 }

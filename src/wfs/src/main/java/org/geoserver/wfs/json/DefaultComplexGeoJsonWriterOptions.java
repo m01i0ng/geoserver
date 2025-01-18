@@ -10,15 +10,12 @@ import java.util.Spliterators;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.StreamSupport;
-import org.geotools.data.DataStoreFinder;
+import org.geotools.api.data.DataStoreFinder;
+import org.geotools.api.feature.type.ComplexType;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.util.logging.Logging;
-import org.opengis.feature.type.ComplexType;
 
-/**
- * This class provides the options to encode ComplexFeatures when serving them trough an AppSchema
- * store.
- */
+/** This class provides the options to encode ComplexFeatures when serving them trough an AppSchema store. */
 public class DefaultComplexGeoJsonWriterOptions implements ComplexGeoJsonWriterOptions {
 
     static final Logger LOGGER = Logging.getLogger(DefaultComplexGeoJsonWriterOptions.class);
@@ -27,20 +24,14 @@ public class DefaultComplexGeoJsonWriterOptions implements ComplexGeoJsonWriterO
 
     static {
         try {
-            NON_FEATURE_TYPE_PROXY =
-                    Class.forName("org.geotools.data.complex.config.NonFeatureTypeProxy");
+            NON_FEATURE_TYPE_PROXY = Class.forName("org.geotools.data.complex.config.NonFeatureTypeProxy");
         } catch (ClassNotFoundException e) {
             // might be ok if the app-schema datastore is not around
             if (StreamSupport.stream(
                             Spliterators.spliteratorUnknownSize(
                                     DataStoreFinder.getAllDataStores(), Spliterator.ORDERED),
                             false)
-                    .anyMatch(
-                            f ->
-                                    f != null
-                                            && f.getClass()
-                                                    .getSimpleName()
-                                                    .equals("AppSchemaDataAccessFactory"))) {
+                    .anyMatch(f -> f != null && f.getClass().getSimpleName().equals("AppSchemaDataAccessFactory"))) {
                 LOGGER.log(
                         Level.FINE,
                         "Could not find NonFeatureTypeProxy yet App-schema is around, probably the class changed name, package or does not exist anymore",

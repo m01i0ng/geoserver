@@ -6,10 +6,10 @@ package org.geoserver.wfs;
 
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.wfs.request.GetFeatureRequest;
-import org.geotools.data.FeatureSource;
-import org.geotools.data.Query;
-import org.opengis.feature.Feature;
-import org.opengis.feature.type.FeatureType;
+import org.geotools.api.data.FeatureSource;
+import org.geotools.api.data.Query;
+import org.geotools.api.feature.Feature;
+import org.geotools.api.feature.type.FeatureType;
 
 /** {@link GetFeatureCallback} context object. */
 public final class GetFeatureContext {
@@ -39,27 +39,24 @@ public final class GetFeatureContext {
     }
 
     /**
-     * The full GetFeature request being run. The object returned may be mutable, but the callback
-     * is strongly suggested not to attempt any modification, the behavior of doing so is undefined
-     * and might change over time
+     * The full GetFeature request being run. The object returned may be mutable, but the callback is strongly suggested
+     * not to attempt any modification, the behavior of doing so is undefined and might change over time
      */
     public GetFeatureRequest getRequest() {
         return request;
     }
 
     /**
-     * The feature type being queried. The object returned may be mutable, but the callback is
-     * strongly suggested not to attempt any modification, the behavior of doing so is undefined and
-     * might change over time
+     * The feature type being queried. The object returned may be mutable, but the callback is strongly suggested not to
+     * attempt any modification, the behavior of doing so is undefined and might change over time
      */
     public FeatureTypeInfo getFeatureTypeInfo() {
         return featureTypeInfo;
     }
 
     /**
-     * The feature source being queried. The object returned may be mutable, but the callback is
-     * strongly suggested not to attempt any modification, the behavior of doing so is undefined and
-     * might change over time
+     * The feature source being queried. The object returned may be mutable, but the callback is strongly suggested not
+     * to attempt any modification, the behavior of doing so is undefined and might change over time
      */
     public FeatureSource<? extends FeatureType, ? extends Feature> getFeatureSource() {
         return featureSource;

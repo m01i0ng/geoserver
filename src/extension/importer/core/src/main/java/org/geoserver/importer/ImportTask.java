@@ -21,10 +21,10 @@ import org.geoserver.catalog.StoreInfo;
 import org.geoserver.importer.job.ProgressMonitor;
 import org.geoserver.importer.transform.ImportTransform;
 import org.geoserver.importer.transform.TransformChain;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.type.FeatureType;
 import org.geotools.data.DataUtilities;
 import org.geotools.feature.SchemaException;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.FeatureType;
 
 /**
  * A unit of work during an import.
@@ -180,12 +180,12 @@ public class ImportTask implements Serializable {
         return transform;
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "PMD.UnnecessaryCast"})
     public void addTransform(ImportTransform tx) {
         ((TransformChain) this.transform).add(tx);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "PMD.UnnecessaryCast"})
     public void removeTransform(ImportTransform tx) {
         ((TransformChain) this.transform).remove(tx);
     }
@@ -195,9 +195,8 @@ public class ImportTask implements Serializable {
     }
 
     /**
-     * Returns a transient metadata map, useful for caching information that's expensive to compute.
-     * The map won't be stored in the {@link ImportStore} so don't use it for anything that needs to
-     * be persisted.
+     * Returns a transient metadata map, useful for caching information that's expensive to compute. The map won't be
+     * stored in the {@link ImportStore} so don't use it for anything that needs to be persisted.
      */
     public Map<Object, Object> getMetadata() {
         if (metadata == null) {

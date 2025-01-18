@@ -12,6 +12,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,6 +22,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.tester.FormTester;
 import org.geoserver.catalog.PublishedInfo;
 import org.geoserver.catalog.WorkspaceInfo;
@@ -45,8 +47,7 @@ public class GeoServerHomePageTest extends GeoServerWicketTestSupport {
     @Override
     protected void setUpSpring(List<String> springContextLocations) {
         super.setUpSpring(springContextLocations);
-        springContextLocations.add(
-                "classpath*:/org/geoserver/web/GeoServerHomePageTestContext.xml");
+        springContextLocations.add("classpath*:/org/geoserver/web/GeoServerHomePageTestContext.xml");
     }
 
     @Before
@@ -62,11 +63,11 @@ public class GeoServerHomePageTest extends GeoServerWicketTestSupport {
     public void testProvidedGetCapabilities() {
         tester.startPage(GeoServerHomePage.class);
 
-        tester.assertListView(
+        tester.assertComponent("providedCaps", org.apache.wicket.markup.html.list.ListView.class);
+        tester.assertModelValue(
                 "providedCaps",
                 Collections.singletonList(
-                        getGeoServerApplication()
-                                .getBeanOfType(CapabilitiesHomePageLinkProvider.class)));
+                        getGeoServerApplication().getBeanOfType(CapabilitiesHomePageLinkProvider.class)));
     }
 
     @Test
@@ -105,22 +106,20 @@ public class GeoServerHomePageTest extends GeoServerWicketTestSupport {
         List<GeoServerHomePageContentProvider> providers =
                 geoServerApplication.getBeansOfType(GeoServerHomePageContentProvider.class);
         assertFalse(providers.isEmpty());
-        tester.assertListView("contributedContent", providers);
+        tester.assertComponent("contributedContent", org.apache.wicket.markup.html.list.ListView.class);
+        tester.assertModelValue("contributedContent", providers);
     }
 
     @Test
     public void testEmailIfNull() {
         GeoServerApplication geoServerApplication = getGeoServerApplication();
-        String contactEmail =
-                geoServerApplication
-                        .getGeoServer()
-                        .getGlobal()
-                        .getSettings()
-                        .getContact()
-                        .getContactEmail();
-        assertEquals(
-                "andrea@geoserver.org",
-                contactEmail == null ? "andrea@geoserver.org" : contactEmail);
+        String contactEmail = geoServerApplication
+                .getGeoServer()
+                .getGlobal()
+                .getSettings()
+                .getContact()
+                .getContactEmail();
+        assertEquals("andrea@geoserver.org", contactEmail == null ? "andrea@geoserver.org" : contactEmail);
     }
 
     @Test
@@ -151,16 +150,14 @@ public class GeoServerHomePageTest extends GeoServerWicketTestSupport {
 
         // check workspaces use a drop-down with suitable content
         Select2DropDownChoice<WorkspaceInfo> workspaceSelector =
-                (Select2DropDownChoice<WorkspaceInfo>)
-                        tester.getComponentFromLastRenderedPage("form:workspace:select");
+                (Select2DropDownChoice<WorkspaceInfo>) tester.getComponentFromLastRenderedPage("form:workspace:select");
         List<WorkspaceInfo> workspaces = getCatalog().getWorkspaces();
         List<? extends WorkspaceInfo> workspaceChoices = workspaceSelector.getChoices();
         assertEquals(workspaces.size(), workspaceChoices.size());
 
         // and same goes for the layers case
         Select2DropDownChoice<PublishedInfo> publishedSelector =
-                (Select2DropDownChoice<PublishedInfo>)
-                        tester.getComponentFromLastRenderedPage("form:layer:select");
+                (Select2DropDownChoice<PublishedInfo>) tester.getComponentFromLastRenderedPage("form:layer:select");
         List<PublishedInfo> publisheds = new ArrayList<>(getCatalog().getLayers());
         publisheds.addAll(getCatalog().getLayerGroups());
         List<? extends PublishedInfo> publishedChoices = publishedSelector.getChoices();
@@ -188,8 +185,7 @@ public class GeoServerHomePageTest extends GeoServerWicketTestSupport {
         assertNotSame(page1, page3);
         assertNotSame(page2, page3);
         assertEquals(page3.getWorkspaceInfo(), getCatalog().getWorkspaceByName(CITE_PREFIX));
-        assertEquals(
-                page3.getPublishedInfo(), getCatalog().getLayerByName(getLayerId(BASIC_POLYGONS)));
+        assertEquals(page3.getPublishedInfo(), getCatalog().getLayerByName(getLayerId(BASIC_POLYGONS)));
     }
 
     @Test
@@ -210,8 +206,7 @@ public class GeoServerHomePageTest extends GeoServerWicketTestSupport {
         GeoServerHomePage page2 = (GeoServerHomePage) tester.getLastRenderedPage();
         assertNotSame(page1, page2);
         assertEquals(page2.getWorkspaceInfo(), getCatalog().getWorkspaceByName(CITE_PREFIX));
-        assertEquals(
-                page2.getPublishedInfo(), getCatalog().getLayerByName(getLayerId(BASIC_POLYGONS)));
+        assertEquals(page2.getPublishedInfo(), getCatalog().getLayerByName(getLayerId(BASIC_POLYGONS)));
 
         // now un-select the layer
         form = tester.newFormTester("form");
@@ -261,8 +256,7 @@ public class GeoServerHomePageTest extends GeoServerWicketTestSupport {
         assertNotSame(page1, page3);
         assertNotSame(page2, page3);
         assertEquals(page3.getWorkspaceInfo(), getCatalog().getWorkspaceByName(CITE_PREFIX));
-        assertEquals(
-                page3.getPublishedInfo(), getCatalog().getLayerByName(getLayerId(BASIC_POLYGONS)));
+        assertEquals(page3.getPublishedInfo(), getCatalog().getLayerByName(getLayerId(BASIC_POLYGONS)));
     }
 
     @Test
@@ -288,6 +282,23 @@ public class GeoServerHomePageTest extends GeoServerWicketTestSupport {
         tester.startPage(GeoServerHomePage.class);
         tester.assertComponent("form:workspace:select", Select2DropDownChoice.class);
         tester.assertComponent("form:layer:select", Select2DropDownChoice.class);
+    }
+
+    @Test
+    public void testHideSensitiveInfo() throws Exception {
+        logout();
+        tester.startPage(GeoServerHomePage.class);
+
+        var version = new StringResourceModel("version", null, null).getString();
+
+        String responseTxt = tester.getLastResponse().getDocument();
+        assertFalse(responseTxt.contains(version));
+
+        login();
+        tester.startPage(GeoServerHomePage.class);
+
+        responseTxt = tester.getLastResponse().getDocument();
+        assertTrue(responseTxt.contains(version));
     }
 
     public static class MockHomePageContentProvider implements GeoServerHomePageContentProvider {

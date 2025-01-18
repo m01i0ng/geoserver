@@ -7,13 +7,13 @@ package org.geoserver.wms;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.geotools.styling.Graphic;
-import org.geotools.styling.Rule;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.style.Description;
+import org.geotools.api.style.Graphic;
+import org.geotools.api.style.Rule;
+import org.geotools.api.style.Symbolizer;
 import org.geotools.styling.StyleFactoryImpl;
-import org.geotools.styling.Symbolizer;
 import org.geotools.styling.visitor.DuplicatingStyleVisitor;
-import org.opengis.filter.Filter;
-import org.opengis.style.Description;
 
 /**
  * Base class for style visitors that copies styles but removes certain symbolizers
@@ -40,21 +40,20 @@ public abstract class SymbolizerFilteringVisitor extends DuplicatingStyleVisitor
         }
         Symbolizer[] symsCopy = symArray.toArray(new Symbolizer[symArray.size()]);
 
-        Graphic legendCopy = copy((Graphic) rule.getLegend());
+        Graphic legendCopy = copy(rule.getLegend());
         Description descCopy = rule.getDescription();
         descCopy = copy(descCopy);
 
-        Rule copy =
-                new StyleFactoryImpl()
-                        .createRule(
-                                symsCopy,
-                                descCopy,
-                                legendCopy,
-                                rule.getName(),
-                                filterCopy,
-                                rule.isElseFilter(),
-                                rule.getMaxScaleDenominator(),
-                                rule.getMinScaleDenominator());
+        Rule copy = new StyleFactoryImpl()
+                .createRule(
+                        symsCopy,
+                        descCopy,
+                        legendCopy,
+                        rule.getName(),
+                        filterCopy,
+                        rule.isElseFilter(),
+                        rule.getMaxScaleDenominator(),
+                        rule.getMinScaleDenominator());
 
         if (STRICT && !copy.equals(rule)) {
             throw new IllegalStateException("Was unable to duplicate provided Rule:" + rule);

@@ -12,28 +12,28 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Icon;
+import org.geotools.api.filter.expression.Expression;
+import org.geotools.api.filter.expression.Literal;
+import org.geotools.api.filter.expression.NilExpression;
+import org.geotools.api.style.ExternalGraphic;
+import org.geotools.api.style.FeatureTypeStyle;
+import org.geotools.api.style.Fill;
+import org.geotools.api.style.Graphic;
+import org.geotools.api.style.GraphicalSymbol;
+import org.geotools.api.style.LineSymbolizer;
+import org.geotools.api.style.PointSymbolizer;
+import org.geotools.api.style.PolygonSymbolizer;
+import org.geotools.api.style.RasterSymbolizer;
+import org.geotools.api.style.Rule;
+import org.geotools.api.style.Stroke;
+import org.geotools.api.style.Style;
+import org.geotools.api.style.Symbolizer;
+import org.geotools.api.style.TextSymbolizer;
 import org.geotools.renderer.style.DynamicSymbolFactoryFinder;
 import org.geotools.renderer.style.ExpressionExtractor;
 import org.geotools.renderer.style.ExternalGraphicFactory;
-import org.geotools.styling.ExternalGraphic;
-import org.geotools.styling.FeatureTypeStyle;
-import org.geotools.styling.Fill;
-import org.geotools.styling.Graphic;
-import org.geotools.styling.LineSymbolizer;
-import org.geotools.styling.PointSymbolizer;
-import org.geotools.styling.PolygonSymbolizer;
-import org.geotools.styling.RasterSymbolizer;
-import org.geotools.styling.Rule;
-import org.geotools.styling.Stroke;
-import org.geotools.styling.Style;
-import org.geotools.styling.Symbolizer;
-import org.geotools.styling.TextSymbolizer;
 import org.geotools.styling.visitor.DuplicatingStyleVisitor;
 import org.geotools.util.logging.Logging;
-import org.opengis.filter.expression.Expression;
-import org.opengis.filter.expression.Literal;
-import org.opengis.filter.expression.NilExpression;
-import org.opengis.style.GraphicalSymbol;
 
 /**
  * Extract the portion of the style whose sizes depend on attribute values
@@ -164,11 +164,9 @@ class DynamicSizeStyleExtractor extends DuplicatingStyleVisitor {
         super.visit(gr);
         Expression sizeExpression = gr.getSize();
         if (!dynamic) {
-            dynamic =
-                    !(sizeExpression != null
-                                    && (sizeExpression instanceof Literal
-                                            || sizeExpression instanceof NilExpression))
-                            || hasDynamicGraphic(gr);
+            dynamic = !(sizeExpression != null
+                            && (sizeExpression instanceof Literal || sizeExpression instanceof NilExpression))
+                    || hasDynamicGraphic(gr);
         }
     }
 
@@ -190,16 +188,12 @@ class DynamicSizeStyleExtractor extends DuplicatingStyleVisitor {
                             return true;
                         }
 
-                        Iterator<ExternalGraphicFactory> it =
-                                DynamicSymbolFactoryFinder.getExternalGraphicFactories();
+                        Iterator<ExternalGraphicFactory> it = DynamicSymbolFactoryFinder.getExternalGraphicFactories();
                         while (it.hasNext()) {
                             try {
                                 icon = it.next().getIcon(null, expanded, eg.getFormat(), 16);
                             } catch (Exception e) {
-                                LOGGER.log(
-                                        Level.FINE,
-                                        "Error occurred evaluating external graphic",
-                                        e);
+                                LOGGER.log(Level.FINE, "Error occurred evaluating external graphic", e);
                             }
                         }
 
@@ -210,10 +204,7 @@ class DynamicSizeStyleExtractor extends DuplicatingStyleVisitor {
                         }
                     }
                 } catch (MalformedURLException e) {
-                    LOGGER.log(
-                            Level.FINE,
-                            "Failed to check graphics for attribute embedded in the path " + eg,
-                            e);
+                    LOGGER.log(Level.FINE, "Failed to check graphics for attribute embedded in the path " + eg, e);
                 }
             }
         }

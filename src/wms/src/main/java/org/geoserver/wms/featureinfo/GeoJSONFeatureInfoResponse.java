@@ -7,15 +7,16 @@ package org.geoserver.wms.featureinfo;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
 import net.opengis.wfs.FeatureCollectionType;
 import org.geoserver.platform.GeoServerResourceLoader;
 import org.geoserver.wfs.json.GeoJSONGetFeatureResponse;
 import org.geoserver.wms.GetFeatureInfoRequest;
 import org.geoserver.wms.WMS;
+import org.geotools.feature.FeatureCollection;
 
 /**
- * A GetFeatureInfo response handler specialized in producing Json and JsonP data for a
- * GetFeatureInfo request.
+ * A GetFeatureInfo response handler specialized in producing Json and JsonP data for a GetFeatureInfo request.
  *
  * @author Simone Giannecchini, GeoSolutions
  * @author Carlo Cancellieri - GeoSolutions
@@ -33,8 +34,7 @@ public class GeoJSONFeatureInfoResponse extends GetFeatureInfoOutputFormat {
         this.wms = wms;
         if (outputFormat.equals("application/json"))
             this.templateManager =
-                    new GeoJSONTemplateManager(
-                            FreeMarkerTemplateManager.OutputFormat.JSON, wms, resourceLoader);
+                    new GeoJSONTemplateManager(FreeMarkerTemplateManager.OutputFormat.JSON, wms, resourceLoader);
     }
 
     /** @throws Exception if outputFormat is not a valid json mime type */
@@ -46,22 +46,22 @@ public class GeoJSONFeatureInfoResponse extends GetFeatureInfoOutputFormat {
     /**
      * Writes a Json (or Jsonp) response on the passed output stream
      *
-     * @see {@link GetFeatureInfoOutputFormat#write(FeatureCollectionType, GetFeatureInfoRequest,
-     *     OutputStream)}
+     * @see {@link GetFeatureInfoOutputFormat#write(FeatureCollectionType, GetFeatureInfoRequest, OutputStream)}
      */
     @Override
-    public void write(
-            FeatureCollectionType features, GetFeatureInfoRequest fInfoReq, OutputStream out)
+    public void write(FeatureCollectionType features, GetFeatureInfoRequest fInfoReq, OutputStream out)
             throws IOException {
         boolean usedTemplates = false;
 
-        if (templateManager != null)
+        if (templateManager != null) {
             // check before if there are free marker templates to customize response
-            usedTemplates = templateManager.write(features, fInfoReq, out);
+            @SuppressWarnings("unchecked")
+            List<FeatureCollection> collections = features.getFeature();
+            usedTemplates = templateManager.write(collections, out);
+        }
 
         if (!usedTemplates) {
-            GeoJSONGetFeatureResponse format =
-                    new GeoJSONGetFeatureResponse(wms.getGeoServer(), getContentType());
+            GeoJSONGetFeatureResponse format = new GeoJSONGetFeatureResponse(wms.getGeoServer(), getContentType());
             format.write(features, out, null);
         }
     }

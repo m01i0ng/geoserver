@@ -11,44 +11,44 @@ import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.filter.FilterFactory;
+import org.geotools.api.filter.expression.Expression;
+import org.geotools.api.style.ExternalGraphic;
+import org.geotools.api.style.FeatureTypeStyle;
+import org.geotools.api.style.Fill;
+import org.geotools.api.style.Font;
+import org.geotools.api.style.Graphic;
+import org.geotools.api.style.PointSymbolizer;
+import org.geotools.api.style.Rule;
+import org.geotools.api.style.Style;
+import org.geotools.api.style.StyleFactory;
+import org.geotools.api.style.Symbolizer;
+import org.geotools.api.style.TextSymbolizer;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geometry.jts.JTSFactoryFinder;
-import org.geotools.styling.ExternalGraphic;
-import org.geotools.styling.FeatureTypeStyle;
-import org.geotools.styling.Graphic;
-import org.geotools.styling.PointSymbolizer;
-import org.geotools.styling.Rule;
 import org.geotools.styling.SLD;
-import org.geotools.styling.Style;
-import org.geotools.styling.StyleFactory2;
-import org.geotools.styling.Symbolizer;
-import org.geotools.styling.TextSymbolizer;
 import org.junit.BeforeClass;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory2;
-import org.opengis.filter.expression.Expression;
-import org.opengis.style.Fill;
-import org.opengis.style.Font;
 
 public class IconTestSupport {
 
     protected static SimpleFeature fieldIs1;
     protected static SimpleFeature fieldIs2;
-    protected static StyleFactory2 styleFactory;
-    protected static FilterFactory2 filterFactory;
+    protected static StyleFactory styleFactory;
+    protected static FilterFactory filterFactory;
     protected static SimpleFeatureType featureType;
 
     @BeforeClass
     public static void classSetup() {
-        styleFactory = (StyleFactory2) CommonFactoryFinder.getStyleFactory();
-        filterFactory = CommonFactoryFinder.getFilterFactory2();
+        styleFactory = CommonFactoryFinder.getStyleFactory();
+        filterFactory = CommonFactoryFinder.getFilterFactory();
         GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
         SimpleFeatureTypeBuilder typeBuilder = new SimpleFeatureTypeBuilder();
         typeBuilder.setName("example");
@@ -76,9 +76,7 @@ public class IconTestSupport {
                 } else {
                     buff.append("&");
                 }
-                buff.append(entry.getKey())
-                        .append("=")
-                        .append(URLEncoder.encode(entry.getValue(), "UTF-8"));
+                buff.append(entry.getKey()).append("=").append(URLEncoder.encode(entry.getValue(), "UTF-8"));
             }
             return buff.toString();
         } catch (UnsupportedEncodingException e) {
@@ -94,9 +92,7 @@ public class IconTestSupport {
 
     protected final Font font(String fontFace, String style, String weight, Integer size) {
         List<Expression> fontFaceList =
-                fontFace == null
-                        ? null
-                        : Collections.singletonList(filterFactory.literal(fontFace));
+                fontFace == null ? null : Collections.singletonList(filterFactory.literal(fontFace));
         Expression styleExpr = style == null ? null : filterFactory.literal(style);
         Expression weightExpr = weight == null ? null : filterFactory.literal(weight);
         Expression sizeExpr = size == null ? null : filterFactory.literal(size);
@@ -109,21 +105,22 @@ public class IconTestSupport {
                 name, geometry, null, null, filterFactory.property(label), font, null, null, fill);
     }
 
-    protected final PointSymbolizer mark(
-            String name, Color stroke, Color fill, float opacity, int size) {
+    protected final PointSymbolizer mark(String name, Color stroke, Color fill, float opacity, int size) {
         return SLD.pointSymbolizer(SLD.createPointStyle(name, stroke, fill, opacity, size));
     }
 
     protected final PointSymbolizer externalGraphic(String url, String format) {
         ExternalGraphic exGraphic = styleFactory.createExternalGraphic(url, format);
-        Graphic graphic =
-                styleFactory.createGraphic(
-                        new ExternalGraphic[] {exGraphic}, null, null, null, null, null);
+        Graphic graphic = styleFactory.createGraphic(new ExternalGraphic[] {exGraphic}, null, null, null, null, null);
         return styleFactory.createPointSymbolizer(graphic, null);
     }
 
     protected final PointSymbolizer grayCircle() {
         return mark("circle", Color.BLACK, Color.GRAY, 1f, 16);
+    }
+
+    protected final PointSymbolizer redStar() {
+        return mark("star", Color.BLACK, Color.RED, 1f, 16);
     }
 
     protected final Rule rule(Filter filter, Symbolizer... symbolizer) {

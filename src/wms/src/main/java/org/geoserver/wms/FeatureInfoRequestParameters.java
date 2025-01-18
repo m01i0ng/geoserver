@@ -9,29 +9,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.geoserver.platform.ServiceException;
-import org.geotools.data.Query;
+import org.geotools.api.data.Query;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.filter.FilterFactory;
+import org.geotools.api.filter.sort.SortBy;
+import org.geotools.api.filter.sort.SortOrder;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.style.Style;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
-import org.geotools.styling.Style;
 import org.geotools.util.factory.GeoTools;
 import org.locationtech.jts.geom.Envelope;
-import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory2;
-import org.opengis.filter.sort.SortBy;
-import org.opengis.filter.sort.SortOrder;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
- * Wraps the large number of information normally extracted from a feature info request into a
- * single object, provides facilities to access extra information about the current layer (view
- * parameters, styles)
+ * Wraps the large number of information normally extracted from a feature info request into a single object, provides
+ * facilities to access extra information about the current layer (view parameters, styles)
  *
  * @author Andrea Aime - GeoSolutions
  */
 public class FeatureInfoRequestParameters {
 
-    static final FilterFactory2 FF = CommonFactoryFinder.getFilterFactory2();
+    static final FilterFactory FF = CommonFactoryFinder.getFilterFactory();
 
     int x;
 
@@ -65,7 +64,7 @@ public class FeatureInfoRequestParameters {
 
     List<Object> times;
 
-    FilterFactory2 ff;
+    FilterFactory ff;
 
     private List<List<String>> propertyNames;
 
@@ -98,7 +97,7 @@ public class FeatureInfoRequestParameters {
         this.scaleDenominator = getScaleDenominator(request.getGetMapRequest());
         this.elevations = request.getGetMapRequest().getElevation();
         this.times = request.getGetMapRequest().getTime();
-        this.ff = CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
+        this.ff = CommonFactoryFinder.getFilterFactory(GeoTools.getDefaultHints());
 
         this.propertyNames = request.getPropertyNames();
     }
@@ -110,9 +109,7 @@ public class FeatureInfoRequestParameters {
         if (mapcrs != null) {
             mapContent.getViewport().setBounds(new ReferencedEnvelope(envelope, mapcrs));
         } else {
-            mapContent
-                    .getViewport()
-                    .setBounds(new ReferencedEnvelope(envelope, DefaultGeographicCRS.WGS84));
+            mapContent.getViewport().setBounds(new ReferencedEnvelope(envelope, DefaultGeographicCRS.WGS84));
         }
         mapContent.setMapWidth(request.getWidth());
         mapContent.setMapHeight(request.getHeight());
@@ -122,8 +119,8 @@ public class FeatureInfoRequestParameters {
     }
 
     /**
-     * Grab the list of styles for each query layer, we'll use them to auto-evaluate the
-     * GetFeatureInfo radius if the user did not specify one
+     * Grab the list of styles for each query layer, we'll use them to auto-evaluate the GetFeatureInfo radius if the
+     * user did not specify one
      */
     private List<Style> getStyles(final GetFeatureInfoRequest request, List<MapLayerInfo> layers) {
         List<Style> getMapStyles = request.getGetMapRequest().getStyles();
@@ -179,8 +176,7 @@ public class FeatureInfoRequestParameters {
         } else {
             SortBy[] layerSort = sorts.get(currentLayer);
             final MapLayerInfo layer = layers.get(currentLayer);
-            if (layer.getType() == MapLayerInfo.TYPE_VECTOR
-                    || layer.getType() == MapLayerInfo.TYPE_REMOTE_VECTOR) {
+            if (layer.getType() == MapLayerInfo.TYPE_VECTOR || layer.getType() == MapLayerInfo.TYPE_REMOTE_VECTOR) {
                 // for visual consistency, we must return the information that is on top of the
                 // map first, to get this we just need to invert the sort (the code returns the
                 // features it encounters first, until FEATURE_COUNT is reached).
@@ -193,12 +189,9 @@ public class FeatureInfoRequestParameters {
                 for (int i = 0; i < layerSort.length; i++) {
                     SortBy sb = layerSort[i];
                     SortOrder order = sb.getSortOrder();
-                    SortBy reverse =
-                            FF.sort(
-                                    sb.getPropertyName().getPropertyName(),
-                                    order == SortOrder.ASCENDING || order == null
-                                            ? SortOrder.DESCENDING
-                                            : SortOrder.ASCENDING);
+                    SortBy reverse = FF.sort(
+                            sb.getPropertyName().getPropertyName(),
+                            order == SortOrder.ASCENDING || order == null ? SortOrder.DESCENDING : SortOrder.ASCENDING);
                     result[i] = reverse;
                 }
                 return result;
@@ -211,9 +204,7 @@ public class FeatureInfoRequestParameters {
 
     /** The property names for the specified layer (if any, null otherwise) */
     public String[] getPropertyNames() {
-        if (propertyNames == null
-                || propertyNames.isEmpty()
-                || propertyNames.get(currentLayer) == null) {
+        if (propertyNames == null || propertyNames.isEmpty() || propertyNames.get(currentLayer) == null) {
             return Query.ALL_NAMES;
         } else {
             List<String> layerPropNames = propertyNames.get(currentLayer);
@@ -281,7 +272,7 @@ public class FeatureInfoRequestParameters {
     }
 
     /** A filter factory suitable to build filters */
-    public FilterFactory2 getFilterFactory() {
+    public FilterFactory getFilterFactory() {
         return ff;
     }
 

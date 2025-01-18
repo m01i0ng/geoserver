@@ -15,10 +15,11 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.ValidationError;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.geometry.jts.ReferencedEnvelope3D;
+import org.geotools.util.Converters;
 import org.locationtech.jts.geom.Envelope;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
  * A form component for a {@link Envelope} object.
@@ -68,8 +69,8 @@ public class EnvelopePanel extends FormComponentPanel<ReferencedEnvelope> {
     }
 
     /**
-     * Makes the CRS bounds a required component of the envelope. It is warmly suggested that the
-     * crs field be made visible too
+     * Makes the CRS bounds a required component of the envelope. It is warmly suggested that the crs field be made
+     * visible too
      */
     public void setCrsRequired(boolean crsRequired) {
         this.crsRequired = crsRequired;
@@ -136,8 +137,7 @@ public class EnvelopePanel extends FormComponentPanel<ReferencedEnvelope> {
      * @param maxValueField
      * @param axis
      */
-    private void validateAxis(
-            IValidatable<Double> validatable, DecimalTextField maxValueField, String axis) {
+    private void validateAxis(IValidatable<Double> validatable, DecimalTextField maxValueField, String axis) {
         // if max is not valid, form will fail anyway, and there is nothing to compare against
         if (maxValueField.isValid()) {
             maxValueField.convertInput();
@@ -145,8 +145,7 @@ public class EnvelopePanel extends FormComponentPanel<ReferencedEnvelope> {
             if (convertedValue != null && validatable.getValue() >= convertedValue) {
                 ValidationError error = new ValidationError();
                 error.setMessage(
-                        new ParamResourceModel("validation.boundingBoxAxisNonPositive", this, axis)
-                                .getObject());
+                        new ParamResourceModel("validation.boundingBoxAxisNonPositive", this, axis).getObject());
                 validatable.error(error);
             }
         }
@@ -159,7 +158,13 @@ public class EnvelopePanel extends FormComponentPanel<ReferencedEnvelope> {
     }
 
     private void updateFields() {
-        ReferencedEnvelope e = getModelObject();
+        Object o = getModelObject();
+        ReferencedEnvelope e;
+        if (o instanceof ReferencedEnvelope) {
+            e = getModelObject();
+        } else {
+            e = Converters.convert(o, ReferencedEnvelope.class);
+        }
         if (e != null) {
             this.minX = e.getMinX();
             this.minY = e.getMinY();
@@ -182,11 +187,9 @@ public class EnvelopePanel extends FormComponentPanel<ReferencedEnvelope> {
     }
 
     public EnvelopePanel setReadOnly(final boolean readOnly) {
-        visitChildren(
-                TextField.class,
-                (component, visit) -> {
-                    component.setEnabled(!readOnly);
-                });
+        visitChildren(TextField.class, (component, visit) -> {
+            component.setEnabled(!readOnly);
+        });
         crsPanel.setReadOnly(readOnly);
 
         return this;
@@ -195,11 +198,9 @@ public class EnvelopePanel extends FormComponentPanel<ReferencedEnvelope> {
     @SuppressWarnings("unchecked")
     @Override
     public void convertInput() {
-        visitChildren(
-                TextField.class,
-                (component, visit) -> {
-                    ((TextField<String>) component).processInput();
-                });
+        visitChildren(TextField.class, (component, visit) -> {
+            ((TextField<String>) component).processInput();
+        });
 
         if (isCRSFieldVisible()) {
             crsPanel.processInput();
@@ -213,9 +214,7 @@ public class EnvelopePanel extends FormComponentPanel<ReferencedEnvelope> {
                 if (is3D()) {
                     double minZsafe = minZ == null ? Double.NaN : minZ;
                     double maxZsafe = maxZ == null ? Double.NaN : maxZ;
-                    setConvertedInput(
-                            new ReferencedEnvelope3D(
-                                    minX, maxX, minY, maxY, minZsafe, maxZsafe, crs));
+                    setConvertedInput(new ReferencedEnvelope3D(minX, maxX, minY, maxY, minZsafe, maxZsafe, crs));
                 } else {
                     setConvertedInput(new ReferencedEnvelope(minX, maxX, minY, maxY, crs));
                 }
@@ -231,11 +230,9 @@ public class EnvelopePanel extends FormComponentPanel<ReferencedEnvelope> {
         // when the client programmatically changed the model, update the fields
         // so that the textfields will change too
         updateFields();
-        visitChildren(
-                TextField.class,
-                (component, visit) -> {
-                    ((TextField<String>) component).clearInput();
-                });
+        visitChildren(TextField.class, (component, visit) -> {
+            ((TextField<String>) component).clearInput();
+        });
     }
 
     /** Returns the coordinate reference system added by the user in the GUI, if any and valid */

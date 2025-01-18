@@ -7,10 +7,10 @@ package org.geoserver.taskmanager.web.panel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.html.form.Button;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
+// TODO WICKET8 - Verify this page works OK
 public class ButtonPanel extends Panel {
 
     private static final long serialVersionUID = -1829729746678003578L;
@@ -18,25 +18,24 @@ public class ButtonPanel extends Panel {
     public ButtonPanel(String id, IModel<String> model) {
         super(id);
 
-        add(
-                new AjaxButton("button", model) {
-                    private static final long serialVersionUID = 3516037457693268460L;
+        add(new AjaxButton("button", model) {
+            private static final long serialVersionUID = 3516037457693268460L;
 
-                    @Override
-                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        ButtonPanel.this.onSubmit(target, form);
-                    }
+            @Override
+            public void onSubmit(AjaxRequestTarget target) {
+                ButtonPanel.this.onSubmit(target);
+            }
 
-                    @Override
-                    public boolean isEnabled() {
-                        return ButtonPanel.this.isEnabled();
-                    }
-                });
+            @Override
+            public boolean isEnabled() {
+                return ButtonPanel.this.isEnabled();
+            }
+        });
     }
 
     public Button getButton() {
         return (Button) get("button");
     }
 
-    public void onSubmit(AjaxRequestTarget target, Form<?> form) {}
+    public void onSubmit(AjaxRequestTarget target) {}
 }

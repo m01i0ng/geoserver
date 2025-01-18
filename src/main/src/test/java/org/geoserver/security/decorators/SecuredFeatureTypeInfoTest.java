@@ -14,16 +14,15 @@ import org.geoserver.catalog.impl.FeatureTypeInfoImpl;
 import org.geoserver.security.CatalogMode;
 import org.geoserver.security.VectorAccessLimits;
 import org.geoserver.security.WrapperPolicy;
-import org.geotools.data.FeatureSource;
-import org.geotools.data.Query;
-import org.geotools.data.simple.SimpleFeatureSource;
+import org.geotools.api.data.FeatureSource;
+import org.geotools.api.data.Query;
+import org.geotools.api.data.SimpleFeatureSource;
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.util.ReflectionUtils;
 
-public class SecuredFeatureTypeInfoTest
-        extends SecuredResourceInfoTest<FeatureTypeInfo, SecuredFeatureTypeInfo> {
+public class SecuredFeatureTypeInfoTest extends SecuredResourceInfoTest<FeatureTypeInfo, SecuredFeatureTypeInfo> {
 
     @Override
     FeatureTypeInfo createDelegate() {
@@ -84,8 +83,7 @@ public class SecuredFeatureTypeInfoTest
 
         // build the secured feature type and grab a secure source
         SecuredFeatureTypeInfo secured = new SecuredFeatureTypeInfo(fti, wp);
-        SecuredFeatureSource securedSource =
-                (SecuredFeatureSource) secured.getFeatureSource(null, null);
+        SecuredFeatureSource securedSource = (SecuredFeatureSource) secured.getFeatureSource(null, null);
         assertNotNull(securedSource);
 
         // use Spring reflection support to access private field

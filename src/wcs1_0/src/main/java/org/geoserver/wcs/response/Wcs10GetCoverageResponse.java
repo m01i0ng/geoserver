@@ -16,14 +16,14 @@ import org.geoserver.platform.Operation;
 import org.geoserver.platform.ServiceException;
 import org.geoserver.wcs.responses.CoverageResponseDelegate;
 import org.geoserver.wcs.responses.CoverageResponseDelegateFinder;
+import org.geotools.api.coverage.grid.GridCoverage;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.util.factory.Hints;
-import org.opengis.coverage.grid.GridCoverage;
 import org.vfny.geoserver.wcs.WcsException;
 
 /**
- * Response object for the store=true path, that is, one that stores the coverage on disk and
- * returns its path thru the Coverages document
+ * Response object for the store=true path, that is, one that stores the coverage on disk and returns its path thru the
+ * Coverages document
  *
  * @author Andrea Aime - TOPP
  */
@@ -49,8 +49,7 @@ public class Wcs10GetCoverageResponse extends Response {
 
     private CoverageResponseDelegateFinder responseFactory;
 
-    public Wcs10GetCoverageResponse(
-            Catalog catalog, CoverageResponseDelegateFinder responseFactory) {
+    public Wcs10GetCoverageResponse(Catalog catalog, CoverageResponseDelegateFinder responseFactory) {
         super(GridCoverage[].class);
         this.catalog = catalog;
         this.responseFactory = responseFactory;
@@ -59,8 +58,7 @@ public class Wcs10GetCoverageResponse extends Response {
     @Override
     public String getAttachmentFileName(Object value, Operation operation) {
         if (!(operation.getParameters()[0] instanceof GetCoverageType))
-            throw new WcsException(
-                    "Cannot handle object of type: " + operation.getParameters()[0].getClass());
+            throw new WcsException("Cannot handle object of type: " + operation.getParameters()[0].getClass());
 
         GetCoverageType getCoverage = (GetCoverageType) operation.getParameters()[0];
         String outputFormat = getCoverage.getOutput().getFormat().getValue();
@@ -71,8 +69,7 @@ public class Wcs10GetCoverageResponse extends Response {
     @Override
     public String getMimeType(Object value, Operation operation) throws ServiceException {
         if (!(operation.getParameters()[0] instanceof GetCoverageType))
-            throw new WcsException(
-                    "Cannot handle object of type: " + operation.getParameters()[0].getClass());
+            throw new WcsException("Cannot handle object of type: " + operation.getParameters()[0].getClass());
 
         GetCoverageType getCoverage = (GetCoverageType) operation.getParameters()[0];
         String outputFormat = getCoverage.getOutput().getFormat().getValue();
@@ -101,8 +98,7 @@ public class Wcs10GetCoverageResponse extends Response {
     }
 
     @Override
-    public void write(Object value, OutputStream output, Operation operation)
-            throws IOException, ServiceException {
+    public void write(Object value, OutputStream output, Operation operation) throws IOException, ServiceException {
         GridCoverage[] coverages = (GridCoverage[]) value;
 
         // grab the delegate for coverage encoding

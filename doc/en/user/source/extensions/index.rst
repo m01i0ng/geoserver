@@ -42,3 +42,5 @@ This section describes most of the extensions available for GeoServer. Other dat
    mapml/index
    csw-iso/index
    metadata/index
+   iau/index
+   rat/index

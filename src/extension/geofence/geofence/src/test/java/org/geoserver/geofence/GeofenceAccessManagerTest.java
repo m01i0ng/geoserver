@@ -24,15 +24,15 @@ import org.geoserver.ows.Request;
 import org.geoserver.security.CoverageAccessLimits;
 import org.geoserver.security.VectorAccessLimits;
 import org.geoserver.security.WorkspaceAccessLimits;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.filter.FilterFactory;
+import org.geotools.api.filter.spatial.Intersects;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.filter.visitor.DefaultFilterVisitor;
 import org.junit.Assume;
 import org.junit.Test;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.WKTReader;
-import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory2;
-import org.opengis.filter.spatial.Intersects;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.core.Authentication;
 
@@ -53,8 +53,7 @@ public class GeofenceAccessManagerTest extends GeofenceBaseTest {
         assertTrue(wl.isWritable());
 
         // check layer access
-        LayerInfo layer =
-                catalog.getLayerByName(getLayerId(MockData.BASIC_POLYGONS)); // uses the login
+        LayerInfo layer = catalog.getLayerByName(getLayerId(MockData.BASIC_POLYGONS)); // uses the login
 
         VectorAccessLimits vl = (VectorAccessLimits) accessManager.getAccessLimits(user, layer);
         assertEquals(Filter.INCLUDE, vl.getReadFilter());
@@ -194,8 +193,7 @@ public class GeofenceAccessManagerTest extends GeofenceBaseTest {
 
         LayerInfo generic = catalog.getLayerByName(getLayerId(MockData.GENERICENTITY));
         if (generic != null) {
-            VectorAccessLimits vl =
-                    (VectorAccessLimits) accessManager.getAccessLimits(user, generic);
+            VectorAccessLimits vl = (VectorAccessLimits) accessManager.getAccessLimits(user, generic);
             assertEquals(Filter.INCLUDE, vl.getReadFilter());
             assertEquals(Filter.INCLUDE, vl.getWriteFilter());
 
@@ -221,9 +219,8 @@ public class GeofenceAccessManagerTest extends GeofenceBaseTest {
         LayerInfo generic = catalog.getLayerByName(getLayerId(MockData.GENERICENTITY));
         VectorAccessLimits vl = (VectorAccessLimits) accessManager.getAccessLimits(user, generic);
 
-        FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2(null);
-        Geometry limit =
-                new WKTReader().read("MULTIPOLYGON(((48 62, 48 63, 49 63, 49 62, 48 62)))");
+        FilterFactory ff = CommonFactoryFinder.getFilterFactory(null);
+        Geometry limit = new WKTReader().read("MULTIPOLYGON(((48 62, 48 63, 49 63, 49 62, 48 62)))");
         Filter filter = ff.intersects(ff.property(""), ff.literal(limit));
 
         assertEquals(filter, vl.getReadFilter());
@@ -231,8 +228,8 @@ public class GeofenceAccessManagerTest extends GeofenceBaseTest {
     }
 
     /**
-     * This test is very similar to testAreaLimited(), but the source resource is set to have the
-     * 900913 SRS. We expect that the allowedarea is projected into the resource CRS.
+     * This test is very similar to testAreaLimited(), but the source resource is set to have the 900913 SRS. We expect
+     * that the allowedarea is projected into the resource CRS.
      */
     @Test
     public void testArea900913Vector() throws Exception {
@@ -264,10 +261,9 @@ public class GeofenceAccessManagerTest extends GeofenceBaseTest {
         // Check we have the geometry filter set
         VectorAccessLimits vl = (VectorAccessLimits) accessManager.getAccessLimits(user, resource);
 
-        Geometry expectedLimit =
-                new WKTReader()
-                        .read(
-                                " MULTIPOLYGON (((5343335.558077131 8859142.800565697, 5343335.558077131 9100250.907059547, 5454655.048870404 9100250.907059547, 5454655.048870404 8859142.800565697, 5343335.558077131 8859142.800565697)))");
+        Geometry expectedLimit = new WKTReader()
+                .read(
+                        " MULTIPOLYGON (((5343335.558077131 8859142.800565697, 5343335.558077131 9100250.907059547, 5454655.048870404 9100250.907059547, 5454655.048870404 8859142.800565697, 5343335.558077131 8859142.800565697)))");
 
         IntersectExtractor ier = new IntersectExtractor();
         vl.getReadFilter().accept(ier, null);
@@ -306,13 +302,11 @@ public class GeofenceAccessManagerTest extends GeofenceBaseTest {
         layerInfo.setName(generic.getName());
 
         // Check we have the geometry filter set
-        CoverageAccessLimits accessLimits =
-                (CoverageAccessLimits) accessManager.getAccessLimits(user, resource);
+        CoverageAccessLimits accessLimits = (CoverageAccessLimits) accessManager.getAccessLimits(user, resource);
 
-        Geometry expectedLimit =
-                new WKTReader()
-                        .read(
-                                "MULTIPOLYGON (((5343335.558077131 8859142.800565697, 5343335.558077131 9100250.907059547, 5454655.048870404 9100250.907059547, 5454655.048870404 8859142.800565697, 5343335.558077131 8859142.800565697)))");
+        Geometry expectedLimit = new WKTReader()
+                .read(
+                        "MULTIPOLYGON (((5343335.558077131 8859142.800565697, 5343335.558077131 9100250.907059547, 5454655.048870404 9100250.907059547, 5454655.048870404 8859142.800565697, 5343335.558077131 8859142.800565697)))");
 
         assertTrue(expectedLimit.equalsExact(accessLimits.getRasterFilter(), .000000001));
     }

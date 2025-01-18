@@ -11,12 +11,12 @@ import net.opengis.wfs.PropertyType;
 import net.opengis.wfs.UpdateElementType;
 import net.opengis.wfs.WfsFactory;
 import org.geoserver.wfs.WFSException;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.gml2.bindings.GML2ParsingUtils;
 import org.geotools.xsd.AbstractComplexEMFBinding;
 import org.geotools.xsd.ElementInstance;
 import org.geotools.xsd.Node;
-import org.opengis.filter.Filter;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.picocontainer.MutablePicoContainer;
 
 /**
@@ -139,8 +139,7 @@ public class UpdateElementTypeBinding extends AbstractComplexEMFBinding {
     }
 
     @Override
-    public void initializeChildContext(
-            ElementInstance childInstance, Node node, MutablePicoContainer context) {
+    public void initializeChildContext(ElementInstance childInstance, Node node, MutablePicoContainer context) {
         // if an srsName is set for this geometry, put it in the context for
         // children, so they can use it as well
         if (node.hasAttribute("srsName")) {

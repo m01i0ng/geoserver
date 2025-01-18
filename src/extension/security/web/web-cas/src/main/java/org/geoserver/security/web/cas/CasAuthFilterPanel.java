@@ -18,7 +18,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -42,8 +41,8 @@ import org.geotools.util.logging.Logging;
  *
  * @author mcr
  */
-public class CasAuthFilterPanel
-        extends PreAuthenticatedUserNameFilterPanel<CasAuthenticationFilterConfig> {
+// TODO WICKET8 - Verify this page works OK
+public class CasAuthFilterPanel extends PreAuthenticatedUserNameFilterPanel<CasAuthenticationFilterConfig> {
 
     private static final long serialVersionUID = 1;
 
@@ -60,26 +59,21 @@ public class CasAuthFilterPanel
         add(new HelpLink("singleSignOutParametersHelp", this).setDialog(dialog));
         add(new HelpLink("proxyTicketParametersHelp", this).setDialog(dialog));
 
-        add(new TextField<String>("casServerUrlPrefix"));
+        add(new TextField<>("casServerUrlPrefix"));
         add(new CheckBox("sendRenew"));
         add(new TextField<String>("proxyCallbackUrlPrefix").setRequired(false));
 
         add(
                 new AjaxSubmitLink("casServerTest") {
                     @Override
-                    protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                    protected void onSubmit(AjaxRequestTarget target) {
                         try {
                             testURL("casServerUrlPrefix", GeoServerCasConstants.LOGOUT_URI);
-                            info(
-                                    new StringResourceModel(
-                                                    "casConnectionSuccessful",
-                                                    CasAuthFilterPanel.this,
-                                                    null)
-                                            .getObject());
+                            info(new StringResourceModel("casConnectionSuccessful", CasAuthFilterPanel.this, null)
+                                    .getObject());
                         } catch (Exception e) {
                             error(e);
-                            ((GeoServerBasePage) getPage())
-                                    .addFeedbackPanels(target); // to display message
+                            ((GeoServerBasePage) getPage()).addFeedbackPanels(target); // to display message
                             LOGGER.log(Level.WARNING, "CAS connection error ", e);
                         }
                     }
@@ -88,19 +82,14 @@ public class CasAuthFilterPanel
         add(
                 new AjaxSubmitLink("proxyCallbackTest") {
                     @Override
-                    protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                    protected void onSubmit(AjaxRequestTarget target) {
                         try {
                             testURL("proxyCallbackUrlPrefix", null);
-                            info(
-                                    new StringResourceModel(
-                                                    "casProxyCallbackSuccessful",
-                                                    CasAuthFilterPanel.this,
-                                                    null)
-                                            .getObject());
+                            info(new StringResourceModel("casProxyCallbackSuccessful", CasAuthFilterPanel.this, null)
+                                    .getObject());
                         } catch (Exception e) {
                             error(e);
-                            ((GeoServerBasePage) getPage())
-                                    .addFeedbackPanels(target); // to display message
+                            ((GeoServerBasePage) getPage()).addFeedbackPanels(target); // to display message
                             LOGGER.log(Level.WARNING, "CAS proxy callback  error ", e);
                         }
                     }
@@ -109,23 +98,18 @@ public class CasAuthFilterPanel
         CheckBox createSession = new CheckBox("singleSignOut");
         add(createSession);
 
-        add(new TextField<String>("urlInCasLogoutPage"));
+        add(new TextField<>("urlInCasLogoutPage"));
         add(
                 new AjaxSubmitLink("urlInCasLogoutPageTest") {
                     @Override
-                    protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                    protected void onSubmit(AjaxRequestTarget target) {
                         try {
                             testURL("urlInCasLogoutPage", null);
-                            info(
-                                    new StringResourceModel(
-                                                    "urlInCasLogoutPageSuccessful",
-                                                    CasAuthFilterPanel.this,
-                                                    null)
-                                            .getObject());
+                            info(new StringResourceModel("urlInCasLogoutPageSuccessful", CasAuthFilterPanel.this, null)
+                                    .getObject());
                         } catch (Exception e) {
                             error(e);
-                            ((GeoServerBasePage) getPage())
-                                    .addFeedbackPanels(target); // to display message
+                            ((GeoServerBasePage) getPage()).addFeedbackPanels(target); // to display message
                             LOGGER.log(Level.WARNING, "CAs url in logout page error ", e);
                         }
                     }
@@ -153,15 +137,14 @@ public class CasAuthFilterPanel
 
     @Override
     protected DropDownChoice<RoleSource> createRoleSourceDropDown() {
-        List<RoleSource> sources =
-                new ArrayList<>(Arrays.asList(PreAuthenticatedUserNameRoleSource.values()));
+        List<RoleSource> sources = new ArrayList<>(Arrays.asList(PreAuthenticatedUserNameRoleSource.values()));
         sources.addAll(Arrays.asList(CasAuthenticationFilterConfig.CasSpecificRoleSource.values()));
         return new DropDownChoice<>("roleSource", sources, new RoleSourceChoiceRenderer());
     }
 
     static class CustomAttributePanel extends Panel {
         public CustomAttributePanel(String id) {
-            super(id, new Model());
+            super(id, new Model<>());
             add(new TextField<String>("customAttributeName").setRequired(true));
         }
     }

@@ -5,8 +5,8 @@
 package org.geoserver.backuprestore;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.List;
@@ -22,8 +22,8 @@ import org.springframework.batch.core.launch.JobExecutionNotRunningException;
 import org.springframework.batch.core.launch.NoSuchJobExecutionException;
 
 /**
- * Tests the BK_PURGE_RESOURCES flag is respected and all current catalog artifacts are removed
- * before restore the backup zip file.
+ * Tests the BK_PURGE_RESOURCES flag is respected and all current catalog artifacts are removed before restore the
+ * backup zip file.
  */
 public class PurgeRestoreTest extends BackupRestoreTestSupport {
 
@@ -50,7 +50,7 @@ public class PurgeRestoreTest extends BackupRestoreTestSupport {
         Thread.sleep(100);
 
         assertNotNull(backupFacade.getRestoreExecutions());
-        assertTrue(!backupFacade.getRestoreExecutions().isEmpty());
+        assertFalse(backupFacade.getRestoreExecutions().isEmpty());
 
         assertNotNull(restoreExecution);
 
@@ -61,20 +61,16 @@ public class PurgeRestoreTest extends BackupRestoreTestSupport {
 
         waitRestoreFinish(restoreExecution);
 
-        List<LayerInfo> citeLayers =
-                catalog.getLayers().stream()
-                        .filter(li -> li.prefixedName().startsWith("cite:"))
-                        .collect(Collectors.toList());
+        List<LayerInfo> citeLayers = catalog.getLayers().stream()
+                .filter(li -> li.prefixedName().startsWith("cite:"))
+                .collect(Collectors.toList());
         assertEquals(1, citeLayers.size());
     }
 
     private void waitRestoreFinish(RestoreExecutionAdapter restoreExecution)
-            throws InterruptedException, NoSuchJobExecutionException,
-                    JobExecutionNotRunningException {
+            throws InterruptedException, NoSuchJobExecutionException, JobExecutionNotRunningException {
         int cnt = 0;
-        while (cnt < 100
-                && (restoreExecution.getStatus() != BatchStatus.COMPLETED
-                        || !restoreExecution.isRunning())) {
+        while (cnt < 100 && (restoreExecution.getStatus() != BatchStatus.COMPLETED || !restoreExecution.isRunning())) {
             Thread.sleep(100);
             cnt++;
 

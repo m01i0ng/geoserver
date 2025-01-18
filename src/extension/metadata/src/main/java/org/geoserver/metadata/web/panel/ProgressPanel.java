@@ -7,12 +7,11 @@ package org.geoserver.metadata.web.panel;
 
 import java.io.Serializable;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow.CloseButtonCallback;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.geoserver.web.wicket.GSModalWindow;
 import org.wicketstuff.progressbar.ProgressBar;
 import org.wicketstuff.progressbar.Progression;
 import org.wicketstuff.progressbar.ProgressionModel;
@@ -27,7 +26,7 @@ public class ProgressPanel extends Panel {
 
     private static final long serialVersionUID = -258488244844400514L;
 
-    private ModalWindow window;
+    private GSModalWindow window;
 
     private boolean cancelMe = false;
 
@@ -38,7 +37,7 @@ public class ProgressPanel extends Panel {
     public ProgressPanel(String id, IModel<String> title) {
         super(id);
 
-        add(window = new ModalWindow("dialog"));
+        add(window = new GSModalWindow("dialog"));
 
         window.setInitialHeight(35);
         window.setTitle(title);
@@ -52,17 +51,14 @@ public class ProgressPanel extends Panel {
 
     public void start(AjaxRequestTarget target, IModel<Float> model, EventHandler handler) {
         ProgressBar progressBar =
-                new ProgressBar(
-                        "content",
-                        new ProgressionModel() {
-                            private static final long serialVersionUID = 5716227987463146386L;
+                new ProgressBar("content", new ProgressionModel() {
+                    private static final long serialVersionUID = 5716227987463146386L;
 
-                            @Override
-                            protected Progression getProgression() {
-                                return new Progression(
-                                        cancelMe ? 100 : Math.round(100 * model.getObject()));
-                            }
-                        }) {
+                    @Override
+                    protected Progression getProgression() {
+                        return new Progression(cancelMe ? 100 : Math.round(100 * model.getObject()));
+                    }
+                }) {
                     private static final long serialVersionUID = 6384204231727968702L;
 
                     @Override
@@ -77,16 +73,15 @@ public class ProgressPanel extends Panel {
                 };
 
         window.setContent(progressBar);
-        window.setCloseButtonCallback(
-                new CloseButtonCallback() {
-                    private static final long serialVersionUID = 5570427983448661370L;
+        window.setCloseButtonCallback(new GSModalWindow.CloseButtonCallback() {
+            private static final long serialVersionUID = 5570427983448661370L;
 
-                    @Override
-                    public boolean onCloseButtonClicked(AjaxRequestTarget target) {
-                        cancelMe = true;
-                        return false;
-                    }
-                });
+            @Override
+            public boolean onCloseButtonClicked(AjaxRequestTarget target) {
+                cancelMe = true;
+                return false;
+            }
+        });
         window.show(target);
         progressBar.start(target);
     }

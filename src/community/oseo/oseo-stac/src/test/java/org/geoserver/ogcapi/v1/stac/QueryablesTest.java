@@ -43,8 +43,7 @@ public class QueryablesTest extends STACTestSupport {
     public void testCollectionQueryables() throws Exception {
         DocumentContext json = getAsJSONPath("ogc/stac/v1/collections/SENTINEL2/queryables", 200);
         assertEquals(
-                "http://localhost:8080/geoserver/ogc/stac/v1/collections/SENTINEL2/queryables",
-                json.read("$.$id"));
+                "http://localhost:8080/geoserver/ogc/stac/v1/collections/SENTINEL2/queryables", json.read("$.$id"));
 
         // check a couple properties, more in depth tests are found in STACQueryablesBuilderTest
         checkQueryableProperties(json);
@@ -56,12 +55,12 @@ public class QueryablesTest extends STACTestSupport {
         // custom one that is there instead
         DocumentContext cc = readContext(properties, "eo:cloud_cover");
         assertEquals("integer", cc.read("type"));
-        assertEquals("integer", cc.read("description"));
+        assertEquals("integer", cc.read("title"));
 
         // top level queryable
         DocumentContext kw = readContext(properties, "keywords");
         assertEquals("string", kw.read("type"));
-        assertEquals("string", kw.read("description"));
+        assertEquals("string", kw.read("title"));
     }
 
     /**
@@ -77,11 +76,9 @@ public class QueryablesTest extends STACTestSupport {
         gs.save(oseo);
 
         try {
-            DocumentContext json =
-                    getAsJSONPath("ogc/stac/v1/collections/SENTINEL2/queryables", 200);
+            DocumentContext json = getAsJSONPath("ogc/stac/v1/collections/SENTINEL2/queryables", 200);
             assertEquals(
-                    "http://localhost:8080/geoserver/ogc/stac/v1/collections/SENTINEL2/queryables",
-                    json.read("$.$id"));
+                    "http://localhost:8080/geoserver/ogc/stac/v1/collections/SENTINEL2/queryables", json.read("$.$id"));
 
             // check a couple properties, more in depth tests are found in STACQueryablesBuilderTest
             checkQueryableProperties(json);
@@ -94,16 +91,16 @@ public class QueryablesTest extends STACTestSupport {
             // custom one that is there instead
             DocumentContext cc = readContext(properties, "eo:cloud_cover");
             assertEquals("integer", cc.read("type"));
-            assertEquals("integer", cc.read("description"));
+            assertEquals("integer", cc.read("title"));
 
             // check the custom global queryables as well
             DocumentContext constellation = readContext(json, "properties.constellation");
             assertEquals("string", constellation.read("type"));
-            assertEquals("string", constellation.read("description"));
+            assertEquals("string", constellation.read("title"));
 
             DocumentContext sun_azimuth = readContext(json, "properties.view:sun_azimuth");
             assertEquals("number", sun_azimuth.read("type"));
-            assertEquals("number", sun_azimuth.read("description"));
+            assertEquals("number", sun_azimuth.read("title"));
         } finally {
             oseo.getGlobalQueryables().clear();
             gs.save(oseo);
@@ -132,9 +129,7 @@ public class QueryablesTest extends STACTestSupport {
     @Test
     public void testLandsat8Queryables() throws Exception {
         DocumentContext json = getAsJSONPath("ogc/stac/v1/collections/LANDSAT8/queryables", 200);
-        assertEquals(
-                "http://localhost:8080/geoserver/ogc/stac/v1/collections/LANDSAT8/queryables",
-                json.read("$.$id"));
+        assertEquals("http://localhost:8080/geoserver/ogc/stac/v1/collections/LANDSAT8/queryables", json.read("$.$id"));
 
         // checks the common properties
         checkQueryableProperties(json);
@@ -142,7 +137,7 @@ public class QueryablesTest extends STACTestSupport {
         // check the one custom queryable added in LANDSAT8 template
         DocumentContext orbit = readContext(json, "properties.landsat:orbit");
         assertEquals("integer", orbit.read("type"));
-        assertEquals("integer", orbit.read("description"));
+        assertEquals("integer", orbit.read("title"));
     }
 
     @Test
@@ -159,11 +154,11 @@ public class QueryablesTest extends STACTestSupport {
             // check the custom queryables added above
             DocumentContext constellation = readContext(json, "properties.constellation");
             assertEquals("string", constellation.read("type"));
-            assertEquals("string", constellation.read("description"));
+            assertEquals("string", constellation.read("title"));
 
             DocumentContext sun_azimuth = readContext(json, "properties.view:sun_azimuth");
             assertEquals("number", sun_azimuth.read("type"));
-            assertEquals("number", sun_azimuth.read("description"));
+            assertEquals("number", sun_azimuth.read("title"));
         } finally {
             oseo.getGlobalQueryables().clear();
             gs.save(oseo);
@@ -184,11 +179,11 @@ public class QueryablesTest extends STACTestSupport {
             // check the custom queryables added above
             DocumentContext constellation = readContext(json, "properties.constellation");
             assertEquals("string", constellation.read("type"));
-            assertEquals("string", constellation.read("description"));
+            assertEquals("string", constellation.read("title"));
 
             DocumentContext sun_azimuth = readContext(json, "properties.view:sun_azimuth");
             assertEquals("number", sun_azimuth.read("type"));
-            assertEquals("number", sun_azimuth.read("description"));
+            assertEquals("number", sun_azimuth.read("title"));
         } finally {
             oseo.getGlobalQueryables().clear();
             gs.save(oseo);
@@ -197,9 +192,7 @@ public class QueryablesTest extends STACTestSupport {
 
     private void checkQueryableProperties(DocumentContext json) {
         // check a couple properties, more in depth tests are found in STACQueryablesBuilderTest
-        assertEquals(
-                STACQueryablesBuilder.GEOMETRY_SCHEMA_REF, json.read("properties.geometry.$ref"));
-        assertEquals(
-                STACQueryablesBuilder.DATETIME_SCHEMA_REF, json.read("properties.datetime.$ref"));
+        assertEquals(STACQueryablesBuilder.GEOMETRY_SCHEMA_REF, json.read("properties.geometry.$ref"));
+        assertEquals(STACQueryablesBuilder.DATETIME_SCHEMA_REF, json.read("properties.datetime.$ref"));
     }
 }

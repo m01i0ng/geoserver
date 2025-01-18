@@ -14,9 +14,9 @@ import org.geoserver.ows.Request;
 import org.geoserver.ows.util.CaseInsensitiveMap;
 import org.geoserver.wms.GetMapRequest;
 import org.geoserver.wms.WMSMapContent;
+import org.geotools.api.filter.expression.Expression;
 import org.junit.After;
 import org.junit.Test;
-import org.opengis.filter.expression.Expression;
 
 public class TextDecorationTest {
 
@@ -38,13 +38,12 @@ public class TextDecorationTest {
         Map<String, Expression> options = new HashMap<>();
         options.put(
                 "message",
-                FF.literal(
-                        "<#setting datetime_format=\"yyyy-MM-dd'T'HH:mm:ss.SSSX\">\n"
-                                + "<#setting locale=\"en_US\">\n"
-                                + "<#setting time_zone=\"GMT\">"
-                                + "<#if time??>\n"
-                                + "${time?datetime?string[\"dd.MM.yyyy\"]}"
-                                + "</#if>"));
+                FF.literal("<#setting datetime_format=\"yyyy-MM-dd'T'HH:mm:ss.SSSX\">\n"
+                        + "<#setting locale=\"en_US\">\n"
+                        + "<#setting time_zone=\"GMT\">"
+                        + "<#if time??>\n"
+                        + "${time?datetime?string[\"dd.MM.yyyy\"]}"
+                        + "</#if>"));
         decoration.loadOptions(options);
 
         GetMapRequest getMap = new GetMapRequest();

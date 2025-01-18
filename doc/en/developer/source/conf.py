@@ -48,17 +48,17 @@ copyright = u'{}, Open Source Geospatial Foundation'.format(now.year)
 # other places throughout the built documents.
 #
 # The short X.Y version.
-version = '2.24'
+version = '2.27'
 
 # The full version, including alpha/beta/rc tags.
-release = '2.24-SNAPSHOT'
+release = '2.27-SNAPSHOT'
 
 # Used in build and documentation links
-branch = '2.24.x'
+branch = '2.27.x'
 
 # Users don't need to see the "SNAPSHOT" notation when it's there
 if release.find('SNAPSHOT') != -1:
-   release = '2.24.x'
+   release = '2.27.x'
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -71,9 +71,7 @@ today_fmt = '%B %d, %Y'
 
 # List of directories, relative to source directories, that shouldn't be searched
 # for source files.
-exclude_patterns = [
-    'release-guide/old.rst'
-]
+# exclude_patterns = []
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 #default_role = None
@@ -161,7 +159,7 @@ html_last_updated_fmt = '%b %d, %Y'
 #html_additional_pages = {}
 
 # If false, no module index is generated.
-html_use_modindex = False
+html_domain_indices = False
 
 # If false, no index is generated.
 html_use_index = False

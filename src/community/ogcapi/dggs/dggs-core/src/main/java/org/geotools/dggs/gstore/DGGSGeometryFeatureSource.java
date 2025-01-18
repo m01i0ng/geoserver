@@ -31,10 +31,21 @@ import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.iterators.SingletonIterator;
+import org.geotools.api.data.FeatureReader;
+import org.geotools.api.data.Query;
+import org.geotools.api.feature.FeatureVisitor;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.type.AttributeDescriptor;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.filter.PropertyIsEqualTo;
+import org.geotools.api.filter.expression.Expression;
+import org.geotools.api.filter.expression.Literal;
+import org.geotools.api.filter.expression.PropertyName;
+import org.geotools.api.filter.sort.SortBy;
+import org.geotools.api.filter.spatial.BBOX;
 import org.geotools.data.DataUtilities;
-import org.geotools.data.FeatureReader;
 import org.geotools.data.FilteringFeatureReader;
-import org.geotools.data.Query;
 import org.geotools.data.ReTypeFeatureReader;
 import org.geotools.data.simple.EmptySimpleFeatureReader;
 import org.geotools.data.sort.SortedFeatureReader;
@@ -59,17 +70,6 @@ import org.geotools.util.factory.Hints;
 import org.geotools.util.logging.Logging;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
-import org.opengis.feature.FeatureVisitor;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.AttributeDescriptor;
-import org.opengis.filter.Filter;
-import org.opengis.filter.PropertyIsEqualTo;
-import org.opengis.filter.expression.Expression;
-import org.opengis.filter.expression.Literal;
-import org.opengis.filter.expression.PropertyName;
-import org.opengis.filter.sort.SortBy;
-import org.opengis.filter.spatial.BBOX;
 
 class DGGSGeometryFeatureSource extends ContentFeatureSource implements DGGSFeatureSource {
 
@@ -86,10 +86,8 @@ class DGGSGeometryFeatureSource extends ContentFeatureSource implements DGGSFeat
 
     @Override
     protected ReferencedEnvelope getBoundsInternal(Query query) throws IOException {
-        if (query == Query.ALL
-                || query == null
-                || query.getFilter() == Filter.INCLUDE
-                || query.getFilter() == null) return WORLD;
+        if (query == Query.ALL || query == null || query.getFilter() == Filter.INCLUDE || query.getFilter() == null)
+            return WORLD;
 
         // TODO: compute bounds based on actual filtering?
         return null;
@@ -129,13 +127,13 @@ class DGGSGeometryFeatureSource extends ContentFeatureSource implements DGGSFeat
     }
 
     @Override
-    protected boolean canSort() {
+    protected boolean canSort(Query q) {
         // at least for natural ordering, DDGS has a predictable iteration order
         return true;
     }
 
     @Override
-    protected boolean canFilter() {
+    protected boolean canFilter(Query q) {
         return true;
     }
 
@@ -165,8 +163,7 @@ class DGGSGeometryFeatureSource extends ContentFeatureSource implements DGGSFeat
         // sorting, for basic paging just use the DGGS iteration order
         SortBy[] sortBy = query.getSortBy();
         if (sortBy != null && sortBy.length != 0) {
-            if (sortBy != SortBy.UNSORTED
-                    && !(sortBy.length == 1 && sortBy[0] == SortBy.NATURAL_ORDER)) {
+            if (sortBy != SortBy.UNSORTED && !(sortBy.length == 1 && sortBy[0] == SortBy.NATURAL_ORDER)) {
                 reader = new SortedFeatureReader(DataUtilities.simple(reader), query);
             }
         }
@@ -293,7 +290,7 @@ class DGGSGeometryFeatureSource extends ContentFeatureSource implements DGGSFeat
     }
 
     @Override
-    protected boolean canRetype() {
+    protected boolean canRetype(Query q) {
         return true;
     }
 
@@ -303,8 +300,7 @@ class DGGSGeometryFeatureSource extends ContentFeatureSource implements DGGSFeat
             FeatureAttributeVisitor fav = (FeatureAttributeVisitor) visitor;
             Set<String> attributes = getAttributeSet(fav);
             // can optimize a few visits based on resolution alone
-            if (attributes != null
-                    && attributes.equals(Collections.singleton(DGGSStore.RESOLUTION))) {
+            if (attributes != null && attributes.equals(Collections.singleton(DGGSStore.RESOLUTION))) {
                 int[] resolutions = getDGGS().getResolutions();
                 if (fav instanceof MinVisitor) {
                     ((MinVisitor) fav).setValue(resolutions[0]);
@@ -316,9 +312,7 @@ class DGGSGeometryFeatureSource extends ContentFeatureSource implements DGGSFeat
                     // converting an array to a list it's harder than it seems, Arrays.asList
                     // would produce a List with one item, the array given as a param
                     List<Integer> rl =
-                            Arrays.stream(resolutions)
-                                    .mapToObj(v -> v)
-                                    .collect(Collectors.toList());
+                            Arrays.stream(resolutions).mapToObj(v -> v).collect(Collectors.toList());
                     ((UniqueVisitor) fav).setValue(rl);
                     return true;
                 }

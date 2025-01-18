@@ -15,15 +15,15 @@ import java.util.Collections;
 import org.geoserver.featurestemplating.builders.impl.RootBuilder;
 import org.geoserver.featurestemplating.readers.JSONTemplateReader;
 import org.geoserver.featurestemplating.readers.TemplateReaderConfiguration;
+import org.geotools.api.filter.FilterFactory;
+import org.geotools.api.filter.expression.PropertyName;
 import org.geotools.factory.CommonFactoryFinder;
 import org.junit.Test;
-import org.opengis.filter.FilterFactory2;
-import org.opengis.filter.expression.PropertyName;
 import org.xml.sax.helpers.NamespaceSupport;
 
 public class TemplatePathVisitorTest {
 
-    FilterFactory2 FF = CommonFactoryFinder.getFilterFactory2();
+    FilterFactory FF = CommonFactoryFinder.getFilterFactory();
 
     @Test
     public void testBackwardMapping() throws IOException {
@@ -63,13 +63,9 @@ public class TemplatePathVisitorTest {
 
     private RootBuilder getBuilderTree(String resourceName) throws IOException {
         InputStream is = getClass().getResource(resourceName).openStream();
-        ObjectMapper mapper =
-                new ObjectMapper(new JsonFactory().enable(JsonParser.Feature.ALLOW_COMMENTS));
-        JSONTemplateReader templateReader =
-                new JSONTemplateReader(
-                        mapper.readTree(is),
-                        new TemplateReaderConfiguration(new NamespaceSupport()),
-                        Collections.emptyList());
+        ObjectMapper mapper = new ObjectMapper(new JsonFactory().enable(JsonParser.Feature.ALLOW_COMMENTS));
+        JSONTemplateReader templateReader = new JSONTemplateReader(
+                mapper.readTree(is), new TemplateReaderConfiguration(new NamespaceSupport()), Collections.emptyList());
         return templateReader.getRootBuilder();
     }
 }

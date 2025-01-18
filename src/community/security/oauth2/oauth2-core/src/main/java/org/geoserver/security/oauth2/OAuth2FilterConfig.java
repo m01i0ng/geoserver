@@ -7,8 +7,8 @@ package org.geoserver.security.oauth2;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
 /**
- * The GeoServer OAuth2 Filter Configuration. This POJO contains the properties needed to correctly
- * configure the Spring Auth Filter.
+ * The GeoServer OAuth2 Filter Configuration. This POJO contains the properties needed to correctly configure the Spring
+ * Auth Filter.
  *
  * @author Alessio Fabiani, GeoSolutions S.A.S.
  */
@@ -62,6 +62,12 @@ public interface OAuth2FilterConfig {
     /** @param checkTokenEndpointUrl the checkTokenEndpointUrl to set */
     public void setCheckTokenEndpointUrl(String checkTokenEndpointUrl);
 
+    /** @return the introspectionEndpointUrl */
+    String getIntrospectionEndpointUrl();
+
+    /** @param introspectionEndpointUrl the introspectionEndpointUrl to set */
+    void setIntrospectionEndpointUrl(String introspectionEndpointUrl);
+
     /** @return the logoutUri */
     public String getLogoutUri();
 
@@ -89,12 +95,8 @@ public interface OAuth2FilterConfig {
     /** @return the enableRedirectAuthenticationEntryPoint */
     public Boolean getEnableRedirectAuthenticationEntryPoint();
 
-    /**
-     * @param enableRedirectAuthenticationEntryPoint the enableRedirectAuthenticationEntryPoint to
-     *     set
-     */
-    public void setEnableRedirectAuthenticationEntryPoint(
-            Boolean enableRedirectAuthenticationEntryPoint);
+    /** @param enableRedirectAuthenticationEntryPoint the enableRedirectAuthenticationEntryPoint to set */
+    public void setEnableRedirectAuthenticationEntryPoint(Boolean enableRedirectAuthenticationEntryPoint);
 
     /**
      * Returns filter {@link AuthenticationEntryPoint} actual implementation

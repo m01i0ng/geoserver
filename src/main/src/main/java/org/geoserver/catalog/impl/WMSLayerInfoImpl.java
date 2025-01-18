@@ -20,15 +20,18 @@ import org.geoserver.catalog.LegendInfo;
 import org.geoserver.catalog.StyleInfo;
 import org.geoserver.catalog.WMSLayerInfo;
 import org.geoserver.catalog.WMSStoreInfo;
+import org.geotools.api.style.Style;
+import org.geotools.api.style.StyleFactory;
+import org.geotools.api.util.ProgressListener;
+import org.geotools.brewer.styling.builder.StyleBuilder;
+import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.ows.wms.Layer;
 import org.geotools.ows.wms.StyleImpl;
-import org.geotools.styling.NamedStyleImpl;
-import org.geotools.styling.Style;
-import org.opengis.util.ProgressListener;
 
 @SuppressWarnings("serial")
 public class WMSLayerInfoImpl extends ResourceInfoImpl implements WMSLayerInfo {
 
+    public static final StyleFactory STYLE_FACTORY = CommonFactoryFinder.getStyleFactory();
     // will style info with empty name
     // intended for legacy functionaloty
     // of using default remote style
@@ -96,13 +99,9 @@ public class WMSLayerInfoImpl extends ResourceInfoImpl implements WMSLayerInfo {
     public List<String> remoteStyles() {
 
         try {
-            return allAvailableRemoteStyles.stream()
-                    .map(s -> s.getName())
-                    .collect(Collectors.toList());
+            return allAvailableRemoteStyles.stream().map(s -> s.getName()).collect(Collectors.toList());
         } catch (Exception e) {
-            LOGGER.log(
-                    Level.SEVERE,
-                    "Unable to fetch styles for cascaded wms layer " + getNativeName());
+            LOGGER.log(Level.SEVERE, "Unable to fetch styles for cascaded wms layer " + getNativeName());
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
             throw new RuntimeException(e);
         }
@@ -115,22 +114,18 @@ public class WMSLayerInfoImpl extends ResourceInfoImpl implements WMSLayerInfo {
 
     @Override
     public void setForcedRemoteStyle(String forcedRemoteStyle) {
-        this.forcedRemoteStyle =
-                (forcedRemoteStyle == null) ? DEFAULT_ON_REMOTE.getName() : forcedRemoteStyle;
+        this.forcedRemoteStyle = (forcedRemoteStyle == null) ? DEFAULT_ON_REMOTE.getName() : forcedRemoteStyle;
     }
 
     @Override
     public List<String> availableFormats() {
         try {
-            return getStore().getWebMapServer(null).getCapabilities().getRequest().getGetMap()
-                    .getFormats().stream()
+            return getStore().getWebMapServer(null).getCapabilities().getRequest().getGetMap().getFormats().stream()
                     .filter(WMSLayerInfoImpl::isImage)
                     . // only image formats
                     collect(Collectors.toList());
         } catch (Exception e) {
-            LOGGER.log(
-                    Level.SEVERE,
-                    "Unable to fetch available formats for cascaded layer " + getNativeName());
+            LOGGER.log(Level.SEVERE, "Unable to fetch available formats for cascaded layer " + getNativeName());
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
             return Collections.emptyList();
         }
@@ -171,10 +166,9 @@ public class WMSLayerInfoImpl extends ResourceInfoImpl implements WMSLayerInfo {
     public StyleInfo getDefaultStyle() {
         if (forcedRemoteStyle != null)
             if (!forcedRemoteStyle.isEmpty()) {
-                Optional<StyleInfo> defaultRemoteStyle =
-                        getAllAvailableRemoteStyles().stream()
-                                .filter(s -> s.getName().equalsIgnoreCase(forcedRemoteStyle))
-                                .findFirst();
+                Optional<StyleInfo> defaultRemoteStyle = getAllAvailableRemoteStyles().stream()
+                        .filter(s -> s.getName().equalsIgnoreCase(forcedRemoteStyle))
+                        .findFirst();
                 // will return null if forcedRemoteStyle is not empty string
                 // and was not found in selected remote styles
                 if (defaultRemoteStyle.isPresent()) return defaultRemoteStyle.get();
@@ -194,9 +188,7 @@ public class WMSLayerInfoImpl extends ResourceInfoImpl implements WMSLayerInfo {
                     .map(WMSLayerInfoImpl::getStyleInfo)
                     .collect(Collectors.toSet());
         } catch (Exception e) {
-            LOGGER.log(
-                    Level.SEVERE,
-                    "Unable to fetch available styles for cascaded layer " + getNativeName());
+            LOGGER.log(Level.SEVERE, "Unable to fetch available styles for cascaded layer " + getNativeName());
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
         }
         // on error default to super
@@ -207,17 +199,14 @@ public class WMSLayerInfoImpl extends ResourceInfoImpl implements WMSLayerInfo {
     public Optional<Style> findRemoteStyleByName(final String name) {
 
         // temp wrapper for the remote style name
-        final Style style = new NamedStyleImpl();
-        style.setName(name);
+        final Style style = new StyleBuilder().name(name).buildStyle();
         try {
             return getWMSLayer(null).getStyles().stream()
                     .filter(s -> s.getName().equalsIgnoreCase(name))
                     .map(s -> style)
                     .findFirst();
         } catch (Exception e) {
-            LOGGER.log(
-                    Level.SEVERE,
-                    "Unable to fetch available styles for cascaded layer " + getNativeName());
+            LOGGER.log(Level.SEVERE, "Unable to fetch available styles for cascaded layer " + getNativeName());
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
             throw new RuntimeException(e);
         }
@@ -243,10 +232,7 @@ public class WMSLayerInfoImpl extends ResourceInfoImpl implements WMSLayerInfo {
     }
 
     public static Style getStyleInfo(StyleInfo styleInfo) {
-
-        NamedStyleImpl gtStyle = new NamedStyleImpl();
-        gtStyle.setName(styleInfo.getName());
-        return gtStyle;
+        return new StyleBuilder().name(styleInfo.getName()).buildStyle();
     }
 
     @Override
@@ -309,17 +295,9 @@ public class WMSLayerInfoImpl extends ResourceInfoImpl implements WMSLayerInfo {
         int result = super.hashCode();
         result = prime * result + ((forcedRemoteStyle == null) ? 0 : forcedRemoteStyle.hashCode());
         result = prime * result + ((preferredFormat == null) ? 0 : preferredFormat.hashCode());
-        result =
-                prime * result
-                        + ((selectedRemoteFormats == null) ? 0 : selectedRemoteFormats.hashCode());
-        result =
-                prime * result
-                        + ((selectedRemoteStyles == null) ? 0 : selectedRemoteStyles.hashCode());
-        result =
-                prime * result
-                        + ((allAvailableRemoteStyles == null)
-                                ? 0
-                                : allAvailableRemoteStyles.hashCode());
+        result = prime * result + ((selectedRemoteFormats == null) ? 0 : selectedRemoteFormats.hashCode());
+        result = prime * result + ((selectedRemoteStyles == null) ? 0 : selectedRemoteStyles.hashCode());
+        result = prime * result + ((allAvailableRemoteStyles == null) ? 0 : allAvailableRemoteStyles.hashCode());
         result = prime * result + ((minScale == null) ? 0 : minScale.hashCode());
         result = prime * result + ((maxScale == null) ? 0 : maxScale.hashCode());
         result = prime * result + Boolean.hashCode(metadataBBoxRespected);
@@ -337,8 +315,7 @@ public class WMSLayerInfoImpl extends ResourceInfoImpl implements WMSLayerInfo {
         if (!Objects.equal(preferredFormat, other.getPreferredFormat())) return false;
         if (!Objects.equal(selectedRemoteFormats, other.getSelectedRemoteFormats())) return false;
         if (!Objects.equal(selectedRemoteStyles, other.getSelectedRemoteStyles())) return false;
-        if (!Objects.equal(allAvailableRemoteStyles, other.getAllAvailableRemoteStyles()))
-            return false;
+        if (!Objects.equal(allAvailableRemoteStyles, other.getAllAvailableRemoteStyles())) return false;
         if (!Objects.equal(minScale, other.getMinScale())) return false;
         if (!Objects.equal(maxScale, other.getMaxScale())) return false;
         if (!(other.isMetadataBBoxRespected() == this.metadataBBoxRespected)) return false;

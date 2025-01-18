@@ -6,8 +6,6 @@
 package org.geoserver.gwc;
 
 import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Collections;
@@ -33,37 +31,30 @@ import javax.servlet.http.Part;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-@SuppressWarnings("deprecation")
 class FakeHttpServletRequest implements HttpServletRequest {
 
-    private String workspace;
+    private final String workspace;
 
-    private Map<String, String[]> parameterMap;
+    private final Map<String, String[]> parameterMap;
 
-    private Cookie[] cookies;
+    private final Cookie[] cookies;
 
-    private Optional<HttpServletRequest> original;
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    private final Optional<HttpServletRequest> original;
 
     public FakeHttpServletRequest(Map<String, String> parameterMap, Cookie[] cookies) {
         this(parameterMap, cookies, null);
     }
 
-    public FakeHttpServletRequest(
-            Map<String, String> parameterMap, Cookie[] cookies, String workspace) {
-        this.parameterMap =
-                parameterMap.entrySet().stream()
-                        .collect(
-                                Collectors.toMap(
-                                        e -> e.getKey(), e -> new String[] {e.getValue()}));
+    public FakeHttpServletRequest(Map<String, String> parameterMap, Cookie[] cookies, String workspace) {
+        this.parameterMap = parameterMap.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> new String[] {e.getValue()}));
         this.cookies = cookies;
         this.workspace = workspace;
         // grab the original request from Spring to forward security related attributes
         // such as requests host, ports and headers
-        this.original =
-                Optional.ofNullable(
-                                (ServletRequestAttributes)
-                                        RequestContextHolder.getRequestAttributes())
-                        .map(ServletRequestAttributes::getRequest);
+        this.original = Optional.ofNullable((ServletRequestAttributes) RequestContextHolder.getRequestAttributes())
+                .map(ServletRequestAttributes::getRequest);
     }
 
     /** Standard interface */
@@ -84,8 +75,7 @@ class FakeHttpServletRequest implements HttpServletRequest {
 
     @Override
     public long getDateHeader(String name) {
-        return original.map(r -> r.getDateHeader(name))
-                .orElseThrow(() -> new ServletDebugException());
+        return original.map(r -> r.getDateHeader(name)).orElseThrow(ServletDebugException::new);
     }
 
     @Override
@@ -95,18 +85,17 @@ class FakeHttpServletRequest implements HttpServletRequest {
 
     @Override
     public Enumeration<String> getHeaderNames() {
-        return original.map(r -> r.getHeaderNames()).orElse(Collections.emptyEnumeration());
+        return original.map(HttpServletRequest::getHeaderNames).orElse(Collections.emptyEnumeration());
     }
 
     @Override
     public Enumeration<String> getHeaders(String name) {
-        return original.map(r -> r.getHeaders(name)).orElseThrow(() -> new ServletDebugException());
+        return original.map(r -> r.getHeaders(name)).orElseThrow(ServletDebugException::new);
     }
 
     @Override
     public int getIntHeader(String name) {
-        return original.map(r -> r.getIntHeader(name))
-                .orElseThrow(() -> new ServletDebugException());
+        return original.map(r -> r.getIntHeader(name)).orElseThrow(ServletDebugException::new);
     }
 
     @Override
@@ -188,13 +177,16 @@ class FakeHttpServletRequest implements HttpServletRequest {
         throw new ServletDebugException();
     }
 
+    /** @deprecated use #isRequestedSessionIdFromURL() */
+    @Deprecated
+    @SuppressWarnings({"deprecation"})
     @Override
     public boolean isRequestedSessionIdFromUrl() {
-        throw new ServletDebugException();
+        return isRequestedSessionIdFromURL();
     }
 
     @Override
-    public boolean authenticate(HttpServletResponse response) throws IOException, ServletException {
+    public boolean authenticate(HttpServletResponse response) {
         return false;
     }
 
@@ -202,21 +194,20 @@ class FakeHttpServletRequest implements HttpServletRequest {
     public void login(String username, String password) throws ServletException {}
 
     @Override
-    public void logout() throws ServletException {}
+    public void logout() {}
 
     @Override
-    public Collection<Part> getParts() throws IOException, ServletException {
+    public Collection<Part> getParts() {
         return null;
     }
 
     @Override
-    public Part getPart(String name) throws IOException, ServletException {
+    public Part getPart(String name) {
         return null;
     }
 
     @Override
-    public <T extends HttpUpgradeHandler> T upgrade(Class<T> aClass)
-            throws IOException, ServletException {
+    public <T extends HttpUpgradeHandler> T upgrade(Class<T> aClass) {
         return null;
     }
 
@@ -261,28 +252,28 @@ class FakeHttpServletRequest implements HttpServletRequest {
     }
 
     @Override
-    public ServletInputStream getInputStream() throws IOException {
+    public ServletInputStream getInputStream() {
         throw new ServletDebugException();
     }
 
     @Override
     public String getLocalAddr() {
-        return original.map(r -> r.getLocalAddr()).orElseThrow(() -> new ServletDebugException());
+        return original.map(ServletRequest::getLocalAddr).orElseThrow(ServletDebugException::new);
     }
 
     @Override
     public String getLocalName() {
-        return original.map(r -> r.getLocalName()).orElseThrow(() -> new ServletDebugException());
+        return original.map(ServletRequest::getLocalName).orElseThrow(ServletDebugException::new);
     }
 
     @Override
     public int getLocalPort() {
-        return original.map(r -> r.getLocalPort()).orElse(0);
+        return original.map(ServletRequest::getLocalPort).orElse(0);
     }
 
     @Override
     public ServletContext getServletContext() {
-        return original.map(r -> r.getServletContext()).orElse(null);
+        return original.map(ServletRequest::getServletContext).orElse(null);
     }
 
     @Override
@@ -318,7 +309,7 @@ class FakeHttpServletRequest implements HttpServletRequest {
 
     @Override
     public Locale getLocale() {
-        return original.map(r -> r.getLocale()).orElseThrow(() -> new ServletDebugException());
+        return original.map(ServletRequest::getLocale).orElseThrow(ServletDebugException::new);
     }
 
     @Override
@@ -350,15 +341,18 @@ class FakeHttpServletRequest implements HttpServletRequest {
 
     @Override
     public String getProtocol() {
-        return original.map(r -> r.getProtocol()).orElseThrow(() -> new ServletDebugException());
+        return original.map(ServletRequest::getProtocol).orElseThrow(ServletDebugException::new);
     }
 
     @Override
-    public BufferedReader getReader() throws IOException {
+    public BufferedReader getReader() {
         throw new ServletDebugException();
     }
 
+    /** @deprecated */
     @Override
+    @Deprecated
+    @SuppressWarnings("deprecation")
     public String getRealPath(String arg0) {
         throw new ServletDebugException();
     }
@@ -366,17 +360,17 @@ class FakeHttpServletRequest implements HttpServletRequest {
     @Override
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     public String getRemoteAddr() {
-        return original.map(r -> r.getRemoteAddr()).orElse("127.0.0.1");
+        return original.map(ServletRequest::getRemoteAddr).orElse("127.0.0.1");
     }
 
     @Override
     public String getRemoteHost() {
-        return original.map(r -> r.getRemoteHost()).orElse("localhost");
+        return original.map(ServletRequest::getRemoteHost).orElse("localhost");
     }
 
     @Override
     public int getRemotePort() {
-        return original.map(r -> r.getRemotePort()).orElseThrow(() -> new ServletDebugException());
+        return original.map(ServletRequest::getRemotePort).orElseThrow(ServletDebugException::new);
     }
 
     @Override
@@ -386,22 +380,22 @@ class FakeHttpServletRequest implements HttpServletRequest {
 
     @Override
     public String getScheme() {
-        return original.map(r -> r.getScheme()).orElse("http");
+        return original.map(ServletRequest::getScheme).orElse("http");
     }
 
     @Override
     public String getServerName() {
-        return original.map(r -> r.getServerName()).orElse("localhost");
+        return original.map(ServletRequest::getServerName).orElse("localhost");
     }
 
     @Override
     public int getServerPort() {
-        return original.map(r -> r.getServerPort()).orElse(8080);
+        return original.map(ServletRequest::getServerPort).orElse(8080);
     }
 
     @Override
     public boolean isSecure() {
-        return original.map(r -> r.isSecure()).orElseThrow(() -> new ServletDebugException());
+        return original.map(ServletRequest::isSecure).orElseThrow(ServletDebugException::new);
     }
 
     @Override
@@ -415,7 +409,7 @@ class FakeHttpServletRequest implements HttpServletRequest {
     }
 
     @Override
-    public void setCharacterEncoding(String arg0) throws UnsupportedEncodingException {
+    public void setCharacterEncoding(String arg0) {
         if (!arg0.equals("UTF-8")) {
             throw new ServletDebugException();
         }

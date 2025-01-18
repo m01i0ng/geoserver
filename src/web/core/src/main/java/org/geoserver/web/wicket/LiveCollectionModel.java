@@ -13,9 +13,8 @@ import java.util.Set;
 import org.apache.wicket.model.IModel;
 
 /**
- * A model that can be applied on top of another model returning a "live collection", that is, a
- * list that is supposed to be modified directly, as opposed thru setting it again with a property
- * setter
+ * A model that can be applied on top of another model returning a "live collection", that is, a list that is supposed
+ * to be modified directly, as opposed thru setting it again with a property setter
  */
 public abstract class LiveCollectionModel<S, T extends Collection<S>> implements IModel<T> {
     private static final long serialVersionUID = 3505518156788420409L;
@@ -23,8 +22,7 @@ public abstract class LiveCollectionModel<S, T extends Collection<S>> implements
     IModel<? extends Collection<S>> wrapped;
 
     public LiveCollectionModel(IModel<? extends Collection<S>> wrapped) {
-        if (wrapped == null)
-            throw new NullPointerException("Live list model cannot wrap a null model");
+        if (wrapped == null) throw new NullPointerException("Live list model cannot wrap a null model");
         this.wrapped = wrapped;
     }
 
@@ -43,9 +41,8 @@ public abstract class LiveCollectionModel<S, T extends Collection<S>> implements
     }
 
     /** Returns a model for live lists */
-    public static <S> LiveCollectionModel<S, List<S>> list(
-            IModel<? extends Collection<S>> wrapped) {
-        return new LiveCollectionModel<S, List<S>>(wrapped) {
+    public static <S> LiveCollectionModel<S, List<S>> list(IModel<? extends Collection<S>> wrapped) {
+        return new LiveCollectionModel<>(wrapped) {
 
             private static final long serialVersionUID = 3182237972594668864L;
 
@@ -58,7 +55,7 @@ public abstract class LiveCollectionModel<S, T extends Collection<S>> implements
 
     /** Returns a model for live sets */
     public static <S> LiveCollectionModel<S, Set<S>> set(IModel<? extends Collection<S>> wrapped) {
-        return new LiveCollectionModel<S, Set<S>>(wrapped) {
+        return new LiveCollectionModel<>(wrapped) {
 
             private static final long serialVersionUID = 7638792616781214296L;
 

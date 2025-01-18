@@ -14,28 +14,28 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.geoserver.wms.WMSMapContent;
 import org.geoserver.wms.WebMap;
+import org.geotools.api.data.Query;
+import org.geotools.api.data.SimpleFeatureSource;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.filter.Filter;
+import org.geotools.api.filter.FilterFactory;
+import org.geotools.api.filter.spatial.BBOX;
+import org.geotools.api.referencing.FactoryException;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.operation.TransformException;
+import org.geotools.api.style.FeatureTypeStyle;
+import org.geotools.api.style.Rule;
+import org.geotools.api.style.Style;
 import org.geotools.data.DataUtilities;
-import org.geotools.data.Query;
 import org.geotools.data.crs.ReprojectFeatureResults;
 import org.geotools.data.simple.SimpleFeatureCollection;
-import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.FeatureTypes;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.map.Layer;
 import org.geotools.referencing.CRS;
 import org.geotools.renderer.lite.RendererUtilities;
-import org.geotools.styling.FeatureTypeStyle;
-import org.geotools.styling.Rule;
-import org.geotools.styling.Style;
 import org.geotools.util.factory.GeoTools;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.filter.Filter;
-import org.opengis.filter.FilterFactory;
-import org.opengis.filter.spatial.BBOX;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.TransformException;
 
 /**
  * Encodes a set of MapLayers in HTMLImageMap format.
@@ -47,8 +47,7 @@ public class EncodeHTMLImageMap extends WebMap {
             org.geotools.util.logging.Logging.getLogger("org.vfny.geoserver.responses.wms.map");
 
     /** Filter factory for creating filters */
-    private static final FilterFactory filterFactory =
-            CommonFactoryFinder.getFilterFactory2(GeoTools.getDefaultHints());
+    private static final FilterFactory filterFactory = CommonFactoryFinder.getFilterFactory(GeoTools.getDefaultHints());
 
     /** Current writer. The writer is able to encode a single feature. */
     private HTMLImageMapWriter writer;
@@ -89,8 +88,8 @@ public class EncodeHTMLImageMap extends WebMap {
     }
 
     /**
-     * Applies Filters from style rules to the given query, to optimize DataStore queries. Similar
-     * to the method in StreamingRenderer.
+     * Applies Filters from style rules to the given query, to optimize DataStore queries. Similar to the method in
+     * StreamingRenderer.
      */
     private Filter processRuleForQuery(FeatureTypeStyle[] styles) {
         try {
@@ -157,19 +156,17 @@ public class EncodeHTMLImageMap extends WebMap {
     }
 
     /**
-     * Filters the feature type styles of <code>style</code> returning only those that apply to
-     * <code>featureType</code>
+     * Filters the feature type styles of <code>style</code> returning only those that apply to <code>featureType</code>
      *
      * <p>This methods returns feature types for which <code>featureTypeStyle.getFeatureTypeName()
-     * </code> matches the name of the feature type of <code>featureType</code>, or matches the name
-     * of any parent type of the feature type of <code>featureType</code>. This method returns an
-     * empty array in the case of which no rules match.
+     * </code> matches the name of the feature type of <code>featureType</code>, or matches the name of any parent type
+     * of the feature type of <code>featureType</code>. This method returns an empty array in the case of which no rules
+     * match.
      *
      * @param style The style containing the feature type styles.
      * @param featureType The feature type being filtered against.
      */
-    protected FeatureTypeStyle[] filterFeatureTypeStyles(
-            Style style, SimpleFeatureType featureType) {
+    protected FeatureTypeStyle[] filterFeatureTypeStyles(Style style, SimpleFeatureType featureType) {
         List<FeatureTypeStyle> featureTypeStyles = style.featureTypeStyles();
 
         if (featureTypeStyles.isEmpty()) {
@@ -202,8 +199,7 @@ public class EncodeHTMLImageMap extends WebMap {
      * @return true if scaleDenominator is in the rule defined range
      */
     public static boolean isWithInScale(Rule r, double scaleDenominator) {
-        return ((r.getMinScaleDenominator()) <= scaleDenominator)
-                && ((r.getMaxScaleDenominator()) > scaleDenominator);
+        return ((r.getMinScaleDenominator()) <= scaleDenominator) && ((r.getMaxScaleDenominator()) > scaleDenominator);
     }
 
     /** Filter given rules, to consider only the rules compatible with the current scale. */
@@ -212,12 +208,8 @@ public class EncodeHTMLImageMap extends WebMap {
         for (Rule rule : rules) {
             double scaleDenominator;
             try {
-                scaleDenominator =
-                        RendererUtilities.calculateScale(
-                                mapContent.getRenderingArea(),
-                                mapContent.getMapWidth(),
-                                mapContent.getMapHeight(),
-                                90);
+                scaleDenominator = RendererUtilities.calculateScale(
+                        mapContent.getRenderingArea(), mapContent.getMapWidth(), mapContent.getMapHeight(), 90);
 
                 // is this rule within scale?
                 if (EncodeHTMLImageMap.isWithInScale(rule, scaleDenominator)) {
@@ -252,22 +244,19 @@ public class EncodeHTMLImageMap extends WebMap {
                         schema.getGeometryDescriptor().getCoordinateReferenceSystem();
 
                 boolean reproject =
-                        (sourceCrs != null)
-                                && !CRS.equalsIgnoreMetadata(
-                                        aoi.getCoordinateReferenceSystem(), sourceCrs);
+                        (sourceCrs != null) && !CRS.equalsIgnoreMetadata(aoi.getCoordinateReferenceSystem(), sourceCrs);
                 if (reproject) {
                     aoi = aoi.transform(sourceCrs, true);
                 }
                 // apply filters.
                 // 1) bbox filter
-                BBOX bboxFilter =
-                        filterFactory.bbox(
-                                schema.getGeometryDescriptor().getLocalName(),
-                                aoi.getMinX(),
-                                aoi.getMinY(),
-                                aoi.getMaxX(),
-                                aoi.getMaxY(),
-                                null);
+                BBOX bboxFilter = filterFactory.bbox(
+                        schema.getGeometryDescriptor().getLocalName(),
+                        aoi.getMinX(),
+                        aoi.getMinY(),
+                        aoi.getMaxX(),
+                        aoi.getMaxY(),
+                        null);
                 Query q = new Query(schema.getTypeName(), bboxFilter);
 
                 String mapId = schema.getTypeName();
@@ -285,8 +274,7 @@ public class EncodeHTMLImageMap extends WebMap {
                     }
                 }
 
-                FeatureTypeStyle[] ftsList =
-                        filterFeatureTypeStyles(layer.getStyle(), fSource.getSchema());
+                FeatureTypeStyle[] ftsList = filterFeatureTypeStyles(layer.getStyle(), fSource.getSchema());
                 // 3) rule filters
                 Filter ruleFilter = processRuleForQuery(ftsList);
                 if (ruleFilter != null) {
@@ -303,10 +291,8 @@ public class EncodeHTMLImageMap extends WebMap {
                 SimpleFeatureCollection fColl = null; // fSource.getFeatures(q);
                 // FeatureCollection fColl=null;
                 if (reproject) {
-                    fColl =
-                            new ReprojectFeatureResults(
-                                    fSource.getFeatures(q),
-                                    mapContent.getCoordinateReferenceSystem());
+                    fColl = new ReprojectFeatureResults(
+                            fSource.getFeatures(q), mapContent.getCoordinateReferenceSystem());
                 } else fColl = fSource.getFeatures(q);
 
                 // encodes the current layer, using the defined style

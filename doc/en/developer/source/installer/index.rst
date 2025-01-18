@@ -1,7 +1,10 @@
 Build Windows installer
 -----------------------
 
-At the time the GeoServer project does not have financial resources and man power to stand up a Windows build server (if you can help with this, please contact the developer list).
+We presently have a Windows build server which is responsible for packaging up the windows installer for each release.
+
+The `NSIS <https://nsis.sourceforge.io/Main_Page>`__ program used here can also be run on Linux; however we make use of a Windows build server in order to digitally sign the result.
+
 However you can create your own installer (using a Windows machine).
 
 .. note:: This step requires a Windows machine.
@@ -20,7 +23,7 @@ However you can create your own installer (using a Windows machine).
 
         unzip geoserver-[VERSION].zip
 
-#. Copy the files :file:`LICENSE.txt`, :file:`src/release/GPL.txt` and the following files from :file:`src/release/installer/win` from the Geoserver source GeoServer package to the root of the unpacked archive (the same directory level as the :file:`start.jar`)::
+#. Copy the files :file:`LICENSE.md`, :file:`src/release/licenses/GPL.md` and the following files from :file:`src/release/installer/win` from the Geoserver source GeoServer package to the root of the unpacked archive (the same directory level as the :file:`start.jar`)::
 
       GeoServerEXE.nsi
       gs.ico

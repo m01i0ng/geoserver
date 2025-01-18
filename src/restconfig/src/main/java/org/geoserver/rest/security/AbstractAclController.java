@@ -34,8 +34,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-public abstract class AbstractAclController<
-                R extends Comparable<R>, DAO extends AbstractAccessRuleDAO<R>>
+public abstract class AbstractAclController<R extends Comparable<R>, DAO extends AbstractAccessRuleDAO<R>>
         implements SequentialExecutionController {
 
     public static final String ANY = "*";
@@ -156,7 +155,7 @@ public abstract class AbstractAclController<
         return result;
     }
 
-    /** Calculate the the intersection of the keys */
+    /** Calculate the intersection of the keys */
     protected Set<Object> intersection(Map map) {
 
         Set<Object> result = new HashSet<>();

@@ -25,6 +25,7 @@ import org.apache.commons.io.IOUtils;
 import org.geoserver.security.urlchecks.GeoServerURLChecker;
 import org.geoserver.security.urlchecks.RegexURLCheck;
 import org.geoserver.security.urlchecks.URLCheckDAO;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -34,7 +35,7 @@ import org.w3c.dom.Document;
 /** Integration test for Execute referencing remote inputs, with URL checks enabled/disabled. */
 public class ExecuteURLCheckTest extends WPSTestSupport {
 
-    private static final boolean debugMode = true;
+    private static final boolean debugMode = false;
     private static final String STATES_COLLECTION = "states-FeatureCollection.xml";
 
     private static WireMockServer service;
@@ -51,19 +52,22 @@ public class ExecuteURLCheckTest extends WPSTestSupport {
         // remote GML file
         String statesResource = getResourceAsString(STATES_COLLECTION);
         statesGMLURL = service.baseUrl() + "/" + STATES_COLLECTION;
-        service.stubFor(
-                WireMock.get(urlEqualTo("/" + STATES_COLLECTION))
-                        .willReturn(
-                                aResponse()
-                                        .withStatus(200)
-                                        .withHeader("Content-Type", MediaType.TEXT_XML_VALUE)
-                                        .withBody(statesResource)));
+        service.stubFor(WireMock.get(urlEqualTo("/" + STATES_COLLECTION))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", MediaType.TEXT_XML_VALUE)
+                        .withBody(statesResource)));
     }
 
     private static String getResourceAsString(String resource) throws IOException {
         try (InputStream is = ExecuteURLCheckTest.class.getResourceAsStream(resource)) {
             return IOUtils.toString(is, StandardCharsets.UTF_8);
         }
+    }
+
+    @AfterClass
+    public static void afterClass() throws Exception {
+        service.stop();
     }
 
     @Before

@@ -22,8 +22,8 @@ import org.geoserver.wfs.WFSException;
 import org.geoserver.wfs.kvp.BaseFeatureKvpRequestReader;
 import org.geoserver.wfs.request.LockFeatureRequest;
 import org.geoserver.wfs.request.Query;
+import org.geotools.api.filter.FilterFactory;
 import org.geotools.xsd.EMFUtils;
-import org.opengis.filter.FilterFactory;
 
 public class LockFeatureKvpRequestReader extends BaseFeatureKvpRequestReader {
 
@@ -32,8 +32,7 @@ public class LockFeatureKvpRequestReader extends BaseFeatureKvpRequestReader {
     }
 
     @Override
-    protected <T> void querySet(EObject request, String property, List<T> values)
-            throws WFSException {
+    protected <T> void querySet(EObject request, String property, List<T> values) throws WFSException {
         // no values specified, do nothing
         if (values == null) {
             return;
@@ -95,8 +94,7 @@ public class LockFeatureKvpRequestReader extends BaseFeatureKvpRequestReader {
     }
 
     @Override
-    protected void buildStoredQueries(
-            EObject request, List<URI> storedQueryIds, Map<String, Object> kvp) {
+    protected void buildStoredQueries(EObject request, List<URI> storedQueryIds, Map<String, Object> kvp) {
         LockFeatureRequest req = LockFeatureRequest.adapt(request);
 
         if (!(req instanceof LockFeatureRequest.WFS20)) {
@@ -104,18 +102,12 @@ public class LockFeatureKvpRequestReader extends BaseFeatureKvpRequestReader {
         }
 
         StoredQueryProvider sqp =
-                new StoredQueryProvider(
-                        catalog,
-                        getWFS(),
-                        geoServer.getGlobal().isAllowStoredQueriesPerWorkspace());
+                new StoredQueryProvider(catalog, getWFS(), geoServer.getGlobal().isAllowStoredQueriesPerWorkspace());
         for (URI storedQueryId : storedQueryIds) {
             StoredQuery sq = sqp.getStoredQuery(storedQueryId.toString());
             if (sq == null) {
-                WFSException exception =
-                        new WFSException(
-                                req,
-                                "No such stored query: " + storedQueryId,
-                                ServiceException.INVALID_PARAMETER_VALUE);
+                WFSException exception = new WFSException(
+                        req, "No such stored query: " + storedQueryId, ServiceException.INVALID_PARAMETER_VALUE);
                 exception.setLocator("STOREDQUERY_ID");
                 throw exception;
             }

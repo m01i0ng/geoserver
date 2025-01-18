@@ -49,13 +49,15 @@ clustered quartz database at the same time at start-up, which is likely
 to cause issues. This initialisation needs to happen only once for the
 entire cluster.
 
+.. _taskmanager_user_databases:
+
 Databases
 ~~~~~~~~~
 
 Task Manager allows any number of databases to be used both as sources
 and targets for data transfer operations. These are configured via the
-Spring configuration file. Currently only PostGIS is fully supported,
-either via JNDI or directly via JDBC.
+Spring configuration file. Currently only PostGIS is supported as 
+a target (as well as a source), either via JNDI or directly via JDBC.
 
 .. code:: xml
 
@@ -98,17 +100,60 @@ either via JNDI or directly via JDBC.
 
 Roles can be specified for `security <#security>`__ purposes.
 
-There is also support for Informix, but it only works as a source
-database (not for publishing).
+Other database systems should generally work as a source database (not for publishing)
+using the GenericDbSourceImpl (this has been tested with MS SQL).
+
+.. code:: xml
+
+    <bean class="org.geoserver.taskmanager.external.impl.GenericDbSourceImpl">
+        <property name="name" value="mysqldb" />
+        <property name="driver" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"/> 
+        <property name="connectionUrl" value="jdbc:sqlserver://mysqldbhost:1433;database=mydb" /> 
+        <property name="username" value="username" />
+        <property name="password" value="password" /> 
+        <property name="schema" value="dbo" /> 
+    </bean>
+
+There is also specific support for Informix as a source database (not for publishing).
 
 .. code:: xml
 
     <bean class="org.geoserver.taskmanager.external.impl.InformixDbSourceImpl">
+        <property name="name" value="myinformixdb" />
         <property name="driver" value="com.informix.jdbc.IfxDriver"/> 
         <property name="connectionUrl" value="jdbc:informix-sqli://informix-server:1539" /> 
         <property name="username" value="username" />
         <property name="password" value="password" /> 
     </bean>
+
+It is also possible to use a source that does not support geometries, and translate them
+automatically from some raw type. To do this, one must create a table in the database
+that contains a list of all geometry columns that need to be translated. This can be
+configured as follows:
+
+.. code:: xml
+
+    <bean name="geomtable" class="org.geoserver.taskmanager.external.impl.GeometryTableImpl">
+        <!-- the name of your metadata table -->
+       <property name="nameTable" value="Metadata_Geo" />
+        <!-- the attribute name that contains table name -->
+       <property name="attributeNameTable" value="table_name" />
+        <!-- the attribute name that contains column name -->
+       <property name="attributeNameGeometry" value="column_name" />
+        <!-- the attribute name that contains geometry type -->
+       <property name="attributeNameType" value="geometry_type" />
+        <!-- the attribute name that contains SRID code -->
+       <property name="attributeNameSrid" value="srid" />
+        <!-- the type of conversion: WKT (string to geometry), WKB (binary to geometry), WKB_HEX (hex string to geometry) -->
+       <property name="type" value="WKB_HEX" />
+    </bean>
+
+    <bean class="org.geoserver.taskmanager.external.impl.GenericDbSourceImpl">
+        ....  
+        <property name="rawGeometryTable" ref="geomtable"/>
+    </bean>
+
+.. _taskmanager_user_external_geoserver:
 
 External GeoServers
 ~~~~~~~~~~~~~~~~~~~
@@ -124,7 +169,31 @@ configuration file.
         <property name="url" value="http://my.geoserver/geoserver" /> 
         <property name="username" value="admin" />
         <property name="password" value="geoserver" />
+        <property name="supportMetadata" value="true" />
     </bean>
+
+The ''supportsMetadata'' field indicates whether this target geoserver contains the
+the :ref:`Metadata Community Module <community_metadata>`, which provides additional
+support for it in certain tasks.
+
+The configuration above will log-in to geoserver using basic authentication.
+Task Manager also supports geoservers protected with keycloak:
+
+.. code:: xml
+
+    <bean class="org.geoserver.taskmanager.external.impl.ExternalKeycloakGSImpl">
+        <property name="name" value="keycloakgs"/>
+        <property name="url" value="http://my.geoserver/geoserver"/>
+        <property name="username" value="keycloak_admin"/>
+        <property name="password" value="keycloak_password"/>
+        <property name="clientId" value="my clientid"/>
+        <property name="clientSecret" value="my clientsecret"/>
+        <property name="real" value="my realm"/>
+        <property name="authUrl" value="http://my.keycloak.server/auth"/>
+        <property name="supportMetadata" value="true" />
+    </bean>
+
+.. _taskmanager_user_file_services:
 
 File Services
 ~~~~~~~~~~~~~
@@ -431,7 +500,10 @@ Task Types
 -  ``MetaDataSyncTask`` Synchronise the metadata between a local layer
    and a layer on another geoserver (without re-publishing). The user
    can specify a target geoserver, a local and a remote layer. Does not
-   support commit/rollback.
+   support commit/rollback. If the target geoserver supports the :ref:`Metadata Community Module <community_metadata>` 
+   native metadata attributes mapped to custom metadata attributes will be updated.
+   Note that all of the publication tasks will synchronize metadata in the same
+   way.
 
 -  ``ConfigureCachedLayer`` Configure caching for a layer on a remote
    geoserver with internal GWC, synchronise the settings with the local 

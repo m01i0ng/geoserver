@@ -8,10 +8,10 @@ package org.geoserver.importer.transform;
 import java.util.List;
 import java.util.logging.Logger;
 import org.geoserver.importer.ImportTask;
-import org.geotools.data.DataStore;
+import org.geotools.api.data.DataStore;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
 import org.geotools.util.logging.Logging;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
 
 /**
  * Transform chain for vectors.
@@ -31,8 +31,8 @@ public class VectorTransformChain extends TransformChain<VectorTransform> {
         super(transforms);
     }
 
-    public SimpleFeatureType inline(
-            ImportTask task, DataStore dataStore, SimpleFeatureType featureType) throws Exception {
+    public SimpleFeatureType inline(ImportTask task, DataStore dataStore, SimpleFeatureType featureType)
+            throws Exception {
 
         for (InlineVectorTransform tx : filter(transforms, InlineVectorTransform.class)) {
             try {
@@ -46,8 +46,7 @@ public class VectorTransformChain extends TransformChain<VectorTransform> {
         return featureType;
     }
 
-    public SimpleFeature inline(
-            ImportTask task, DataStore dataStore, SimpleFeature oldFeature, SimpleFeature feature)
+    public SimpleFeature inline(ImportTask task, DataStore dataStore, SimpleFeature oldFeature, SimpleFeature feature)
             throws Exception {
 
         for (InlineVectorTransform tx : filter(transforms, InlineVectorTransform.class)) {

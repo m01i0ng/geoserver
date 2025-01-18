@@ -53,11 +53,16 @@ public class RasterCleaner extends AbstractDispatcherCallback {
 
     @Override
     public void finished(Request request) {
+        cleanup();
+    }
+
+    /** Immediately cleans up all images and coverages scheduled for cleanup */
+    public static void cleanup() {
         disposeCoverages();
         disposeImages();
     }
 
-    private void disposeImages() {
+    private static void disposeImages() {
         List<RenderedImage> list = images.get();
         if (list != null) {
             images.remove();
@@ -71,8 +76,8 @@ public class RasterCleaner extends AbstractDispatcherCallback {
 
                 if (image instanceof RenderedImageList) {
                     RenderedImageList ril = (RenderedImageList) image;
-                    for (int i = 0; i < ril.size(); i++) {
-                        disposeImage((RenderedImage) ril.get(i));
+                    for (Object o : ril) {
+                        disposeImage((RenderedImage) o);
                     }
                 } else {
                     disposeImage(image);
@@ -82,7 +87,8 @@ public class RasterCleaner extends AbstractDispatcherCallback {
         }
     }
 
-    private void disposeImage(RenderedImage image) {
+    /** Immediately disposes an image, the image might not be usable any longer after this call */
+    public static void disposeImage(RenderedImage image) {
         if (image instanceof PlanarImage) {
             ImageUtilities.disposePlanarImageChain((PlanarImage) image);
         } else if (image instanceof BufferedImage) {
@@ -91,7 +97,7 @@ public class RasterCleaner extends AbstractDispatcherCallback {
         }
     }
 
-    private void disposeCoverages() {
+    private static void disposeCoverages() {
         List<GridCoverage2D> list = coverages.get();
         if (list != null) {
             coverages.remove();

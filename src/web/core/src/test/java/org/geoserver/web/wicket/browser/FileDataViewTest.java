@@ -9,6 +9,7 @@ import static org.geoserver.web.GeoServerWicketTestSupport.initResourceSettings;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
+import java.util.Optional;
 import org.apache.commons.io.FileUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.repeater.data.DataView;
@@ -48,18 +49,13 @@ public class FileDataViewTest {
 
         fileProvider = new FileProvider(root);
 
-        tester.startPage(
-                new FormTestPage(
-                        (ComponentBuilder)
-                                id ->
-                                        new FileDataView(id, fileProvider) {
+        tester.startPage(new FormTestPage((ComponentBuilder) id -> new FileDataView(id, fileProvider) {
 
-                                            @Override
-                                            protected void linkNameClicked(
-                                                    File file, AjaxRequestTarget target) {
-                                                lastClicked = file;
-                                            }
-                                        }));
+            @Override
+            protected void linkNameClicked(File file, Optional<AjaxRequestTarget> target) {
+                lastClicked = file;
+            }
+        }));
 
         // WicketHierarchyPrinter.print(tester.getLastRenderedPage(), true, true);
     }
@@ -73,10 +69,7 @@ public class FileDataViewTest {
         tester.assertLabel("form:panel:fileTable:fileContent:files:2:nameLink:name", "two.sld");
         assertEquals(
                 2,
-                ((DataView)
-                                tester.getComponentFromLastRenderedPage(
-                                        "form:panel:fileTable:fileContent:files"))
-                        .size());
+                ((DataView) tester.getComponentFromLastRenderedPage("form:panel:fileTable:fileContent:files")).size());
     }
 
     @Test
@@ -94,10 +87,7 @@ public class FileDataViewTest {
         tester.assertLabel("form:panel:fileTable:fileContent:files:3:nameLink:name", "one.txt");
         assertEquals(
                 1,
-                ((DataView)
-                                tester.getComponentFromLastRenderedPage(
-                                        "form:panel:fileTable:fileContent:files"))
-                        .size());
+                ((DataView) tester.getComponentFromLastRenderedPage("form:panel:fileTable:fileContent:files")).size());
     }
 
     @Test

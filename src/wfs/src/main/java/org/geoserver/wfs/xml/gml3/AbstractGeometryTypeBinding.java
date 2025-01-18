@@ -6,6 +6,8 @@
 package org.geoserver.wfs.xml.gml3;
 
 import org.geoserver.wfs.WFSException;
+import org.geotools.api.referencing.NoSuchAuthorityCodeException;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.gml2.bindings.GML2ParsingUtils;
 import org.geotools.referencing.CRS;
@@ -13,13 +15,11 @@ import org.geotools.referencing.operation.projection.PointOutsideEnvelopeExcepti
 import org.geotools.xsd.ElementInstance;
 import org.geotools.xsd.Node;
 import org.locationtech.jts.geom.Geometry;
-import org.opengis.referencing.NoSuchAuthorityCodeException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.picocontainer.MutablePicoContainer;
 
 /**
- * Subclass of {@link org.geotools.gml3.bindings.AbstractGeometryTypeBinding} which performs some
- * addtional validation checks.
+ * Subclass of {@link org.geotools.gml3.bindings.AbstractGeometryTypeBinding} which performs some addtional validation
+ * checks.
  *
  * <p>Checks include:
  *
@@ -31,8 +31,7 @@ import org.picocontainer.MutablePicoContainer;
  *
  * @author Justin Deoliveira, The Open Planning Project
  */
-public class AbstractGeometryTypeBinding
-        extends org.geotools.gml3.bindings.AbstractGeometryTypeBinding {
+public class AbstractGeometryTypeBinding extends org.geotools.gml3.bindings.AbstractGeometryTypeBinding {
 
     CoordinateReferenceSystem crs;
 
@@ -45,8 +44,7 @@ public class AbstractGeometryTypeBinding
     }
 
     @Override
-    public void initializeChildContext(
-            ElementInstance childInstance, Node node, MutablePicoContainer context) {
+    public void initializeChildContext(ElementInstance childInstance, Node node, MutablePicoContainer context) {
         // if an srsName is set for this geometry, put it in the context for
         // children, so they can use it as well
         if (node.hasAttribute("srsName")) {
@@ -68,8 +66,7 @@ public class AbstractGeometryTypeBinding
                 CRS.decode(node.getAttributeValue("srsName").toString());
             }
         } catch (NoSuchAuthorityCodeException e) {
-            throw new WFSException(
-                    "Invalid Authority Code: " + e.getAuthorityCode(), "InvalidParameterValue");
+            throw new WFSException("Invalid Authority Code: " + e.getAuthorityCode(), "InvalidParameterValue");
         }
 
         Geometry geometry = (Geometry) super.parse(instance, node, value);

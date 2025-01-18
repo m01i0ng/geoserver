@@ -39,8 +39,7 @@ public class WfsXmlReader extends XmlRequestReader {
         this(element, configuration, geoServer, "wfs");
     }
 
-    protected WfsXmlReader(
-            String element, Configuration configuration, GeoServer geoServer, String serviceId) {
+    protected WfsXmlReader(String element, Configuration configuration, GeoServer geoServer, String serviceId) {
         super(new QName(WFS.NAMESPACE, element), new Version("1.0.0"), serviceId);
         this.configuration = configuration;
         this.geoServer = geoServer;
@@ -72,8 +71,12 @@ public class WfsXmlReader extends XmlRequestReader {
         parser.setEntityExpansionLimit(WFSXmlUtils.getEntityExpansionLimitConfiguration());
 
         // parse
-        Object parsed = parser.parse(reader);
-
+        Object parsed = null;
+        try {
+            parsed = parser.parse(reader);
+        } catch (Exception e) {
+            throw cleanException(e);
+        }
         // if strict was set, check for validation errors and throw an exception
         if (strict.booleanValue() && !parser.getValidationErrors().isEmpty()) {
             WFSException exception = new WFSException("Invalid request", "InvalidParameterValue");

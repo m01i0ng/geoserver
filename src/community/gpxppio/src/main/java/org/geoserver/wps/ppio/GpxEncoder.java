@@ -17,6 +17,13 @@ import java.util.TimeZone;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
+import org.geotools.api.feature.Property;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.type.Name;
+import org.geotools.api.referencing.FactoryException;
+import org.geotools.api.referencing.NoSuchAuthorityCodeException;
+import org.geotools.api.referencing.crs.CRSAuthorityFactory;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.store.ReprojectingFeatureCollection;
 import org.geotools.feature.FeatureIterator;
@@ -27,17 +34,10 @@ import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.MultiLineString;
 import org.locationtech.jts.geom.MultiPoint;
 import org.locationtech.jts.geom.Point;
-import org.opengis.feature.Property;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.type.Name;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.NoSuchAuthorityCodeException;
-import org.opengis.referencing.crs.CRSAuthorityFactory;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
- * Encoder class to encode SimpleFeatureCollection to GPX The encoder uses only a XMLStreamWriter
- * for simplicity and performance sake.
+ * Encoder class to encode SimpleFeatureCollection to GPX The encoder uses only a XMLStreamWriter for simplicity and
+ * performance sake.
  */
 public class GpxEncoder {
     boolean writeExtendedData = false;
@@ -80,8 +80,7 @@ public class GpxEncoder {
 
         CRSAuthorityFactory crsFactory = CRS.getAuthorityFactory(true);
 
-        CoordinateReferenceSystem targetCRS =
-                crsFactory.createCoordinateReferenceSystem("EPSG:4326");
+        CoordinateReferenceSystem targetCRS = crsFactory.createCoordinateReferenceSystem("EPSG:4326");
         collection = new ReprojectingFeatureCollection(collection, targetCRS);
 
         XMLOutputFactory xmlFactory = XMLOutputFactory.newInstance();
@@ -170,13 +169,11 @@ public class GpxEncoder {
             throws XMLStreamException {
         Coordinate[] coordinates = ls.getCoordinates();
         for (int ic = 0; ic < coordinates.length; ic++) {
-            writeWpt(
-                    writer, ptElementName, coordinates[ic].x, coordinates[ic].y, coordinates[ic].z);
+            writeWpt(writer, ptElementName, coordinates[ic].x, coordinates[ic].y, coordinates[ic].z);
         }
     }
 
-    private void writeWpt(
-            XMLStreamWriter writer, String ptElementName, double x, double y, double z)
+    private void writeWpt(XMLStreamWriter writer, String ptElementName, double x, double y, double z)
             throws XMLStreamException {
         writer.writeStartElement(ptElementName);
         writer.writeAttribute("lat", format.format(y));
@@ -193,8 +190,7 @@ public class GpxEncoder {
         writer.writeEndElement();
     }
 
-    private void writeRte(XMLStreamWriter writer, LineString ls, SimpleFeature f)
-            throws XMLStreamException {
+    private void writeRte(XMLStreamWriter writer, LineString ls, SimpleFeature f) throws XMLStreamException {
         writer.writeStartElement("rte");
         if (writeExtendedData) {
             writeData(writer, f);
@@ -203,8 +199,7 @@ public class GpxEncoder {
         writer.writeEndElement();
     }
 
-    private void writeWpt(XMLStreamWriter writer, Point pt, SimpleFeature f)
-            throws XMLStreamException {
+    private void writeWpt(XMLStreamWriter writer, Point pt, SimpleFeature f) throws XMLStreamException {
         writer.writeStartElement("wpt");
         Coordinate c = pt.getCoordinate();
         writer.writeAttribute("lon", format.format(c.x));

@@ -9,6 +9,10 @@ import java.util.NoSuchElementException;
 import org.geoserver.kml.KmlEncodingContext;
 import org.geoserver.kml.utils.KmlCentroidBuilder;
 import org.geoserver.kml.utils.KmlCentroidOptions;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.geotools.api.feature.type.AttributeDescriptor;
+import org.geotools.api.feature.type.GeometryDescriptor;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.collection.DecoratingSimpleFeatureCollection;
@@ -17,14 +21,10 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.AttributeDescriptor;
-import org.opengis.feature.type.GeometryDescriptor;
 
 /**
- * Wraps a generic feature collection and returns a collection whose feature geometries are the
- * centroids of the original features
+ * Wraps a generic feature collection and returns a collection whose feature geometries are the centroids of the
+ * original features
  *
  * @author Andrea Aime - GeoSolutions
  */
@@ -34,8 +34,7 @@ class KMLCentroidFeatureCollection extends DecoratingSimpleFeatureCollection {
     private KmlEncodingContext context;
 
     protected KMLCentroidFeatureCollection(
-            FeatureCollection<SimpleFeatureType, SimpleFeature> delegate,
-            KmlEncodingContext context) {
+            FeatureCollection<SimpleFeatureType, SimpleFeature> delegate, KmlEncodingContext context) {
         super(delegate);
         this.context = context;
 
@@ -75,9 +74,7 @@ class KMLCentroidFeatureCollection extends DecoratingSimpleFeatureCollection {
         private KmlCentroidOptions centroidOpts;
 
         public KMLCentroidFeatureIterator(
-                SimpleFeatureIterator features,
-                SimpleFeatureType schema,
-                KmlEncodingContext context) {
+                SimpleFeatureIterator features, SimpleFeatureType schema, KmlEncodingContext context) {
             this.delegate = features;
             this.builder = new SimpleFeatureBuilder(schema);
             this.centroids = new KmlCentroidBuilder();
@@ -96,9 +93,8 @@ class KMLCentroidFeatureCollection extends DecoratingSimpleFeatureCollection {
             for (Object attribute : f.getAttributes()) {
                 if ((attribute instanceof Geometry) && !(attribute instanceof Point)) {
                     Geometry geom = (Geometry) attribute;
-                    Coordinate point =
-                            centroids.geometryCentroid(
-                                    geom, context.getRequest().getBbox(), centroidOpts);
+                    Coordinate point = centroids.geometryCentroid(
+                            geom, context.getRequest().getBbox(), centroidOpts);
                     attribute = geom.getFactory().createPoint(point);
                 }
                 builder.add(attribute);

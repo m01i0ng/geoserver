@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
+import org.geotools.api.util.ProgressListener;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.process.ProcessException;
 import org.geotools.process.ProcessFactory;
@@ -17,7 +18,6 @@ import org.geotools.process.factory.DescribeParameter;
 import org.geotools.process.factory.DescribeProcess;
 import org.geotools.process.factory.DescribeResult;
 import org.geotools.util.SimpleInternationalString;
-import org.opengis.util.ProgressListener;
 
 @DescribeProcess(title = "Monkey", description = "Process used to test asynch calls")
 public class MonkeyProcess {
@@ -42,11 +42,10 @@ public class MonkeyProcess {
         }
     }
 
-    public static void exit(String id, SimpleFeatureCollection value, boolean wait)
-            throws InterruptedException {
+    public static void exit(String id, SimpleFeatureCollection value, boolean wait) throws InterruptedException {
         getCommandQueue(id).put(new Command(CommandType.Exit, value));
         if (wait) {
-            while (getCommandQueue(id).size() > 0) {
+            while (!getCommandQueue(id).isEmpty()) {
                 Thread.sleep(10);
             }
         }
@@ -62,11 +61,10 @@ public class MonkeyProcess {
         return queue;
     }
 
-    public static void progress(String id, float progress, boolean wait)
-            throws InterruptedException {
+    public static void progress(String id, float progress, boolean wait) throws InterruptedException {
         getCommandQueue(id).put(new Command(CommandType.SetProgress, progress));
         if (wait) {
-            while (getCommandQueue(id).size() > 0) {
+            while (!getCommandQueue(id).isEmpty()) {
                 Thread.sleep(10);
             }
         }
@@ -76,11 +74,10 @@ public class MonkeyProcess {
         getCommandQueue(id).put(new Command(CommandType.Wait, wait));
     }
 
-    public static void exception(String id, ProcessException exception, boolean wait)
-            throws InterruptedException {
+    public static void exception(String id, ProcessException exception, boolean wait) throws InterruptedException {
         getCommandQueue(id).put(new Command(CommandType.Exception, exception));
         if (wait) {
-            while (getCommandQueue(id).size() > 0) {
+            while (!getCommandQueue(id).isEmpty()) {
                 Thread.sleep(10);
             }
         }
@@ -122,12 +119,11 @@ public class MonkeyProcess {
 
     public static void clearCommands() {
         for (Map.Entry<String, BlockingQueue<MonkeyProcess.Command>> entry : commands.entrySet()) {
-            if (entry.getValue().size() > 0) {
-                throw new IllegalStateException(
-                        "The command queue is not clean, queue "
-                                + entry.getKey()
-                                + " still has commands in: "
-                                + entry.getValue());
+            if (!entry.getValue().isEmpty()) {
+                throw new IllegalStateException("The command queue is not clean, queue "
+                        + entry.getKey()
+                        + " still has commands in: "
+                        + entry.getValue());
             }
         }
 

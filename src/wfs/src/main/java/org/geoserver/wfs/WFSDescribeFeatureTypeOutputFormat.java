@@ -8,7 +8,6 @@ package org.geoserver.wfs;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Set;
-import net.opengis.wfs.FeatureCollectionType;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.config.GeoServer;
 import org.geoserver.ows.SOAPAwareResponse;
@@ -19,16 +18,14 @@ import org.geoserver.wfs.response.WFSResponse;
 /**
  * Base class for a response to a WFS DescribeFeatureType operation.
  *
- * <p>The result of a DescribeFeatureType operation is an array of {@link FeatureTypeInfo}.
- * Subclasses are responsible for serializing these instances. See {@link
- * #write(FeatureCollectionType, OutputStream, Operation)}.
+ * <p>The result of a DescribeFeatureType operation is an array of {@link FeatureTypeInfo}. Subclasses are responsible
+ * for serializing these instances. See {@link #write(Object, OutputStream, Operation)}.
  *
  * <p>Subclasses also need declare the mime-type in which the format is encoded.
  *
  * @author Justin Deoliveira, The Open Planning Project
  */
-public abstract class WFSDescribeFeatureTypeOutputFormat extends WFSResponse
-        implements SOAPAwareResponse {
+public abstract class WFSDescribeFeatureTypeOutputFormat extends WFSResponse implements SOAPAwareResponse {
     /**
      * Constructor which sets the outputFormat.
      *
@@ -82,8 +79,7 @@ public abstract class WFSDescribeFeatureTypeOutputFormat extends WFSResponse
      * @param describeFeatureType The DescribeFeatureType operation descriptor.
      */
     protected abstract void write(
-            FeatureTypeInfo[] featureTypeInfos, OutputStream output, Operation describeFeatureType)
-            throws IOException;
+            FeatureTypeInfo[] featureTypeInfos, OutputStream output, Operation describeFeatureType) throws IOException;
 
     @Override
     public String getAttachmentFileName(Object value, Operation operation) {

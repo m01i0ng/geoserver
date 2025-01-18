@@ -24,13 +24,13 @@ import org.geoserver.monitor.MonitorTestData;
 import org.geoserver.monitor.RequestData;
 import org.geoserver.rest.RestBaseController;
 import org.geoserver.test.GeoServerSystemTestSupport;
+import org.geotools.api.filter.Filter;
 import org.geotools.filter.text.cql2.CQL;
 import org.geotools.filter.text.cql2.CQLException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.opengis.filter.Filter;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 public class RESTMonitorCallbackTest extends GeoServerSystemTestSupport {
@@ -54,25 +54,24 @@ public class RESTMonitorCallbackTest extends GeoServerSystemTestSupport {
         MonitorDAO dao = new MemoryMonitorDAO();
         new MonitorTestData(dao).setup();
 
-        MonitorConfig mc =
-                new MonitorConfig() {
+        MonitorConfig mc = new MonitorConfig() {
 
-                    @Override
-                    public MonitorDAO createDAO() {
-                        MonitorDAO dao = new MemoryMonitorDAO();
-                        try {
-                            new MonitorTestData(dao).setup();
-                            return dao;
-                        } catch (java.text.ParseException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
+            @Override
+            public MonitorDAO createDAO() {
+                MonitorDAO dao = new MemoryMonitorDAO();
+                try {
+                    new MonitorTestData(dao).setup();
+                    return dao;
+                } catch (java.text.ParseException e) {
+                    throw new RuntimeException(e);
+                }
+            }
 
-                    @Override
-                    public BboxMode getBboxMode() {
-                        return BboxMode.FULL;
-                    }
-                };
+            @Override
+            public BboxMode getBboxMode() {
+                return BboxMode.FULL;
+            }
+        };
 
         GeoServer gs = createMock(GeoServer.class);
         monitor = new Monitor(mc);
@@ -115,8 +114,7 @@ public class RESTMonitorCallbackTest extends GeoServerSystemTestSupport {
 
     @Test
     public void testURLEncodedRequestPathInfo() throws Exception {
-        MockHttpServletResponse response =
-                getAsServletResponse(RestBaseController.ROOT_PATH + "/layers/foo");
+        MockHttpServletResponse response = getAsServletResponse(RestBaseController.ROOT_PATH + "/layers/foo");
         assertEquals(404, response.getStatus());
 
         assertEquals("foo", data.getResources().get(1));

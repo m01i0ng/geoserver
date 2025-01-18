@@ -20,7 +20,7 @@ import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.PropertyModel;
-import org.geotools.data.DataStoreFactorySpi;
+import org.geotools.api.data.DataStoreFactorySpi;
 import org.geotools.data.oracle.OracleNGDataStoreFactory;
 import org.geotools.data.oracle.OracleNGJNDIDataStoreFactory;
 import org.geotools.data.oracle.OracleNGOCIDataStoreFactory;
@@ -112,12 +112,8 @@ public class OraclePanel extends AbstractDbPanel {
             super(id);
 
             add(new TextField<>("alias", new PropertyModel<>(this, "alias")).setRequired(true));
-            add(
-                    new TextField<>("username", new PropertyModel<>(this, "username"))
-                            .setRequired(true));
-            add(
-                    new PasswordTextField("password", new PropertyModel<>(this, "password"))
-                            .setResetPassword(false));
+            add(new TextField<>("username", new PropertyModel<>(this, "username")).setRequired(true));
+            add(new PasswordTextField("password", new PropertyModel<>(this, "password")).setResetPassword(false));
         }
     }
 }

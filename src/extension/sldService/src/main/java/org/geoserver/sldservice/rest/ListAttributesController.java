@@ -27,7 +27,7 @@ import org.geoserver.config.util.XStreamPersister;
 import org.geoserver.rest.RestBaseController;
 import org.geoserver.rest.catalog.AbstractCatalogController;
 import org.geoserver.rest.converters.XStreamMessageConverter;
-import org.opengis.feature.type.PropertyDescriptor;
+import org.geotools.api.feature.type.PropertyDescriptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.CacheControl;
@@ -73,11 +73,7 @@ public class ListAttributesController extends AbstractCatalogController {
 
     @GetMapping(
             path = "/{layerName}/attributes",
-            produces = {
-                MediaType.APPLICATION_JSON_VALUE,
-                MediaType.APPLICATION_XML_VALUE,
-                MediaType.TEXT_HTML_VALUE
-            })
+            produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE, MediaType.TEXT_HTML_VALUE})
     public Object attributes(
             @PathVariable String layerName,
             @RequestParam(value = "cache", required = false, defaultValue = "600") long cachingTime,
@@ -91,7 +87,7 @@ public class ListAttributesController extends AbstractCatalogController {
                             .getHeaderValue());
         }
         if (layerInfo == null) {
-            return wrapObject(new ArrayList(), ArrayList.class);
+            return wrapObject(new ArrayList<>(), ArrayList.class);
         }
 
         if (layerInfo != null && layerInfo.getResource() instanceof FeatureTypeInfo) {
@@ -116,7 +112,7 @@ public class ListAttributesController extends AbstractCatalogController {
                 return wrapObject(out, LayerAttributesList.class);
             }
         }
-        return wrapObject(new ArrayList(), ArrayList.class);
+        return wrapObject(new ArrayList<>(), ArrayList.class);
     }
 
     @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Error generating Attributes List!")
@@ -177,9 +173,7 @@ public class ListAttributesController extends AbstractCatalogController {
     /** @author Fabiani */
     public class LayerAttributesListConverter implements Converter {
 
-        /**
-         * @see com.thoughtworks.xstream.converters.ConverterMatcher#canConvert(java .lang.Class)
-         */
+        /** @see com.thoughtworks.xstream.converters.ConverterMatcher#canConvert(java .lang.Class) */
         @Override
         public boolean canConvert(Class clazz) {
             return LayerAttributesList.class.isAssignableFrom(clazz);
@@ -191,8 +185,7 @@ public class ListAttributesController extends AbstractCatalogController {
          *     com.thoughtworks.xstream.converters.MarshallingContext)
          */
         @Override
-        public void marshal(
-                Object value, HierarchicalStreamWriter writer, MarshallingContext context) {
+        public void marshal(Object value, HierarchicalStreamWriter writer, MarshallingContext context) {
             final LayerAttributesList obj = (LayerAttributesList) value;
 
             writer.addAttribute("layer", obj.getLayerName());
@@ -215,8 +208,7 @@ public class ListAttributesController extends AbstractCatalogController {
 
         /**
          * @see com.thoughtworks.xstream.converters.Converter#unmarshal(com.thoughtworks
-         *     .xstream.io.HierarchicalStreamReader,
-         *     com.thoughtworks.xstream.converters.UnmarshallingContext)
+         *     .xstream.io.HierarchicalStreamReader, com.thoughtworks.xstream.converters.UnmarshallingContext)
          */
         @Override
         public Object unmarshal(HierarchicalStreamReader arg0, UnmarshallingContext arg1) {
