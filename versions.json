@@ -1,7 +1,10 @@
 [
   {
     "version": "latest",
-    "title": "Latest (3.0 dev)",
-    "aliases": []
+    "title": "Latest",
+    "aliases": [
+      "3.0.x",
+      "main"
+    ]
   }
 ]
