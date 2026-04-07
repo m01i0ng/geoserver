@@ -8,7 +8,7 @@
       
       
       
-        <link rel="canonical" href="https://docs.geoserver.org/3.0.x/en/user/styling/workshop/css/css/">
+        <link rel="canonical" href="https://docs.geoserver.org/3.0.x/latest/en/user/styling/workshop/css/css/">
       
       
         <link rel="prev" href="../../design/style/">
@@ -9068,14 +9068,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../services/wms/basics.md" class="md-nav__link">
+      <a href="../../../../services/wms/basics/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    None
+    WMS basics
   
 
     
@@ -9882,6 +9882,8 @@
     
       
         
+          
+        
       
         
       
@@ -9913,8 +9915,9 @@
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_8_5" >
         
           
-          <label class="md-nav__link" for="__nav_2_8_5" id="__nav_2_8_5_label" tabindex="0">
-            
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../services/wcs/" class="md-nav__link ">
+              
   
   
   <span class="md-ellipsis">
@@ -9928,8 +9931,14 @@
   
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_8_5" id="__nav_2_8_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
         
         <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_8_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2_8_5">
@@ -9942,32 +9951,6 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../../../services/wcs/index.md" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    None
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
               
             
               
@@ -10033,14 +10016,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../services/wcs/basics.md" class="md-nav__link">
+      <a href="../../../../services/wcs/basics/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    None
+    WCS basics
   
 
     
@@ -10750,6 +10733,8 @@
     
       
         
+          
+        
       
         
       
@@ -10771,8 +10756,9 @@
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_8_8" >
         
           
-          <label class="md-nav__link" for="__nav_2_8_8" id="__nav_2_8_8_label" tabindex="0">
-            
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../services/csw/" class="md-nav__link ">
+              
   
   
   <span class="md-ellipsis">
@@ -10786,8 +10772,14 @@
   
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_8_8" id="__nav_2_8_8_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
         
         <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_8_8_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2_8_8">
@@ -10800,32 +10792,6 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../../../services/csw/index.md" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    None
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
               
             
               
@@ -30666,8 +30632,8 @@
 <p>To confirm everything works, let's reproduce the airports style above.</p>
 <ol>
 <li>Navigate to the <strong>Styles</strong> page.</li>
-<li>Each time we edit a style, the contents of the associated SLD file are replaced. Rather than disrupt any of our existing styles we will create a new style. Click <strong>Add a new style</strong> and choose the following:</li>
-</ol>
+<li>
+<p>Each time we edit a style, the contents of the associated SLD file are replaced. Rather than disrupt any of our existing styles we will create a new style. Click <strong>Add a new style</strong> and choose the following:</p>
 <table>
 <thead>
 <tr>
@@ -30686,9 +30652,7 @@
 </tr>
 </tbody>
 </table>
-<!-- mkdocs-translate: removed 3 spaces indentation -->
-
-<ol>
+</li>
 <li>
 <p>Replace the initial YSLD definition with our airport CSS example and click <strong>Apply</strong>:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="o">*</span><span class="w"> </span><span class="p">{</span>

@@ -8,7 +8,7 @@
       
       
       
-        <link rel="canonical" href="https://docs.geoserver.org/3.0.x/en/user/styling/sld/extensions/pointsymbols/">
+        <link rel="canonical" href="https://docs.geoserver.org/3.0.x/latest/en/user/styling/sld/extensions/pointsymbols/">
       
       
         <link rel="prev" href="../rendering-transform/">
@@ -9062,14 +9062,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../services/wms/basics.md" class="md-nav__link">
+      <a href="../../../../services/wms/basics/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    None
+    WMS basics
   
 
     
@@ -9876,6 +9876,8 @@
     
       
         
+          
+        
       
         
       
@@ -9907,8 +9909,9 @@
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_8_5" >
         
           
-          <label class="md-nav__link" for="__nav_2_8_5" id="__nav_2_8_5_label" tabindex="0">
-            
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../services/wcs/" class="md-nav__link ">
+              
   
   
   <span class="md-ellipsis">
@@ -9922,8 +9925,14 @@
   
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_8_5" id="__nav_2_8_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
         
         <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_8_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2_8_5">
@@ -9936,32 +9945,6 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../../../services/wcs/index.md" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    None
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
               
             
               
@@ -10027,14 +10010,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../../services/wcs/basics.md" class="md-nav__link">
+      <a href="../../../../services/wcs/basics/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    None
+    WCS basics
   
 
     
@@ -10744,6 +10727,8 @@
     
       
         
+          
+        
       
         
       
@@ -10765,8 +10750,9 @@
         <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_8_8" >
         
           
-          <label class="md-nav__link" for="__nav_2_8_8" id="__nav_2_8_8_label" tabindex="0">
-            
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../../services/csw/" class="md-nav__link ">
+              
   
   
   <span class="md-ellipsis">
@@ -10780,8 +10766,14 @@
   
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2_8_8" id="__nav_2_8_8_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
         
         <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_8_8_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2_8_8">
@@ -10794,32 +10786,6 @@
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../../../services/csw/index.md" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    None
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
               
             
               
@@ -30469,8 +30435,8 @@
 <p>The shape symbols set adds extra symbols that are not part of the basic set.</p>
 <ol>
 <li>To enable ensure that the WMS Settings <code>Mark Factory Precedence</code> has <code>ShapeMarkFactory</code> selected.</li>
-<li>The shape symbols are prefixed by <code>shape://</code></li>
-</ol>
+<li>
+<p>The shape symbols are prefixed by <code>shape://</code></p>
 <table>
 <thead>
 <tr>
@@ -30517,14 +30483,14 @@
 </tr>
 </tbody>
 </table>
-<!-- mkdocs-translate: removed 3 spaces indentation -->
-
+</li>
+</ol>
 <h3 id="weather-symbols">Weather Symbols<a class="headerlink" href="#weather-symbols" title="Permanent link">&para;</a></h3>
 <p>The weather symbols are prefixed by the <code>extshape://</code> protocol in the SLD:</p>
 <ol>
 <li>To enable ensure that the WMS Settings <code>Mark Factory Precedence</code> has <code>MeteoMarkFactory</code> selected.</li>
-<li>These symbols are:</li>
-</ol>
+<li>
+<p>These symbols are:</p>
 <table>
 <thead>
 <tr>
@@ -30551,11 +30517,9 @@
 </tr>
 </tbody>
 </table>
-<!-- mkdocs-translate: removed 3 spaces indentation -->
-
-<ol>
-<li>You can use <code>extshape://</code> for a few additional built-in shapes:</li>
-</ol>
+</li>
+<li>
+<p>You can use <code>extshape://</code> for a few additional built-in shapes:</p>
 <table>
 <thead>
 <tr>
@@ -30570,13 +30534,13 @@
 </tr>
 </tbody>
 </table>
-<!-- mkdocs-translate: removed 3 spaces indentation -->
-
 <p>More complex symbols like Wind Barbs can be created with the <code>windbarbs://</code> prefix.</p>
-<ol>
-<li>To enable ensure that the WMS Settings <code>Mark Factory Precedence</code> has <code>WindBarbsmFactory</code> selected.</li>
-<li>There are some examples:</li>
-</ol>
+</li>
+<li>
+<p>To enable ensure that the WMS Settings <code>Mark Factory Precedence</code> has <code>WindBarbsmFactory</code> selected.</p>
+</li>
+<li>
+<p>There are some examples:</p>
 <table>
 <thead>
 <tr>
@@ -30595,8 +30559,8 @@
 </tr>
 </tbody>
 </table>
-<!-- mkdocs-translate: removed 3 spaces indentation -->
-
+</li>
+</ol>
 <h3 id="custom-wkt-shapes">Custom WKT Shapes<a class="headerlink" href="#custom-wkt-shapes" title="Permanent link">&para;</a></h3>
 <p>Custom shapes can be defined using your own Geometry, to enable use WMS Settings <strong>Mark Factory Precedence</strong> to select <code>WKTMarkFactory</code>. Geometry is defined using the same well-known-text format used for CQL_FILTER.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">&lt;LineSymbolizer&gt;</span>
